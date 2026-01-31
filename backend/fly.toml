@@ -3,7 +3,7 @@
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'e-cert-study-api'
+app = 'e-cert-study-api-ym'
 primary_region = 'nrt'
 
 [build]
