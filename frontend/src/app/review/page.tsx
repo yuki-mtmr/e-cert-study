@@ -17,19 +17,23 @@ export default function ReviewPage() {
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [remainingIds, setRemainingIds] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [idsLoaded, setIdsLoaded] = useState(false);
 
-  // 復習対象の問題IDを取得（初期化完了後）
+  // 復習対象の問題IDを取得（初期化完了後、一度だけ）
   useEffect(() => {
     // 初期化完了まで待つ
     if (!isInitialized) return;
+    // すでにロード済みならスキップ
+    if (idsLoaded) return;
 
     const ids = getIncorrectQuestionIds();
     setRemainingIds(ids);
+    setIdsLoaded(true);
     if (ids.length === 0) {
       setLoading(false);
       setError('復習する問題がありません。問題演習を行ってください。');
     }
-  }, [isInitialized, getIncorrectQuestionIds]);
+  }, [isInitialized, idsLoaded, getIncorrectQuestionIds]);
 
   const loadQuestion = useCallback(async (questionId: string) => {
     setLoading(true);
