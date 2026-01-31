@@ -40,6 +40,8 @@ export default function ReviewPage() {
 
     try {
       const q = await fetchQuestionById(questionId);
+      console.log('Fetched question:', q);
+      console.log('correctAnswer:', q?.correctAnswer);
       if (q) {
         setQuestion(q);
       } else {
@@ -68,6 +70,7 @@ export default function ReviewPage() {
   const handleAnswer = async (selected: number) => {
     if (!question || !userId) return;
 
+    console.log('handleAnswer called:', { selected, correctAnswer: question.correctAnswer });
     setSelectedAnswer(selected);
 
     try {
@@ -77,16 +80,18 @@ export default function ReviewPage() {
         selectedAnswer: selected,
       });
 
+      console.log('submitAnswer response:', answer);
       setIsCorrect(answer.isCorrect);
       recordAnswer(question.id, answer.isCorrect);
       setShowResult(true);
     } catch (e) {
       // API接続エラーの場合はローカルで判定
+      console.error('submitAnswer error:', e);
       const correct = selected === question.correctAnswer;
+      console.log('Local evaluation:', { selected, correctAnswer: question.correctAnswer, correct });
       setIsCorrect(correct);
       recordAnswer(question.id, correct);
       setShowResult(true);
-      console.error('Answer submission failed, using local evaluation:', e);
     }
   };
 
