@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useLocalProgress } from '@/hooks/useLocalProgress';
 
 export default function Home() {
-  const { stats, userId } = useLocalProgress();
+  const { stats, userId, getIncorrectQuestionIds } = useLocalProgress();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -84,9 +84,9 @@ export default function Home() {
               間違えた問題を重点的に復習します。
               苦手分野を克服しましょう。
             </p>
-            {stats.incorrectCount > 0 && (
+            {getIncorrectQuestionIds().length > 0 && (
               <span className="inline-block mt-2 bg-red-100 text-red-800 text-sm px-2 py-1 rounded">
-                {stats.incorrectCount}問の復習待ち
+                {getIncorrectQuestionIds().length}問の復習待ち
               </span>
             )}
           </Link>
