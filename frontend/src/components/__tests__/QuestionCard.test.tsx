@@ -104,4 +104,32 @@ describe('QuestionCard', () => {
 
     expect(screen.getByText(/難易度/)).toBeInTheDocument();
   });
+
+  it('問題が変わると選択状態がリセットされる', () => {
+    const newQuestion: Question = {
+      ...mockQuestion,
+      id: '2',
+      content: '別の問題',
+    };
+
+    const { rerender } = render(
+      <QuestionCard question={mockQuestion} onAnswer={vi.fn()} />
+    );
+
+    // 最初の問題で選択肢をクリック
+    const choice = screen.getByText('非線形性の導入');
+    fireEvent.click(choice);
+    expect(choice.closest('button')).toHaveClass('selected');
+
+    // 問題を切り替え
+    rerender(<QuestionCard question={newQuestion} onAnswer={vi.fn()} />);
+
+    // 選択状態がリセットされていることを確認
+    const choiceAfterRerender = screen.getByText('非線形性の導入');
+    expect(choiceAfterRerender.closest('button')).not.toHaveClass('selected');
+
+    // 回答ボタンが無効になっていることを確認
+    const submitButton = screen.getByRole('button', { name: /回答する/i });
+    expect(submitButton).toBeDisabled();
+  });
 });

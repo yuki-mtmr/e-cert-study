@@ -26,7 +26,11 @@ class Settings(BaseSettings):
         "http://localhost:3002",
         # 本番環境（Vercel）
         "https://e-cert-study.vercel.app",
+        "https://e-cert-study-bg9uguen4-matts-projects-d5aa6f04.vercel.app",
     ]
+
+    # 環境変数で追加のオリジンを指定可能（カンマ区切り）
+    extra_allowed_origins: str = ""
 
     # API Keys
     google_api_key: str = ""

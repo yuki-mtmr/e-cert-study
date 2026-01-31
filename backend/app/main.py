@@ -24,9 +24,15 @@ app = FastAPI(
 )
 
 # CORS設定
+# 環境変数で追加のオリジンを指定可能
+allowed_origins = settings.allowed_origins.copy()
+if settings.extra_allowed_origins:
+    extra = [o.strip() for o in settings.extra_allowed_origins.split(",") if o.strip()]
+    allowed_origins.extend(extra)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_origins,
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

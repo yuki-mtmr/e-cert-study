@@ -71,11 +71,18 @@ export function useLocalProgress() {
     }));
   }, []);
 
-  // 間違えた問題のIDを取得
+  // 間違えた問題のIDを取得（最新の結果が不正解の問題のみ）
   const getIncorrectQuestionIds = useCallback((): string[] => {
-    return progressData.answers
-      .filter((a) => !a.isCorrect)
-      .map((a) => a.questionId);
+    // 各問題の最新の回答結果を取得
+    const latestResults = new Map<string, boolean>();
+    for (const answer of progressData.answers) {
+      latestResults.set(answer.questionId, answer.isCorrect);
+    }
+
+    // 最新の結果が不正解の問題のIDを返す
+    return Array.from(latestResults.entries())
+      .filter(([, isCorrect]) => !isCorrect)
+      .map(([questionId]) => questionId);
   }, [progressData.answers]);
 
   // 進捗をリセット

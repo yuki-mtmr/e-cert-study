@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Question } from '@/types';
 import { MarkdownRenderer } from './MarkdownRenderer';
 
@@ -28,6 +28,11 @@ export function QuestionCard({
   const [selected, setSelected] = useState<number | null>(
     selectedAnswer ?? null
   );
+
+  // 問題が変わったら選択状態をリセット
+  useEffect(() => {
+    setSelected(selectedAnswer ?? null);
+  }, [question.id, selectedAnswer]);
 
   const handleChoiceClick = (index: number) => {
     if (!showResult) {

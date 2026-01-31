@@ -80,6 +80,34 @@ describe('useLocalProgress', () => {
     expect(result.current.getIncorrectQuestionIds()).toEqual(['q2', 'q3']);
   });
 
+  it('同じ問題を複数回間違えても重複しない', () => {
+    const { result } = renderHook(() => useLocalProgress());
+
+    act(() => {
+      result.current.recordAnswer('q1', false);
+      result.current.recordAnswer('q1', false); // 同じ問題をもう一度間違える
+      result.current.recordAnswer('q2', false);
+    });
+
+    // ユニークなIDのみを返す
+    const incorrectIds = result.current.getIncorrectQuestionIds();
+    expect(incorrectIds).toEqual(['q1', 'q2']);
+    expect(incorrectIds.length).toBe(2); // 3ではなく2
+  });
+
+  it('一度間違えて後で正解した問題は復習対象から除外', () => {
+    const { result } = renderHook(() => useLocalProgress());
+
+    act(() => {
+      result.current.recordAnswer('q1', false); // 間違える
+      result.current.recordAnswer('q1', true);  // 後で正解
+      result.current.recordAnswer('q2', false); // これは間違えたまま
+    });
+
+    // 最新の結果が正解なら復習対象から除外
+    expect(result.current.getIncorrectQuestionIds()).toEqual(['q2']);
+  });
+
   it('localStorageに保存される', () => {
     const { result } = renderHook(() => useLocalProgress());
 
