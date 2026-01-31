@@ -1,0 +1,45 @@
+"""FastAPIアプリケーションのエントリーポイント"""
+import logging
+import sys
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.api import questions, answers, categories, stats
+from app.core.config import settings
+
+# ログ設定: appモジュール以下のログをINFOレベルで出力
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)],
+)
+# appモジュールのログレベルをINFOに設定
+logging.getLogger("app").setLevel(logging.INFO)
+
+app = FastAPI(
+    title="E資格学習API",
+    description="E資格学習アプリのバックエンドAPI",
+    version="0.1.0",
+)
+
+# CORS設定
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ルーター登録
+app.include_router(questions.router)
+app.include_router(answers.router)
+app.include_router(categories.router)
+app.include_router(stats.router)
+
+
+@app.get("/health")
+async def health_check() -> dict[str, str]:
+    """ヘルスチェックエンドポイント"""
+    return {"status": "healthy"}
