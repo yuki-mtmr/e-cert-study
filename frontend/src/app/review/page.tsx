@@ -35,41 +35,41 @@ export default function ReviewPage() {
     }
   }, [isInitialized, idsLoaded, getIncorrectQuestionIds]);
 
-  const loadQuestion = useCallback(async (questionId: string) => {
-    setLoading(true);
-    setError(null);
-    setShowResult(false);
-    setSelectedAnswer(null);
-    setIsCorrect(null);
-
-    try {
-      const q = await fetchQuestionById(questionId);
-      console.log('Fetched question:', q);
-      console.log('correctAnswer:', q?.correctAnswer);
-      if (q) {
-        setQuestion(q);
-      } else {
-        // APIから取得できない場合は次の問題へ
-        if (currentIndex + 1 < remainingIds.length) {
-          setCurrentIndex(prev => prev + 1);
-        } else {
-          setError('復習する問題がありません。');
-        }
-      }
-    } catch (e) {
-      setError('問題の読み込みに失敗しました。');
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentIndex, remainingIds.length]);
-
   // 問題を読み込む
   useEffect(() => {
-    if (remainingIds.length > 0 && currentIndex < remainingIds.length) {
-      loadQuestion(remainingIds[currentIndex]);
+    if (remainingIds.length === 0 || currentIndex >= remainingIds.length) {
+      return;
     }
-  }, [remainingIds, currentIndex, loadQuestion]);
+
+    const questionId = remainingIds[currentIndex];
+
+    const loadQuestion = async () => {
+      setLoading(true);
+      setError(null);
+      setShowResult(false);
+      setSelectedAnswer(null);
+      setIsCorrect(null);
+
+      try {
+        const q = await fetchQuestionById(questionId);
+        console.log('Fetched question:', q);
+        console.log('correctAnswer:', q?.correctAnswer);
+        if (q) {
+          setQuestion(q);
+        } else {
+          // APIから取得できない場合は次の問題へ
+          setCurrentIndex(prev => prev + 1);
+        }
+      } catch (e) {
+        setError('問題の読み込みに失敗しました。');
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadQuestion();
+  }, [remainingIds, currentIndex]);
 
   const handleAnswer = async (selected: number) => {
     if (!question || !userId) return;
