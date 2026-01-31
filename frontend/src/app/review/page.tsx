@@ -8,7 +8,7 @@ import { fetchQuestionById, submitAnswer } from '@/lib/api';
 import type { Question } from '@/types';
 
 export default function ReviewPage() {
-  const { userId, recordAnswer, getIncorrectQuestionIds, stats } = useLocalProgress();
+  const { userId, recordAnswer, getIncorrectQuestionIds, stats, isInitialized } = useLocalProgress();
   const [question, setQuestion] = useState<Question | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -18,15 +18,18 @@ export default function ReviewPage() {
   const [remainingIds, setRemainingIds] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // 復習対象の問題IDを取得
+  // 復習対象の問題IDを取得（初期化完了後）
   useEffect(() => {
+    // 初期化完了まで待つ
+    if (!isInitialized) return;
+
     const ids = getIncorrectQuestionIds();
     setRemainingIds(ids);
     if (ids.length === 0) {
       setLoading(false);
       setError('復習する問題がありません。問題演習を行ってください。');
     }
-  }, [getIncorrectQuestionIds]);
+  }, [isInitialized, getIncorrectQuestionIds]);
 
   const loadQuestion = useCallback(async (questionId: string) => {
     setLoading(true);

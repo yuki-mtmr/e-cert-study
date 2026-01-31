@@ -161,4 +161,25 @@ describe('useLocalProgress', () => {
     expect(result.current.userId).toBeDefined();
     expect(result.current.userId.length).toBeGreaterThan(0);
   });
+
+  it('初期化完了状態を提供する', async () => {
+    const savedData = JSON.stringify({
+      answers: [
+        { questionId: 'q1', isCorrect: false },
+      ],
+    });
+    mockLocalStorage.setItem('e-cert-study-progress', savedData);
+
+    const { result, rerender } = renderHook(() => useLocalProgress());
+
+    // useEffectが実行されるまで待つ
+    await act(async () => {
+      rerender();
+    });
+
+    // 初期化完了後は true
+    expect(result.current.isInitialized).toBe(true);
+    // データも読み込まれている
+    expect(result.current.getIncorrectQuestionIds()).toEqual(['q1']);
+  });
 });

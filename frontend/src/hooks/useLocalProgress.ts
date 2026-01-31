@@ -34,6 +34,7 @@ function generateUserId(): string {
 export function useLocalProgress() {
   const [progressData, setProgressData] = useState<ProgressData>({ answers: [] });
   const [userId, setUserId] = useState<string>('');
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // 初期化: localStorageからデータを復元
   useEffect(() => {
@@ -55,6 +56,9 @@ export function useLocalProgress() {
         // 不正なデータは無視
       }
     }
+
+    // 初期化完了
+    setIsInitialized(true);
   }, []);
 
   // 進捗データが変更されたらlocalStorageに保存
@@ -112,5 +116,6 @@ export function useLocalProgress() {
     recordAnswer,
     getIncorrectQuestionIds,
     resetProgress,
+    isInitialized,
   };
 }
