@@ -190,6 +190,62 @@ describe('API Client', () => {
         })
       );
     });
+
+    it('タイムアウト時にエラーをスローする', async () => {
+      // fetchがAbortControllerのsignalを受け取ることを確認
+      mockFetch.mockImplementationOnce((url, options) => {
+        // signalが渡されていることを確認
+        expect(options.signal).toBeDefined();
+        expect(options.signal).toBeInstanceOf(AbortSignal);
+
+        // タイムアウトをシミュレート: abortされたらエラーをスロー
+        return new Promise((_, reject) => {
+          options.signal.addEventListener('abort', () => {
+            const error = new Error('The operation was aborted');
+            error.name = 'AbortError';
+            reject(error);
+          });
+        });
+      });
+
+      // 5秒より少し長く待ってタイムアウトをトリガー
+      await expect(
+        submitAnswer({
+          questionId: 'q1',
+          userId: 'user1',
+          selectedAnswer: 0,
+        })
+      ).rejects.toThrow();
+    }, 10000);
+
+    it('fetchにAbortSignalが渡される', async () => {
+      const mockAnswer: Answer = {
+        id: '1',
+        questionId: 'q1',
+        userId: 'user1',
+        selectedAnswer: 0,
+        isCorrect: true,
+        answeredAt: '2024-01-01T00:00:00Z',
+      };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockAnswer,
+      });
+
+      await submitAnswer({
+        questionId: 'q1',
+        userId: 'user1',
+        selectedAnswer: 0,
+      });
+
+      // fetchにsignalオプションが渡されていることを確認
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          signal: expect.any(AbortSignal),
+        })
+      );
+    });
   });
 
   describe('fetchCategories', () => {

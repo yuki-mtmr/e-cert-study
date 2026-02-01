@@ -132,6 +132,7 @@ export default function PracticePage() {
         {question && (
           <>
             <QuestionCard
+              key={question.id}
               question={question}
               onAnswer={handleAnswer}
               showResult={showResult}

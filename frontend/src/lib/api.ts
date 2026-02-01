@@ -125,23 +125,35 @@ export async function fetchSmartQuestion(userId: string): Promise<Question | nul
 
 /**
  * 回答を送信
+ * 5秒のタイムアウトを設定
  */
 export async function submitAnswer(data: CreateAnswerRequest): Promise<Answer> {
-  const response = await fetch(`${API_BASE_URL}/api/answers`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      question_id: data.questionId,
-      user_id: data.userId,
-      selected_answer: data.selectedAnswer,
-    }),
-  });
+  // 5秒タイムアウト
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-  const result = await parseResponse<Answer>(response);
-  if (!result) {
-    throw new Error('Failed to submit answer');
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/answers`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        question_id: data.questionId,
+        user_id: data.userId,
+        selected_answer: data.selectedAnswer,
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+    const result = await parseResponse<Answer>(response);
+    if (!result) {
+      throw new Error('Failed to submit answer');
+    }
+    return result;
+  } catch (e) {
+    clearTimeout(timeoutId);
+    throw e;
   }
-  return result;
 }
 
 /**

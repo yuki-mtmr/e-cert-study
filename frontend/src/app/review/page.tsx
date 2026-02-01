@@ -86,8 +86,6 @@ export default function ReviewPage() {
 
       try {
         const q = await fetchQuestionById(questionId);
-        console.log('Fetched question:', q);
-        console.log('correctAnswer:', q?.correctAnswer);
         if (q) {
           setQuestion(q);
         } else {
@@ -106,31 +104,38 @@ export default function ReviewPage() {
   }, [remainingIds, currentIndex]);
 
   const handleAnswer = async (selected: number) => {
-    if (!question || !userId) return;
+    // questionがない場合のみ早期リターン（userIdは必須ではない）
+    if (!question) return;
 
-    console.log('handleAnswer called:', { selected, correctAnswer: question.correctAnswer });
     setSelectedAnswer(selected);
 
-    try {
-      const answer = await submitAnswer({
-        questionId: question.id,
-        userId,
-        selectedAnswer: selected,
-      });
+    // ローカル判定（フォールバック用）
+    const localCorrect = selected === question.correctAnswer;
 
-      console.log('submitAnswer response:', answer);
-      setIsCorrect(answer.isCorrect);
-      recordAnswer(question.id, answer.isCorrect);
-      setShowResult(true);
-    } catch (e) {
+    try {
+      if (userId) {
+        // userIdがある場合はAPI呼び出し
+        const answer = await submitAnswer({
+          questionId: question.id,
+          userId,
+          selectedAnswer: selected,
+        });
+
+        setIsCorrect(answer.isCorrect);
+        recordAnswer(question.id, answer.isCorrect);
+      } else {
+        // userIdがない場合はローカル判定のみ
+        setIsCorrect(localCorrect);
+        recordAnswer(question.id, localCorrect);
+      }
+    } catch {
       // API接続エラーの場合はローカルで判定
-      console.error('submitAnswer error:', e);
-      const correct = selected === question.correctAnswer;
-      console.log('Local evaluation:', { selected, correctAnswer: question.correctAnswer, correct });
-      setIsCorrect(correct);
-      recordAnswer(question.id, correct);
-      setShowResult(true);
+      setIsCorrect(localCorrect);
+      recordAnswer(question.id, localCorrect);
     }
+
+    // 必ず結果を表示
+    setShowResult(true);
   };
 
   const handleNext = () => {
@@ -218,6 +223,7 @@ export default function ReviewPage() {
         </div>
 
         <QuestionCard
+          key={question.id}
           question={question}
           onAnswer={handleAnswer}
           showResult={showResult}
