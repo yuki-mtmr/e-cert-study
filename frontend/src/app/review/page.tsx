@@ -27,11 +27,45 @@ export default function ReviewPage() {
     if (idsLoaded) return;
 
     const ids = getIncorrectQuestionIds();
-    setRemainingIds(ids);
-    setIdsLoaded(true);
-    if (ids.length === 0) {
-      setLoading(false);
-      setError('復習する問題がありません。問題演習を行ってください。');
+
+    // IDが取得できた場合のみロード完了とする
+    // （progressDataがまだ空の場合は再試行）
+    if (ids.length > 0) {
+      setRemainingIds(ids);
+      setIdsLoaded(true);
+    } else {
+      // ローカルストレージに回答データがあるかチェック
+      const stored = localStorage.getItem('e-cert-study-progress');
+      if (!stored) {
+        // 本当に回答データがない場合のみエラー表示
+        setLoading(false);
+        setError('復習する問題がありません。問題演習を行ってください。');
+        setIdsLoaded(true);
+      } else {
+        // storedがある場合、データがあるかパースして確認
+        try {
+          const data = JSON.parse(stored);
+          // 最新の結果が不正解の問題があるか確認
+          const latestResults = new Map<string, boolean>();
+          for (const answer of data.answers || []) {
+            latestResults.set(answer.questionId, answer.isCorrect);
+          }
+          const hasIncorrect = Array.from(latestResults.values()).some(v => !v);
+
+          if (!hasIncorrect) {
+            // 本当に復習問題がない（全て正解済み）
+            setLoading(false);
+            setError('復習する問題がありません。問題演習を行ってください。');
+            setIdsLoaded(true);
+          }
+          // hasIncorrectがtrueなら次のレンダリングで再試行
+        } catch {
+          // パースエラーの場合はエラー表示
+          setLoading(false);
+          setError('復習する問題がありません。問題演習を行ってください。');
+          setIdsLoaded(true);
+        }
+      }
     }
   }, [isInitialized, idsLoaded, getIncorrectQuestionIds]);
 
