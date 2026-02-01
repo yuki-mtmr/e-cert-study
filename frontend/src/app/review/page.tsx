@@ -104,38 +104,30 @@ export default function ReviewPage() {
   }, [remainingIds, currentIndex]);
 
   const handleAnswer = async (selected: number) => {
-    // questionがない場合のみ早期リターン（userIdは必須ではない）
     if (!question) return;
 
     setSelectedAnswer(selected);
-
-    // ローカル判定（フォールバック用）
     const localCorrect = selected === question.correctAnswer;
 
     try {
       if (userId) {
-        // userIdがある場合はAPI呼び出し
         const answer = await submitAnswer({
           questionId: question.id,
           userId,
           selectedAnswer: selected,
         });
-
         setIsCorrect(answer.isCorrect);
         recordAnswer(question.id, answer.isCorrect);
       } else {
-        // userIdがない場合はローカル判定のみ
         setIsCorrect(localCorrect);
         recordAnswer(question.id, localCorrect);
       }
+      setShowResult(true);
     } catch {
-      // API接続エラーの場合はローカルで判定
       setIsCorrect(localCorrect);
       recordAnswer(question.id, localCorrect);
+      setShowResult(true);
     }
-
-    // 必ず結果を表示
-    setShowResult(true);
   };
 
   const handleNext = () => {
