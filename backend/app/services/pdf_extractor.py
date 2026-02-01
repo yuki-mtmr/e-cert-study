@@ -34,17 +34,30 @@ EXTRACTION_PROMPT = """
     {{
         "content": "問題文",
         "choices": ["選択肢A", "選択肢B", "選択肢C", "選択肢D"],
-        "correct_answer": 0,  // 正解の選択肢のインデックス（0始まり）
+        "correct_answer": 0,
         "explanation": "解説文",
-        "difficulty": 3  // 難易度（1-5）
+        "difficulty": 3,
+        "content_type": "plain"
     }}
 ]
+
+フィールド説明:
+- content: 問題文（コードブロックや数式を含む場合はMarkdown形式で記述）
+- choices: 4つの選択肢（配列）
+- correct_answer: 正解の選択肢のインデックス（0始まり）
+- explanation: 解説文（コードや数式を含む場合はMarkdown形式で記述）
+- difficulty: 難易度（1:易しい〜5:難しい）
+- content_type: コンテンツの種類
+  - "plain": 通常のテキストのみ
+  - "markdown": コードブロック（```python...```）や数式（$...$、$$...$$）を含む
+  - "code": 問題文全体がコードの場合
 
 注意事項:
 - 問題は必ず4択形式にしてください
 - 正解は1つのみにしてください
 - 解説は丁寧に記述してください
-- 難易度は1（易しい）〜5（難しい）で設定してください
+- コードを含む問題は必ずcontent_typeを"markdown"に設定し、コードブロック記法を使用してください
+- 数式を含む問題は必ずcontent_typeを"markdown"に設定し、LaTeX記法（$...$）を使用してください
 - テキストから抽出できる問題がない場合は空の配列を返してください
 - JSONのみを出力し、それ以外のテキストは含めないでください
 """

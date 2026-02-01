@@ -518,6 +518,82 @@ class TestExtractTextFromPdfLogging:
         assert "Page 1: extracted 100 chars" in caplog.text
 
 
+class TestContentTypeDetection:
+    """content_type検出のテスト"""
+
+    def test_parse_response_with_content_type_markdown(self) -> None:
+        """content_type: markdownを含むレスポンスをパースできる"""
+        response = """
+        [
+            {
+                "content": "以下のコードの出力は？\\n```python\\nprint('hello')\\n```",
+                "choices": ["hello", "Hello", "HELLO", "error"],
+                "correct_answer": 0,
+                "explanation": "print関数は引数をそのまま出力します。",
+                "difficulty": 2,
+                "content_type": "markdown"
+            }
+        ]
+        """
+        result = parse_llm_response(response)
+        assert len(result) == 1
+        assert result[0]["content_type"] == "markdown"
+
+    def test_parse_response_with_content_type_code(self) -> None:
+        """content_type: codeを含むレスポンスをパースできる"""
+        response = """
+        [
+            {
+                "content": "def foo():\\n    return 1",
+                "choices": ["1", "None", "error", "0"],
+                "correct_answer": 0,
+                "explanation": "関数fooは1を返します。",
+                "difficulty": 2,
+                "content_type": "code"
+            }
+        ]
+        """
+        result = parse_llm_response(response)
+        assert len(result) == 1
+        assert result[0]["content_type"] == "code"
+
+    def test_parse_response_with_content_type_plain(self) -> None:
+        """content_type: plainを含むレスポンスをパースできる"""
+        response = """
+        [
+            {
+                "content": "バックプロパゲーションとは何か？",
+                "choices": ["順伝播", "逆伝播", "勾配降下", "正規化"],
+                "correct_answer": 1,
+                "explanation": "誤差逆伝播法です。",
+                "difficulty": 3,
+                "content_type": "plain"
+            }
+        ]
+        """
+        result = parse_llm_response(response)
+        assert len(result) == 1
+        assert result[0]["content_type"] == "plain"
+
+    def test_parse_response_without_content_type_defaults_to_plain(self) -> None:
+        """content_typeがない場合はplainとして扱われる（フロントエンドでデフォルト処理）"""
+        response = """
+        [
+            {
+                "content": "テスト問題",
+                "choices": ["A", "B", "C", "D"],
+                "correct_answer": 0,
+                "explanation": "解説",
+                "difficulty": 2
+            }
+        ]
+        """
+        result = parse_llm_response(response)
+        assert len(result) == 1
+        # content_typeがない場合もパースは成功する（フロントエンドでplainとして処理）
+        assert "content_type" not in result[0] or result[0].get("content_type") == "plain"
+
+
 class TestParseLlmResponseLogging:
     """LLMレスポンスパースの診断ログのテスト"""
 
