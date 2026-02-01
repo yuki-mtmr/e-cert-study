@@ -61,6 +61,30 @@ export function useLocalProgress() {
     setIsInitialized(true);
   }, []);
 
+  // 他タブでのlocalStorage変更を検知してReact状態を同期
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      // 対象キー以外は無視
+      if (e.key !== STORAGE_KEY) return;
+
+      // 新しいデータをパースしてReact状態を更新
+      if (e.newValue) {
+        try {
+          const data = JSON.parse(e.newValue) as ProgressData;
+          setProgressData(data);
+        } catch {
+          // パースエラーは無視
+        }
+      } else {
+        // データが削除された場合はリセット
+        setProgressData({ answers: [] });
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   // 進捗データが変更されたらlocalStorageに保存
   useEffect(() => {
     if (progressData.answers.length > 0) {

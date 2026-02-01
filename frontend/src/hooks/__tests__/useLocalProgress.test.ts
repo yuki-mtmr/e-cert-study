@@ -182,4 +182,124 @@ describe('useLocalProgress', () => {
     // データも読み込まれている
     expect(result.current.getIncorrectQuestionIds()).toEqual(['q1']);
   });
+
+  describe('タブ間同期', () => {
+    it('他タブでのlocalStorage変更を検知して同期する', async () => {
+      const { result } = renderHook(() => useLocalProgress());
+
+      // 初期状態を確認
+      expect(result.current.stats.totalAnswered).toBe(0);
+
+      // 他タブがlocalStorageを更新したことをシミュレート
+      const newData = {
+        answers: [
+          { questionId: 'q1', isCorrect: true },
+          { questionId: 'q2', isCorrect: false },
+        ],
+      };
+
+      await act(async () => {
+        // storageイベントを発火
+        const event = new StorageEvent('storage', {
+          key: 'e-cert-study-progress',
+          newValue: JSON.stringify(newData),
+          oldValue: null,
+        });
+        window.dispatchEvent(event);
+      });
+
+      // React状態が更新されること
+      expect(result.current.stats.totalAnswered).toBe(2);
+      expect(result.current.stats.correctCount).toBe(1);
+      expect(result.current.stats.incorrectCount).toBe(1);
+    });
+
+    it('別のキーのstorageイベントは無視する', async () => {
+      const { result } = renderHook(() => useLocalProgress());
+
+      // 最初に回答を記録
+      await act(async () => {
+        result.current.recordAnswer('q1', true);
+      });
+
+      expect(result.current.stats.totalAnswered).toBe(1);
+
+      // 別のキーのstorageイベントを発火
+      await act(async () => {
+        const event = new StorageEvent('storage', {
+          key: 'other-key',
+          newValue: JSON.stringify({ answers: [] }),
+          oldValue: null,
+        });
+        window.dispatchEvent(event);
+      });
+
+      // 状態は変わらない
+      expect(result.current.stats.totalAnswered).toBe(1);
+    });
+
+    it('localStorageが削除された場合はリセットする', async () => {
+      const { result } = renderHook(() => useLocalProgress());
+
+      // 最初に回答を記録
+      await act(async () => {
+        result.current.recordAnswer('q1', true);
+        result.current.recordAnswer('q2', false);
+      });
+
+      expect(result.current.stats.totalAnswered).toBe(2);
+
+      // 他タブでデータが削除されたことをシミュレート
+      await act(async () => {
+        const event = new StorageEvent('storage', {
+          key: 'e-cert-study-progress',
+          newValue: null,
+          oldValue: JSON.stringify({ answers: [] }),
+        });
+        window.dispatchEvent(event);
+      });
+
+      // リセットされること
+      expect(result.current.stats.totalAnswered).toBe(0);
+    });
+
+    it('不正なJSONのstorageイベントは無視する', async () => {
+      const { result } = renderHook(() => useLocalProgress());
+
+      // 最初に回答を記録
+      await act(async () => {
+        result.current.recordAnswer('q1', true);
+      });
+
+      expect(result.current.stats.totalAnswered).toBe(1);
+
+      // 不正なJSONのstorageイベントを発火
+      await act(async () => {
+        const event = new StorageEvent('storage', {
+          key: 'e-cert-study-progress',
+          newValue: 'invalid-json',
+          oldValue: null,
+        });
+        window.dispatchEvent(event);
+      });
+
+      // 状態は変わらない
+      expect(result.current.stats.totalAnswered).toBe(1);
+    });
+
+    it('アンマウント時にイベントリスナーをクリーンアップする', async () => {
+      const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
+
+      const { unmount } = renderHook(() => useLocalProgress());
+
+      unmount();
+
+      expect(removeEventListenerSpy).toHaveBeenCalledWith(
+        'storage',
+        expect.any(Function)
+      );
+
+      removeEventListenerSpy.mockRestore();
+    });
+  });
 });
