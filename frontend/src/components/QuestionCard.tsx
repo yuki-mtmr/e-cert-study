@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import type { Question } from '@/types';
 import { MarkdownRenderer } from './MarkdownRenderer';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 interface QuestionCardProps {
   question: Question;
   onAnswer: (selectedIndex: number) => void;
@@ -81,7 +83,7 @@ export function QuestionCard({
           {question.images.map((image) => (
             <figure key={image.id} className="text-center">
               <img
-                src={`/api/questions/${question.id}/images/${image.id}`}
+                src={`${API_BASE_URL}/api/questions/${question.id}/images/${image.id}`}
                 alt={image.altText || '問題画像'}
                 className="max-w-full h-auto mx-auto rounded-lg"
               />
@@ -117,6 +119,8 @@ export function QuestionCard({
               : 'bg-gray-50 border-gray-200 hover:bg-gray-100 text-gray-700';
           }
 
+          const contentType = question.contentType || 'plain';
+
           return (
             <button
               key={index}
@@ -127,7 +131,13 @@ export function QuestionCard({
               <span className="font-medium mr-2">
                 {String.fromCharCode(65 + index)}.
               </span>
-              {choice}
+              {contentType === 'plain' ? (
+                choice
+              ) : (
+                <span className="inline">
+                  <MarkdownRenderer content={choice} />
+                </span>
+              )}
             </button>
           );
         })}
@@ -152,9 +162,17 @@ export function QuestionCard({
               {isCorrect ? '正解!' : '不正解'}
             </p>
             {!isCorrect && (
-              <p className="text-gray-700 mt-1">
-                正解は「{question.choices[question.correctAnswer]}」です。
-              </p>
+              <div className="text-gray-700 mt-1">
+                正解は「
+                {(question.contentType || 'plain') === 'plain' ? (
+                  question.choices[question.correctAnswer]
+                ) : (
+                  <span className="inline">
+                    <MarkdownRenderer content={question.choices[question.correctAnswer]} />
+                  </span>
+                )}
+                」です。
+              </div>
             )}
           </div>
 

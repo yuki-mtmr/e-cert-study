@@ -12,6 +12,17 @@ export interface Category {
 }
 
 /**
+ * カテゴリツリー（階層構造）
+ */
+export interface CategoryTree {
+  id: string;
+  name: string;
+  parentId: string | null;
+  children: CategoryTree[];
+  questionCount?: number;
+}
+
+/**
  * 問題画像
  */
 export interface QuestionImage {
