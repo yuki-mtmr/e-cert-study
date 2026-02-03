@@ -99,3 +99,67 @@ export interface LearningStats {
   accuracy: number;
   weakCategories: string[];
 }
+
+/**
+ * 学習プラン
+ */
+export interface StudyPlan {
+  id: string;
+  userId: string;
+  examDate: string;
+  targetQuestionsPerDay: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * 学習プラン作成リクエスト
+ */
+export interface CreateStudyPlanRequest {
+  userId: string;
+  examDate: string;
+  targetQuestionsPerDay: number;
+}
+
+/**
+ * 学習プラン更新リクエスト
+ */
+export interface UpdateStudyPlanRequest {
+  examDate?: string;
+  targetQuestionsPerDay?: number;
+}
+
+/**
+ * 日別進捗
+ */
+export interface DailyGoalProgress {
+  date: string;
+  targetCount: number;
+  actualCount: number;
+  correctCount: number;
+}
+
+/**
+ * 学習プランサマリー
+ */
+export interface StudyPlanSummary {
+  daysRemaining: number;
+  totalAnswered: number;
+  totalCorrect: number;
+  accuracy: number;
+  streak: number;
+  dailyProgress: DailyGoalProgress[];
+}
+
+/**
+ * カテゴリ別網羅率
+ */
+export interface CategoryCoverage {
+  categoryId: string;
+  categoryName: string;
+  totalQuestions: number;
+  answeredCount: number;
+  correctCount: number;
+  coverageRate: number;
+  accuracy: number;
+}

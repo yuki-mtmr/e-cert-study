@@ -122,6 +122,22 @@ export default function Home() {
               参考書や問題集を取り込みましょう。
             </p>
           </Link>
+
+          <Link
+            href="/study-plan"
+            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow group"
+          >
+            <div className="flex items-center mb-4">
+              <span className="text-4xl mr-4">📅</span>
+              <h2 className="text-xl font-semibold text-gray-800 group-hover:text-blue-600">
+                学習プラン
+              </h2>
+            </div>
+            <p className="text-gray-600">
+              試験日を設定し、日々の学習進捗を
+              グラフで可視化しましょう。
+            </p>
+          </Link>
         </section>
 
         {/* ユーザー情報 */}

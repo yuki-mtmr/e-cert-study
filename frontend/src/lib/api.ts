@@ -4,9 +4,14 @@
 import type {
   Question,
   Category,
+  CategoryTree,
   Answer,
   CreateAnswerRequest,
   LearningStats,
+  StudyPlan,
+  CreateStudyPlanRequest,
+  UpdateStudyPlanRequest,
+  StudyPlanSummary,
 } from '@/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -100,10 +105,30 @@ export async function fetchQuestionById(id: string): Promise<Question | null> {
 
 /**
  * ランダムな問題を取得
+ *
+ * @param categoryIdOrIds - 単一のカテゴリID（文字列）または複数のカテゴリID（配列）
  */
-export async function fetchRandomQuestion(categoryId?: string): Promise<Question | null> {
-  const params = categoryId ? `?category_id=${categoryId}` : '';
-  const response = await fetch(`${API_BASE_URL}/api/questions/random${params}`, {
+export async function fetchRandomQuestion(
+  categoryIdOrIds?: string | string[]
+): Promise<Question | null> {
+  const params = new URLSearchParams();
+
+  if (categoryIdOrIds) {
+    if (Array.isArray(categoryIdOrIds)) {
+      // 配列の場合：複数カテゴリを指定
+      if (categoryIdOrIds.length > 0) {
+        params.set('category_ids', categoryIdOrIds.join(','));
+      }
+    } else {
+      // 文字列の場合：単一カテゴリを指定（後方互換性）
+      params.set('category_id', categoryIdOrIds);
+    }
+  }
+
+  const queryString = params.toString();
+  const url = `${API_BASE_URL}/api/questions/random${queryString ? `?${queryString}` : ''}`;
+
+  const response = await fetch(url, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   });
@@ -166,6 +191,19 @@ export async function fetchCategories(): Promise<Category[]> {
   });
 
   const data = await parseResponse<Category[]>(response);
+  return data || [];
+}
+
+/**
+ * カテゴリツリーを取得（階層構造）
+ */
+export async function fetchCategoriesTree(): Promise<CategoryTree[]> {
+  const response = await fetch(`${API_BASE_URL}/api/categories/tree`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  const data = await parseResponse<CategoryTree[]>(response);
   return data || [];
 }
 
@@ -253,5 +291,116 @@ export async function fetchDailyProgress(userId: string, days?: number): Promise
   });
 
   const data = await parseResponse<DailyProgress[]>(response);
+  return data || [];
+}
+
+/**
+ * 学習プランを取得
+ */
+export async function fetchStudyPlan(userId: string): Promise<StudyPlan | null> {
+  const response = await fetch(`${API_BASE_URL}/api/study-plan?user_id=${userId}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  return parseResponse<StudyPlan>(response);
+}
+
+/**
+ * 学習プランを作成
+ */
+export async function createStudyPlan(data: CreateStudyPlanRequest): Promise<StudyPlan> {
+  const response = await fetch(`${API_BASE_URL}/api/study-plan`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      user_id: data.userId,
+      exam_date: data.examDate,
+      target_questions_per_day: data.targetQuestionsPerDay,
+    }),
+  });
+
+  const result = await parseResponse<StudyPlan>(response);
+  if (!result) {
+    throw new Error('Failed to create study plan');
+  }
+  return result;
+}
+
+/**
+ * 学習プランを更新
+ */
+export async function updateStudyPlan(
+  userId: string,
+  data: UpdateStudyPlanRequest
+): Promise<StudyPlan> {
+  const response = await fetch(`${API_BASE_URL}/api/study-plan?user_id=${userId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      exam_date: data.examDate,
+      target_questions_per_day: data.targetQuestionsPerDay,
+    }),
+  });
+
+  const result = await parseResponse<StudyPlan>(response);
+  if (!result) {
+    throw new Error('Failed to update study plan');
+  }
+  return result;
+}
+
+/**
+ * 学習プランを削除
+ */
+export async function deleteStudyPlan(userId: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/study-plan?user_id=${userId}`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to delete study plan');
+  }
+}
+
+/**
+ * 学習プランサマリーを取得
+ */
+export async function fetchStudyPlanSummary(userId: string): Promise<StudyPlanSummary | null> {
+  const response = await fetch(`${API_BASE_URL}/api/study-plan/summary?user_id=${userId}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  return parseResponse<StudyPlanSummary>(response);
+}
+
+/**
+ * カテゴリ別網羅率
+ */
+export interface CategoryCoverage {
+  categoryId: string;
+  categoryName: string;
+  totalQuestions: number;
+  answeredCount: number;
+  correctCount: number;
+  coverageRate: number;
+  accuracy: number;
+}
+
+/**
+ * カテゴリ別網羅率を取得
+ */
+export async function fetchCategoryCoverage(userId: string): Promise<CategoryCoverage[]> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/stats/category-coverage?user_id=${userId}`,
+    {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    }
+  );
+
+  const data = await parseResponse<CategoryCoverage[]>(response);
   return data || [];
 }

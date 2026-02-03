@@ -1,0 +1,74 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.summaryCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+.cardLabel {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.cardValue {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.cardValue.expired {
+  font-size: 1rem;
+  color: #e74c3c;
+}
+
+.cardUnit {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #666;
+  margin-left: 0.25rem;
+}
+
+.expiredText {
+  color: #e74c3c;
+}
+
+.chartContainer {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  min-height: 350px;
+}
+
+.noData {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  color: #999;
+  font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+  .summaryCards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .cardValue {
+    font-size: 1.5rem;
+  }
+}

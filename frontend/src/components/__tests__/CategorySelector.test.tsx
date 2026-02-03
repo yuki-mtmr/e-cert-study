@@ -41,6 +41,46 @@ const mockCategoryTree: CategoryTree[] = [
   },
 ];
 
+const mockCategoryTreeWithCounts: CategoryTree[] = [
+  {
+    id: 'math',
+    name: '応用数学',
+    parentId: null,
+    questionCount: 50,
+    children: [
+      {
+        id: 'linear',
+        name: '線形代数',
+        parentId: 'math',
+        questionCount: 25,
+        children: [],
+      },
+      {
+        id: 'prob',
+        name: '確率・統計',
+        parentId: 'math',
+        questionCount: 25,
+        children: [],
+      },
+    ],
+  },
+  {
+    id: 'ml',
+    name: '機械学習',
+    parentId: null,
+    questionCount: 40,
+    children: [
+      {
+        id: 'supervised',
+        name: '教師あり学習',
+        parentId: 'ml',
+        questionCount: 20,
+        children: [],
+      },
+    ],
+  },
+];
+
 describe('CategorySelector', () => {
   it('カテゴリツリーを表示する', () => {
     render(
@@ -308,6 +348,110 @@ describe('CategorySelector', () => {
         checkboxes.forEach((checkbox) => {
           expect(checkbox.className).toContain('customCheckbox');
         });
+      });
+    });
+  });
+
+  describe('問題数表示', () => {
+    it('カテゴリ名の横に問題数が表示される', async () => {
+      render(
+        <CategorySelector
+          categories={mockCategoryTreeWithCounts}
+          selectedCategoryId={null}
+          onSelect={vi.fn()}
+        />
+      );
+
+      const trigger = screen.getByRole('combobox');
+      fireEvent.click(trigger);
+
+      await waitFor(() => {
+        // 問題数が表示されている（「応用数学 (50問)」のような形式）
+        expect(screen.getByText(/応用数学.*50問/)).toBeInTheDocument();
+        expect(screen.getByText(/機械学習.*40問/)).toBeInTheDocument();
+      });
+    });
+
+    it('子カテゴリにも問題数が表示される', async () => {
+      render(
+        <CategorySelector
+          categories={mockCategoryTreeWithCounts}
+          selectedCategoryId={null}
+          onSelect={vi.fn()}
+        />
+      );
+
+      const trigger = screen.getByRole('combobox');
+      fireEvent.click(trigger);
+
+      await waitFor(() => {
+        expect(screen.getByText(/線形代数.*25問/)).toBeInTheDocument();
+        expect(screen.getByText(/教師あり学習.*20問/)).toBeInTheDocument();
+      });
+    });
+
+    it('問題数が0の場合も表示される', async () => {
+      const categoriesWithZero: CategoryTree[] = [
+        {
+          id: 'empty',
+          name: '空のカテゴリ',
+          parentId: null,
+          questionCount: 0,
+          children: [],
+        },
+      ];
+
+      render(
+        <CategorySelector
+          categories={categoriesWithZero}
+          selectedCategoryId={null}
+          onSelect={vi.fn()}
+        />
+      );
+
+      const trigger = screen.getByRole('combobox');
+      fireEvent.click(trigger);
+
+      await waitFor(() => {
+        expect(screen.getByText(/空のカテゴリ.*0問/)).toBeInTheDocument();
+      });
+    });
+
+    it('questionCountがundefinedの場合は問題数を表示しない', async () => {
+      // mockCategoryTreeにはquestionCountがないケース
+      render(
+        <CategorySelector
+          categories={mockCategoryTree}
+          selectedCategoryId={null}
+          onSelect={vi.fn()}
+        />
+      );
+
+      const trigger = screen.getByRole('combobox');
+      fireEvent.click(trigger);
+
+      await waitFor(() => {
+        // 問題数の表示がないこと（「問」が含まれない）
+        const mathOption = screen.getByText('応用数学');
+        expect(mathOption.textContent).not.toContain('問');
+      });
+    });
+
+    it('複数選択モードでも問題数が表示される', async () => {
+      render(
+        <CategorySelector
+          categories={mockCategoryTreeWithCounts}
+          selectedCategoryIds={[]}
+          onSelectMultiple={vi.fn()}
+          multiSelect={true}
+        />
+      );
+
+      const trigger = screen.getByRole('combobox');
+      fireEvent.click(trigger);
+
+      await waitFor(() => {
+        expect(screen.getByText(/応用数学.*50問/)).toBeInTheDocument();
       });
     });
   });

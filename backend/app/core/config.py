@@ -38,5 +38,8 @@ class Settings(BaseSettings):
     # アプリ設定
     debug: bool = False
 
+    # 本番環境フラグ（Trueの場合、PDFインポート機能を無効化）
+    is_production: bool = False
+
 
 settings = Settings()

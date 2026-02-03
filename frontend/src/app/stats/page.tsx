@@ -7,9 +7,11 @@ import {
   fetchOverviewStats,
   fetchWeakAreas,
   fetchDailyProgress,
+  fetchCategoryCoverage,
   type OverviewStats,
   type CategoryStats,
   type DailyProgress,
+  type CategoryCoverage,
 } from '@/lib/api';
 
 export default function StatsPage() {
@@ -17,6 +19,7 @@ export default function StatsPage() {
   const [overview, setOverview] = useState<OverviewStats | null>(null);
   const [weakAreas, setWeakAreas] = useState<CategoryStats[]>([]);
   const [progress, setProgress] = useState<DailyProgress[]>([]);
+  const [coverage, setCoverage] = useState<CategoryCoverage[]>([]);
   const [loading, setLoading] = useState(true);
   const [useLocalData, setUseLocalData] = useState(false);
 
@@ -26,16 +29,18 @@ export default function StatsPage() {
 
       setLoading(true);
       try {
-        const [overviewData, weakAreasData, progressData] = await Promise.all([
+        const [overviewData, weakAreasData, progressData, coverageData] = await Promise.all([
           fetchOverviewStats(userId),
           fetchWeakAreas(userId, 5),
           fetchDailyProgress(userId, 30),
+          fetchCategoryCoverage(userId),
         ]);
 
         if (overviewData) {
           setOverview(overviewData);
           setWeakAreas(weakAreasData);
           setProgress(progressData);
+          setCoverage(coverageData);
         } else {
           // APIから取得できない場合はローカルデータを使用
           setUseLocalData(true);
@@ -133,6 +138,63 @@ export default function StatsPage() {
               <span>100%</span>
             </div>
           </div>
+        </section>
+
+        {/* カテゴリ別網羅率 */}
+        <section className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+            カテゴリ別網羅率
+          </h2>
+          {coverage.length > 0 ? (
+            <div className="space-y-4">
+              {coverage.map((cat) => (
+                <div key={cat.categoryId} className="border rounded-lg p-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-medium text-gray-800">
+                      {cat.categoryName}
+                    </span>
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm text-gray-500">
+                        正答率: {cat.accuracy}%
+                      </span>
+                      <span
+                        className={`font-bold ${
+                          cat.coverageRate >= 70
+                            ? 'text-green-600'
+                            : cat.coverageRate >= 50
+                            ? 'text-yellow-600'
+                            : 'text-red-600'
+                        }`}
+                      >
+                        {cat.coverageRate}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-300 ${
+                        cat.coverageRate >= 70
+                          ? 'bg-green-500'
+                          : cat.coverageRate >= 50
+                          ? 'bg-yellow-500'
+                          : 'bg-red-500'
+                      }`}
+                      style={{ width: `${cat.coverageRate}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {cat.answeredCount}/{cat.totalQuestions}問
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center py-4">
+              {useLocalData
+                ? 'ローカルデータでは網羅率の分析ができません。サーバーに接続してください。'
+                : 'カテゴリデータがありません。'}
+            </p>
+          )}
         </section>
 
         {/* 苦手分野 */}

@@ -8,6 +8,12 @@ primary_region = 'nrt'
 
 [build]
 
+[deploy]
+  release_command = "alembic upgrade head"
+
+[env]
+  IS_PRODUCTION = "true"
+
 [http_service]
   internal_port = 8080
   force_https = true

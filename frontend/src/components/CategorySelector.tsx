@@ -121,6 +121,14 @@ export function CategorySelector(props: CategorySelectorProps) {
     return false;
   };
 
+  // カテゴリ名と問題数を表示用にフォーマット
+  const formatCategoryName = (category: CategoryTree): string => {
+    if (category.questionCount !== undefined) {
+      return `${category.name} (${category.questionCount}問)`;
+    }
+    return category.name;
+  };
+
   if (loading) {
     return (
       <div className={styles.container}>
@@ -186,12 +194,12 @@ export function CategorySelector(props: CategorySelectorProps) {
                     className={styles.customCheckbox}
                   />
                   {depth > 0 && <span className={styles.indent}>└ </span>}
-                  {category.name}
+                  {formatCategoryName(category)}
                 </label>
               ) : (
                 <>
                   {depth > 0 && <span className={styles.indent}>└ </span>}
-                  {category.name}
+                  {formatCategoryName(category)}
                 </>
               )}
             </li>

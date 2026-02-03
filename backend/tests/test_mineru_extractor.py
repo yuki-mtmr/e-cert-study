@@ -288,23 +288,63 @@ class TestPypdfFallback:
     """pypdfフォールバックのテスト"""
 
     @pytest.mark.asyncio
-    async def test_fallback_extraction(self):
-        """フォールバック抽出のテスト"""
+    async def test_fallback_extraction_with_images(self):
+        """フォールバック抽出のテスト（テキスト+画像）"""
         extractor = MinerUExtractor()
 
-        # pypdfは画像を抽出しない
+        # PyMuPDFフォールバックで抽出される画像
+        mock_fallback_images = [
+            ExtractedImage(
+                filename="image_0.png",
+                data=b"fallback_image_data",
+                page_number=0,
+                position=0,
+            )
+        ]
+
         with patch("pypdf.PdfReader") as MockReader:
             mock_reader = MockReader.return_value
             mock_page = MagicMock()
             mock_page.extract_text.return_value = "Plain text content"
             mock_reader.pages = [mock_page]
 
-            result = await extractor._fallback_pypdf(TEST_PDF_BYTES)
+            with patch.object(
+                extractor, "_extract_images_with_fallback", new_callable=AsyncMock
+            ) as mock_img_fallback:
+                mock_img_fallback.return_value = mock_fallback_images
 
-            assert result is not None
-            assert "Plain text content" in result.markdown
-            assert len(result.images) == 0
-            assert result.metadata.get("fallback") is True
+                result = await extractor._fallback_pypdf(TEST_PDF_BYTES)
+
+                assert result is not None
+                assert "Plain text content" in result.markdown
+                # PyMuPDFで画像も抽出される
+                assert len(result.images) == 1
+                assert result.images[0].filename == "image_0.png"
+                assert result.metadata.get("fallback") is True
+                assert result.metadata.get("image_count") == 1
+
+    @pytest.mark.asyncio
+    async def test_fallback_extraction_no_images(self):
+        """フォールバック抽出のテスト（画像なし）"""
+        extractor = MinerUExtractor()
+
+        with patch("pypdf.PdfReader") as MockReader:
+            mock_reader = MockReader.return_value
+            mock_page = MagicMock()
+            mock_page.extract_text.return_value = "Plain text content"
+            mock_reader.pages = [mock_page]
+
+            with patch.object(
+                extractor, "_extract_images_with_fallback", new_callable=AsyncMock
+            ) as mock_img_fallback:
+                mock_img_fallback.return_value = []
+
+                result = await extractor._fallback_pypdf(TEST_PDF_BYTES)
+
+                assert result is not None
+                assert "Plain text content" in result.markdown
+                assert len(result.images) == 0
+                assert result.metadata.get("fallback") is True
 
 
 class TestMinerUAvailability:
@@ -320,3 +360,277 @@ class TestMinerUAvailability:
 
             mock_find.return_value = None  # モジュールが見つからない
             assert extractor._is_mineru_available() is False
+
+
+class TestDeviceNFallback:
+    """DeviceNカラースペース対応のテスト（extract()に統合）"""
+
+    @pytest.mark.asyncio
+    async def test_extract_with_devicen_fallback(self):
+        """DeviceN画像のフォールバック抽出テスト
+
+        MinerUで画像が抽出できなかった場合、
+        PyMuPDFで直接抽出してDeviceNをRGBに変換する
+        """
+        extractor = MinerUExtractor()
+
+        # MinerUは画像なしで成功
+        mock_mineru_result = MinerUExtractionResult(
+            markdown="# Test Document\n\nSome text with image reference",
+            images=[],  # MinerUでは画像が抽出できなかった
+            metadata={"page_count": 1},
+        )
+
+        # PyMuPDFフォールバックで抽出される画像（MinerUと同じ命名規則）
+        mock_fallback_images = [
+            ExtractedImage(
+                filename="image_0.png",
+                data=b"converted_png_data",
+                page_number=0,
+                position=0,
+            )
+        ]
+
+        with patch.object(
+            extractor, "_run_mineru", new_callable=AsyncMock
+        ) as mock_run:
+            mock_run.return_value = mock_mineru_result
+
+            with patch.object(
+                extractor, "_extract_images_with_fallback", new_callable=AsyncMock
+            ) as mock_fallback:
+                mock_fallback.return_value = mock_fallback_images
+
+                # extract()で画像フォールバックが動作する
+                result = await extractor.extract(TEST_PDF_BYTES)
+
+                assert result is not None
+                assert len(result.images) == 1
+                # MinerUと同じ命名規則で紐付け可能
+                assert result.images[0].filename == "image_0.png"
+                mock_fallback.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_partial_extraction_continues_on_failure(self):
+        """一部画像の抽出失敗でも処理を継続するテスト"""
+        extractor = MinerUExtractor()
+
+        # MinerUは画像なし
+        mock_mineru_result = MinerUExtractionResult(
+            markdown="# Test",
+            images=[],
+            metadata={"page_count": 1},
+        )
+
+        # 2つ中1つが成功
+        mock_fallback_images = [
+            ExtractedImage(
+                filename="image_0.png",
+                data=b"success_data",
+                page_number=0,
+                position=0,
+            )
+        ]
+
+        with patch.object(
+            extractor, "_run_mineru", new_callable=AsyncMock
+        ) as mock_run:
+            mock_run.return_value = mock_mineru_result
+
+            with patch.object(
+                extractor, "_extract_images_with_fallback", new_callable=AsyncMock
+            ) as mock_fallback:
+                mock_fallback.return_value = mock_fallback_images
+
+                result = await extractor.extract(TEST_PDF_BYTES)
+
+                # 1つだけ成功しても結果が返る
+                assert result is not None
+                assert len(result.images) == 1
+
+    @pytest.mark.asyncio
+    async def test_extraction_statistics_in_metadata(self):
+        """抽出統計がmetadataに含まれるテスト"""
+        extractor = MinerUExtractor()
+
+        mock_mineru_result = MinerUExtractionResult(
+            markdown="# Test",
+            images=[],
+            metadata={"page_count": 1},
+        )
+
+        mock_fallback_images = [
+            ExtractedImage(
+                filename="img_0.png",
+                data=b"data1",
+                page_number=0,
+                position=0,
+            ),
+            ExtractedImage(
+                filename="img_1.png",
+                data=b"data2",
+                page_number=0,
+                position=1,
+            ),
+        ]
+
+        with patch.object(
+            extractor, "_run_mineru", new_callable=AsyncMock
+        ) as mock_run:
+            mock_run.return_value = mock_mineru_result
+
+            with patch.object(
+                extractor, "_extract_images_with_fallback", new_callable=AsyncMock
+            ) as mock_fallback:
+                mock_fallback.return_value = mock_fallback_images
+
+                result = await extractor.extract(TEST_PDF_BYTES)
+
+                # metadataに統計情報が含まれる
+                assert result.metadata.get("image_count") == 2
+                assert result.metadata.get("fallback_used") is True
+
+    @pytest.mark.asyncio
+    async def test_no_fallback_when_images_exist(self):
+        """MinerUで画像が抽出できた場合はフォールバック不要"""
+        extractor = MinerUExtractor()
+
+        # MinerUで画像が抽出できている
+        mock_mineru_result = MinerUExtractionResult(
+            markdown="# Test",
+            images=[
+                ExtractedImage(
+                    filename="mineru_0.png",
+                    data=b"mineru_data",
+                    page_number=1,
+                    position=0,
+                )
+            ],
+            metadata={"page_count": 1, "image_count": 1},
+        )
+
+        with patch.object(
+            extractor, "_run_mineru", new_callable=AsyncMock
+        ) as mock_run:
+            mock_run.return_value = mock_mineru_result
+
+            with patch.object(
+                extractor, "_extract_images_with_fallback", new_callable=AsyncMock
+            ) as mock_fallback:
+                result = await extractor.extract(TEST_PDF_BYTES)
+
+                # MinerUで画像があるのでフォールバック不要
+                assert result is not None
+                assert len(result.images) == 1
+                assert result.images[0].filename == "mineru_0.png"
+                mock_fallback.assert_not_called()
+
+
+class TestExtractImagesWithFallback:
+    """_extract_images_with_fallback メソッドのテスト"""
+
+    @pytest.mark.asyncio
+    async def test_extracts_images_using_pymupdf(self):
+        """PyMuPDFを使用して画像を抽出するテスト"""
+        extractor = MinerUExtractor()
+
+        mock_doc = MagicMock()
+        mock_page = MagicMock()
+        mock_page.number = 0
+        mock_page.get_images.return_value = [
+            (1, 0, 100, 200, 8, "DeviceN", "", "img1", "", ""),
+        ]
+        mock_doc.__iter__ = lambda self: iter([mock_page])
+
+        mock_pix = MagicMock()
+        mock_pix.n = 3
+        mock_pix.alpha = 0
+        mock_pix.tobytes.return_value = b"converted_png_data"
+
+        with patch("pymupdf.open", return_value=mock_doc):
+            with patch("pymupdf.Pixmap", return_value=mock_pix):
+                result = await extractor._extract_images_with_fallback(TEST_PDF_BYTES)
+
+                assert len(result) == 1
+                assert result[0].data == b"converted_png_data"
+                assert result[0].page_number == 0
+                # MinerUと同じ命名規則で紐付け可能
+                assert result[0].filename == "image_0.png"
+
+    @pytest.mark.asyncio
+    async def test_skips_failed_extractions(self):
+        """抽出失敗した画像をスキップして継続するテスト"""
+        extractor = MinerUExtractor()
+
+        mock_doc = MagicMock()
+        mock_page = MagicMock()
+        mock_page.number = 0
+        mock_page.get_images.return_value = [
+            (1, 0, 100, 200, 8, "DeviceRGB", "", "img1", "", ""),
+            (2, 0, 100, 200, 8, "DeviceN", "", "img2", "", ""),  # 失敗
+            (3, 0, 100, 200, 8, "DeviceRGB", "", "img3", "", ""),
+        ]
+        mock_doc.__iter__ = lambda self: iter([mock_page])
+
+        call_count = [0]
+
+        def pixmap_side_effect(*args):
+            call_count[0] += 1
+            if call_count[0] == 2:  # 2番目で失敗
+                raise Exception("DeviceN conversion failed")
+            mock_pix = MagicMock()
+            mock_pix.n = 3
+            mock_pix.alpha = 0
+            mock_pix.tobytes.return_value = b"png_data"
+            return mock_pix
+
+        with patch("pymupdf.open", return_value=mock_doc):
+            with patch("pymupdf.Pixmap", side_effect=pixmap_side_effect):
+                result = await extractor._extract_images_with_fallback(TEST_PDF_BYTES)
+
+                # 3つ中2つが成功
+                assert len(result) == 2
+
+    @pytest.mark.asyncio
+    async def test_returns_empty_list_on_no_images(self):
+        """画像がない場合は空リストを返すテスト"""
+        extractor = MinerUExtractor()
+
+        mock_doc = MagicMock()
+        mock_page = MagicMock()
+        mock_page.get_images.return_value = []
+        mock_doc.__iter__ = lambda self: iter([mock_page])
+
+        with patch("pymupdf.open", return_value=mock_doc):
+            result = await extractor._extract_images_with_fallback(TEST_PDF_BYTES)
+
+            assert result == []
+
+    @pytest.mark.asyncio
+    async def test_returns_empty_list_on_open_failure(self):
+        """PDF読み込み失敗時に空リストを返すテスト"""
+        extractor = MinerUExtractor()
+
+        with patch("pymupdf.open", side_effect=Exception("Cannot open PDF")):
+            result = await extractor._extract_images_with_fallback(TEST_PDF_BYTES)
+
+            assert result == []
+
+
+class TestExtractMinerUErrorHandling:
+    """extract()のMinerUError例外ハンドリングテスト"""
+
+    @pytest.mark.asyncio
+    async def test_extract_reraises_mineru_error_without_fallback(self):
+        """fallback_on_error=FalseでMinerUErrorが再送出されるテスト"""
+        extractor = MinerUExtractor()
+
+        with patch.object(
+            extractor, "_run_mineru", new_callable=AsyncMock
+        ) as mock_run:
+            mock_run.side_effect = MinerUError("Extraction failed")
+
+            with pytest.raises(MinerUError) as exc_info:
+                await extractor.extract(TEST_PDF_BYTES, fallback_on_error=False)
+
+            assert "Extraction failed" in str(exc_info.value)

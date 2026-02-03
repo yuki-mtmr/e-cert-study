@@ -35,3 +35,6 @@ services:
 
 volumes:
   postgres_data:
+    # ⚠️ WARNING: docker-compose down -v はこのボリュームを完全削除します
+    # データを保持したまま再起動するには docker-compose restart を使用
+    # バックアップは scripts/backup.sh で作成可能

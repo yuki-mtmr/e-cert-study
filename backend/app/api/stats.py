@@ -39,6 +39,17 @@ class DailyProgress(BaseModel):
     correct: int
 
 
+class CategoryCoverage(BaseModel):
+    """カテゴリ別網羅率"""
+    categoryId: str
+    categoryName: str
+    totalQuestions: int
+    answeredCount: int
+    correctCount: int
+    coverageRate: float
+    accuracy: float
+
+
 @router.get("/overview", response_model=OverviewStats)
 async def get_overview_stats(
     user_id: str,
@@ -141,3 +152,61 @@ async def get_progress(
 
 # Integer型のインポートを追加
 from sqlalchemy import Integer
+from sqlalchemy.sql import expression
+
+
+@router.get("/category-coverage", response_model=list[CategoryCoverage])
+async def get_category_coverage(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> list[CategoryCoverage]:
+    """カテゴリ別網羅率を取得
+
+    各カテゴリの総問題数、回答済み問題数、正解数、網羅率、正答率を返す
+    """
+    # サブクエリ: ユーザーの回答済み問題と正解数をカウント
+    user_answers = (
+        select(
+            Question.category_id,
+            func.count(Answer.id.distinct()).label("answered_count"),
+            func.sum(func.cast(Answer.is_correct, Integer)).label("correct_count"),
+        )
+        .join(Answer, Answer.question_id == Question.id)
+        .where(Answer.user_id == user_id)
+        .group_by(Question.category_id)
+        .subquery()
+    )
+
+    # メインクエリ: カテゴリ別の問題数と回答状況を結合
+    result = await db.execute(
+        select(
+            Category.id,
+            Category.name,
+            func.count(Question.id).label("total_questions"),
+            func.coalesce(user_answers.c.answered_count, 0).label("answered_count"),
+            func.coalesce(user_answers.c.correct_count, 0).label("correct_count"),
+        )
+        .outerjoin(Question, Question.category_id == Category.id)
+        .outerjoin(user_answers, user_answers.c.category_id == Category.id)
+        .group_by(
+            Category.id,
+            Category.name,
+            user_answers.c.answered_count,
+            user_answers.c.correct_count,
+        )
+        .order_by(Category.name)
+    )
+
+    rows = result.all()
+    return [
+        CategoryCoverage(
+            categoryId=str(row[0]),
+            categoryName=row[1],
+            totalQuestions=row[2],
+            answeredCount=row[3],
+            correctCount=row[4],
+            coverageRate=round((row[3] / row[2] * 100) if row[2] > 0 else 0.0, 1),
+            accuracy=round((row[4] / row[3] * 100) if row[3] > 0 else 0.0, 1),
+        )
+        for row in rows
+    ]

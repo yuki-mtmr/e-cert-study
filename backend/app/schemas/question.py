@@ -21,7 +21,7 @@ class QuestionImageResponse(BaseModel):
 class QuestionCreate(BaseModel):
     """問題作成リクエスト"""
 
-    category_id: uuid.UUID
+    category_id: Optional[uuid.UUID] = None  # Noneの場合はデフォルトカテゴリを使用
     content: str = Field(..., min_length=1)
     choices: list[str] = Field(..., min_length=2)
     correct_answer: int = Field(..., ge=0)

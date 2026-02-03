@@ -140,3 +140,79 @@ async def test_get_progress(mock_db: MockDBSession) -> None:
         assert data[0]["correct"] == 8
     finally:
         app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_get_category_coverage(mock_db: MockDBSession) -> None:
+    """カテゴリ別網羅率を取得"""
+    # 結果: (category_id, category_name, total_questions, answered_count, correct_count)
+    result = MagicMock()
+    result.all.return_value = [
+        (uuid.uuid4(), "応用数学", 50, 30, 25),
+        (uuid.uuid4(), "機械学習", 40, 20, 15),
+        (uuid.uuid4(), "深層学習", 60, 0, 0),
+    ]
+
+    mock_db.set_execute_results([result])
+
+    async def override_get_db() -> AsyncGenerator[MockDBSession, None]:
+        yield mock_db
+
+    app.dependency_overrides[get_db] = override_get_db
+
+    try:
+        async with AsyncClient(
+            transport=ASGITransport(app=app),
+            base_url="http://test",
+        ) as client:
+            response = await client.get("/api/stats/category-coverage?user_id=test_user")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 3
+
+        # 応用数学: 30/50 = 60%, 正答率25/30 = 83.3%
+        assert data[0]["categoryName"] == "応用数学"
+        assert data[0]["totalQuestions"] == 50
+        assert data[0]["answeredCount"] == 30
+        assert data[0]["correctCount"] == 25
+        assert data[0]["coverageRate"] == 60.0
+        assert data[0]["accuracy"] == 83.3
+
+        # 機械学習: 20/40 = 50%, 正答率15/20 = 75.0%
+        assert data[1]["categoryName"] == "機械学習"
+        assert data[1]["coverageRate"] == 50.0
+        assert data[1]["accuracy"] == 75.0
+
+        # 深層学習: 0/60 = 0%, 正答率0%
+        assert data[2]["categoryName"] == "深層学習"
+        assert data[2]["coverageRate"] == 0.0
+        assert data[2]["accuracy"] == 0.0
+    finally:
+        app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_get_category_coverage_empty(mock_db: MockDBSession) -> None:
+    """カテゴリがない場合は空のリストを返す"""
+    result = MagicMock()
+    result.all.return_value = []
+
+    mock_db.set_execute_results([result])
+
+    async def override_get_db() -> AsyncGenerator[MockDBSession, None]:
+        yield mock_db
+
+    app.dependency_overrides[get_db] = override_get_db
+
+    try:
+        async with AsyncClient(
+            transport=ASGITransport(app=app),
+            base_url="http://test",
+        ) as client:
+            response = await client.get("/api/stats/category-coverage?user_id=test_user")
+
+        assert response.status_code == 200
+        assert response.json() == []
+    finally:
+        app.dependency_overrides.clear()

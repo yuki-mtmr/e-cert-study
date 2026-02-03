@@ -204,6 +204,14 @@ async def test_create_question(mock_db: MockDBSession) -> None:
         "source": "テスト",
     }
 
+    # 作成後の再取得用モック
+    mock_question = MockQuestion()
+    mock_question.content = "新しい問題"
+    mock_question.category_id = category_id
+    mock_result = MagicMock()
+    mock_result.scalar_one.return_value = mock_question
+    mock_db.set_execute_result(mock_result)
+
     async def override_get_db() -> AsyncGenerator[MockDBSession, None]:
         yield mock_db
 
@@ -351,3 +359,167 @@ async def test_get_random_question_with_images(mock_db: MockDBSession) -> None:
         assert data["images"][0]["image_type"] == "diagram"
     finally:
         app.dependency_overrides.clear()
+
+
+class TestDeleteAllQuestions:
+    """全問題削除APIのテスト"""
+
+    @pytest.mark.asyncio
+    async def test_delete_all_questions_success(self) -> None:
+        """全問題削除が成功する"""
+        mock_db = MockDBSession()
+
+        # 削除対象の問題数を返すモック
+        mock_count_result = MagicMock()
+        mock_count_result.scalar.return_value = 10
+        mock_db.set_execute_result(mock_count_result)
+
+        async def mock_get_db() -> AsyncGenerator[MockDBSession, None]:
+            yield mock_db
+
+        app.dependency_overrides[get_db] = mock_get_db
+
+        try:
+            async with AsyncClient(
+                transport=ASGITransport(app=app),
+                base_url="http://test",
+            ) as client:
+                response = await client.delete(
+                    "/api/questions/all",
+                    params={
+                        "confirm": "DELETE_ALL_QUESTIONS",
+                        "clear_cache": True,
+                    },
+                )
+
+            assert response.status_code == 200
+            data = response.json()
+            assert "deleted_count" in data
+            assert "cache_cleared" in data
+        finally:
+            app.dependency_overrides.clear()
+
+    @pytest.mark.asyncio
+    async def test_delete_all_questions_requires_confirm_token(self) -> None:
+        """確認トークンなしでは422エラー"""
+        async with AsyncClient(
+            transport=ASGITransport(app=app),
+            base_url="http://test",
+        ) as client:
+            response = await client.delete("/api/questions/all")
+
+        # confirmパラメータが必須
+        assert response.status_code == 422
+
+
+class TestUpdateQuestionCategory:
+    """問題カテゴリ更新APIのテスト"""
+
+    @pytest.mark.asyncio
+    async def test_update_question_category(self) -> None:
+        """問題のカテゴリを更新できる"""
+        mock_db = MockDBSession()
+        question = MockQuestion()
+        new_category_id = uuid.uuid4()
+
+        # 問題を取得するモック
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = question
+        mock_db.set_execute_result(mock_result)
+
+        async def override_get_db() -> AsyncGenerator[MockDBSession, None]:
+            yield mock_db
+
+        app.dependency_overrides[get_db] = override_get_db
+
+        try:
+            async with AsyncClient(
+                transport=ASGITransport(app=app),
+                base_url="http://test",
+            ) as client:
+                response = await client.patch(
+                    f"/api/questions/{question.id}/category",
+                    json={"category_id": str(new_category_id)},
+                )
+
+            assert response.status_code == 200
+            data = response.json()
+            assert "id" in data
+            assert "category_id" in data
+        finally:
+            app.dependency_overrides.clear()
+
+    @pytest.mark.asyncio
+    async def test_update_question_category_not_found(self) -> None:
+        """存在しない問題のカテゴリ更新は404"""
+        mock_db = MockDBSession()
+
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = None
+        mock_db.set_execute_result(mock_result)
+
+        async def override_get_db() -> AsyncGenerator[MockDBSession, None]:
+            yield mock_db
+
+        app.dependency_overrides[get_db] = override_get_db
+
+        try:
+            async with AsyncClient(
+                transport=ASGITransport(app=app),
+                base_url="http://test",
+            ) as client:
+                response = await client.patch(
+                    f"/api/questions/{uuid.uuid4()}/category",
+                    json={"category_id": str(uuid.uuid4())},
+                )
+
+            assert response.status_code == 404
+        finally:
+            app.dependency_overrides.clear()
+
+
+class TestAutoClassifyQuestions:
+    """問題自動分類APIのテスト"""
+
+    @pytest.mark.asyncio
+    async def test_auto_classify_returns_stats(self) -> None:
+        """自動分類APIが統計を返す"""
+        mock_db = MockDBSessionForDefaultCategory()
+
+        # 「未分類」カテゴリと問題を返すモック
+        mock_category = MockCategory(name="未分類")
+        mock_question = MockQuestion()
+        mock_question.category_id = mock_category.id
+
+        # 1回目: カテゴリ一覧取得
+        mock_result1 = MagicMock()
+        mock_result1.scalars.return_value.all.return_value = [mock_category]
+
+        # 2回目: 未分類問題取得
+        mock_result2 = MagicMock()
+        mock_result2.scalars.return_value.all.return_value = [mock_question]
+
+        mock_db.set_execute_results([mock_result1, mock_result2])
+
+        async def override_get_db() -> AsyncGenerator[MockDBSessionForDefaultCategory, None]:
+            yield mock_db
+
+        app.dependency_overrides[get_db] = override_get_db
+
+        try:
+            async with AsyncClient(
+                transport=ASGITransport(app=app),
+                base_url="http://test",
+            ) as client:
+                response = await client.post(
+                    "/api/questions/auto-classify",
+                    params={"dry_run": True},
+                )
+
+            assert response.status_code == 200
+            data = response.json()
+            assert "total" in data
+            assert "classified" in data
+            assert "failed" in data
+        finally:
+            app.dependency_overrides.clear()

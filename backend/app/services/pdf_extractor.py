@@ -37,7 +37,8 @@ EXTRACTION_PROMPT = """
         "correct_answer": 0,
         "explanation": "解説文",
         "difficulty": 3,
-        "content_type": "plain"
+        "content_type": "plain",
+        "image_refs": []
     }}
 ]
 
@@ -51,6 +52,10 @@ EXTRACTION_PROMPT = """
   - "plain": 通常のテキストのみ
   - "markdown": コードブロック（```python...```）や数式（$...$、$$...$$）を含む
   - "code": 問題文全体がコードの場合
+- image_refs: この問題に関連する画像ファイル名のリスト（例: ["image_001.png", "image_002.png"]）
+  - テキスト中の画像参照 ![...](ファイル名) から抽出
+  - 問題文や選択肢、解説に関連する画像のみを含める
+  - 関連画像がない場合は空配列
 
 注意事項:
 - 問題は必ず4択形式にしてください
@@ -58,6 +63,7 @@ EXTRACTION_PROMPT = """
 - 解説は丁寧に記述してください
 - コードを含む問題は必ずcontent_typeを"markdown"に設定し、コードブロック記法を使用してください
 - 数式を含む問題は必ずcontent_typeを"markdown"に設定し、LaTeX記法（$...$）を使用してください
+- テキスト中に画像参照（![...](xxx.png)形式）がある場合は、必ずimage_refsに含めてください
 - テキストから抽出できる問題がない場合は空の配列を返してください
 - JSONのみを出力し、それ以外のテキストは含めないでください
 """

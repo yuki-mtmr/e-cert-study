@@ -1,6 +1,7 @@
 """MinerU Extractor サービス
 
 MinerU (magic-pdf) を使ったPDFレイアウト解析サービス
+DeviceN/CMYKカラースペースの画像をRGBに変換して抽出
 """
 import asyncio
 import importlib.util
@@ -10,6 +11,10 @@ from dataclasses import dataclass, field
 from io import BytesIO
 from pathlib import Path
 from typing import Optional
+
+import pymupdf
+
+from app.services.image_converter import ImageConverter
 
 logger = logging.getLogger(__name__)
 
@@ -202,11 +207,13 @@ class MinerUExtractor:
     async def _fallback_pypdf(self, pdf_data: bytes) -> MinerUExtractionResult:
         """pypdfにフォールバックしてテキスト抽出
 
+        テキストはpypdfで抽出し、画像はPyMuPDFで抽出する。
+
         Args:
             pdf_data: PDFバイナリデータ
 
         Returns:
-            抽出結果（画像なし）
+            抽出結果
         """
         from pypdf import PdfReader
 
@@ -221,16 +228,71 @@ class MinerUExtractor:
 
             markdown = "\n\n".join(text_parts)
 
+            # PyMuPDFで画像抽出（DeviceN/CMYK対応）
+            images = await self._extract_images_with_fallback(pdf_data)
+
             return MinerUExtractionResult(
                 markdown=markdown,
-                images=[],
+                images=images,
                 metadata={
                     "page_count": len(reader.pages),
+                    "image_count": len(images),
                     "fallback": True,
                 },
             )
         except Exception as e:
             raise MinerUError(f"pypdf fallback failed: {e}") from e
+
+    async def _extract_images_with_fallback(
+        self,
+        pdf_data: bytes,
+    ) -> list[ExtractedImage]:
+        """PyMuPDFを使用して画像を抽出する
+
+        DeviceN/CMYKカラースペースの画像をRGBに変換して抽出。
+        抽出に失敗した画像はスキップして継続する。
+
+        Args:
+            pdf_data: PDFバイナリデータ
+
+        Returns:
+            抽出された画像のリスト
+        """
+        images: list[ExtractedImage] = []
+
+        try:
+            doc = pymupdf.open(stream=pdf_data, filetype="pdf")
+            position = 0
+
+            for page in doc:
+                page_images = page.get_images(full=True)
+
+                for img_info in page_images:
+                    xref = img_info[0]
+                    # より堅牢な抽出メソッドを使用
+                    data = ImageConverter.extract_image_robust(doc, xref)
+
+                    if data is not None:
+                        # MinerUと同じ命名規則で画像紐付けを可能にする
+                        images.append(ExtractedImage(
+                            filename=f"image_{position}.png",
+                            data=data,
+                            page_number=page.number,
+                            position=position,
+                        ))
+                        position += 1
+                    else:
+                        logger.warning(
+                            f"Skipped image xref={xref} on page {page.number}"
+                        )
+
+            doc.close()
+            logger.info(f"Fallback extracted {len(images)} images")
+
+        except Exception as e:
+            logger.error(f"Fallback image extraction failed: {e}")
+
+        return images
 
     async def extract(
         self,
@@ -238,6 +300,9 @@ class MinerUExtractor:
         fallback_on_error: bool = False,
     ) -> MinerUExtractionResult:
         """PDFからテキストと画像を抽出
+
+        MinerUで画像が抽出できなかった場合、PyMuPDFで直接抽出。
+        DeviceN/CMYKカラースペースの画像もRGBに変換して抽出。
 
         Args:
             pdf_data: PDFバイナリデータ
@@ -254,7 +319,26 @@ class MinerUExtractor:
             raise MinerUError("Empty PDF data provided")
 
         try:
-            return await self._run_mineru(pdf_data)
+            result = await self._run_mineru(pdf_data)
+
+            # MinerUで画像が抽出できなかった場合、PyMuPDFでフォールバック
+            if len(result.images) == 0:
+                logger.info("No images from MinerU, attempting fallback extraction")
+                fallback_images = await self._extract_images_with_fallback(pdf_data)
+
+                if fallback_images:
+                    result = MinerUExtractionResult(
+                        markdown=result.markdown,
+                        images=fallback_images,
+                        metadata={
+                            **result.metadata,
+                            "image_count": len(fallback_images),
+                            "fallback_used": True,
+                        },
+                    )
+
+            return result
+
         except MinerUNotAvailableError:
             if fallback_on_error:
                 logger.warning("MinerU not available, falling back to pypdf")

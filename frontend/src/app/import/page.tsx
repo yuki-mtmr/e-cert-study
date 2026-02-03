@@ -19,6 +19,7 @@ export default function ImportPage() {
   const [error, setError] = useState<string | null>(null);
   const [extractedQuestions, setExtractedQuestions] = useState<ExtractedQuestion[]>([]);
   const [importSuccess, setImportSuccess] = useState(false);
+  const [savedCount, setSavedCount] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,6 +45,7 @@ export default function ImportPage() {
     try {
       const formData = new FormData();
       formData.append('file', file);
+      // save_to_db=trueで抽出と同時にDBに保存（画像紐付けも実行）
 
       const response = await fetch(`${API_BASE_URL}/api/questions/import`, {
         method: 'POST',
@@ -56,9 +58,13 @@ export default function ImportPage() {
 
       const data = await response.json();
       setExtractedQuestions(data.questions || []);
+      setSavedCount(data.saved_count || 0);
 
       if (data.questions?.length === 0) {
         setError('問題を抽出できませんでした。別のPDFを試してください。');
+      } else if (data.saved_count > 0) {
+        // 抽出と同時に保存完了
+        setImportSuccess(true);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : '問題の抽出に失敗しました');
@@ -130,7 +136,7 @@ export default function ImportPage() {
         {importSuccess && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
             <p className="text-green-800 font-medium">
-              問題のインポートが完了しました！
+              {savedCount}問のインポートが完了しました！（抽出: {extractedQuestions.length}問）
             </p>
             <div className="mt-4 space-x-4">
               <Link
@@ -223,25 +229,18 @@ export default function ImportPage() {
         )}
 
         {/* 抽出結果プレビュー */}
-        {extractedQuestions.length > 0 && !importSuccess && (
+        {extractedQuestions.length > 0 && importSuccess && (
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold text-gray-800">
-                抽出された問題（{extractedQuestions.length}問）
+                登録された問題（{savedCount}問）
               </h2>
               <div className="space-x-2">
                 <button
                   onClick={handleReset}
                   className="px-4 py-2 border rounded-lg hover:bg-gray-50"
                 >
-                  キャンセル
-                </button>
-                <button
-                  onClick={handleImport}
-                  disabled={loading}
-                  className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 disabled:bg-gray-400"
-                >
-                  {loading ? '登録中...' : 'すべて登録する'}
+                  続けてインポート
                 </button>
               </div>
             </div>

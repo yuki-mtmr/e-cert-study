@@ -105,6 +105,27 @@ describe('QuestionCard', () => {
     expect(screen.getByText(/難易度/)).toBeInTheDocument();
   });
 
+  it('画像URLにAPIベースURLが含まれる', () => {
+    const questionWithImage: Question = {
+      ...mockQuestion,
+      images: [
+        {
+          id: 'img1',
+          questionId: '1',
+          filePath: '/images/test.png',
+          altText: 'テスト画像',
+          position: 0,
+          imageType: 'question',
+        },
+      ],
+    };
+    render(<QuestionCard question={questionWithImage} onAnswer={vi.fn()} />);
+
+    const img = screen.getByAltText('テスト画像');
+    // 画像URLはAPIベースURL（localhost:8000など）を含むべき
+    expect(img.getAttribute('src')).toMatch(/^https?:\/\/.+\/api\/questions/);
+  });
+
   it('問題が変わると選択状態がリセットされる', () => {
     const newQuestion: Question = {
       ...mockQuestion,

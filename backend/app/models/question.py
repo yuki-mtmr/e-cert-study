@@ -1,4 +1,5 @@
 """問題モデル"""
+import hashlib
 import uuid
 from typing import TYPE_CHECKING, Optional
 
@@ -7,6 +8,18 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
+
+
+def compute_content_hash(content: str) -> str:
+    """問題文のハッシュを計算
+
+    Args:
+        content: 問題文
+
+    Returns:
+        32文字のハッシュ値
+    """
+    return hashlib.sha256(content.encode()).hexdigest()[:32]
 
 if TYPE_CHECKING:
     from app.models.category import Category
@@ -39,6 +52,11 @@ class Question(Base):
         String(50),
         nullable=False,
         default="plain",
+    )
+    content_hash: Mapped[Optional[str]] = mapped_column(
+        String(32),
+        nullable=True,
+        index=True,
     )
 
     # リレーションシップ

@@ -11,8 +11,15 @@ import {
   fetchCategories,
   snakeToCamelCase,
   transformKeys,
+  fetchStudyPlan,
+  createStudyPlan,
+  updateStudyPlan,
+  deleteStudyPlan,
+  fetchStudyPlanSummary,
+  fetchCategoryCoverage,
+  type CategoryCoverage,
 } from '../api';
-import type { Question, Answer } from '@/types';
+import type { Question, Answer, StudyPlan, StudyPlanSummary } from '@/types';
 
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
@@ -119,6 +126,50 @@ describe('API Client', () => {
       const result = await fetchRandomQuestion();
 
       expect(result).toEqual(mockQuestion);
+    });
+
+    it('単一カテゴリでフィルタリングできる', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ id: '1' }),
+      });
+
+      await fetchRandomQuestion('cat1');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('category_id=cat1'),
+        expect.any(Object)
+      );
+    });
+
+    it('複数カテゴリでフィルタリングできる', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ id: '1' }),
+      });
+
+      await fetchRandomQuestion(['cat1', 'cat2', 'cat3']);
+
+      // 複数カテゴリはcategory_idsパラメータで送信される
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('category_ids=cat1%2Ccat2%2Ccat3'),
+        expect.any(Object)
+      );
+    });
+
+    it('空の配列を渡すとフィルタなしで取得', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ id: '1' }),
+      });
+
+      await fetchRandomQuestion([]);
+
+      // 空配列の場合はパラメータなし
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.not.stringContaining('category'),
+        expect.any(Object)
+      );
     });
   });
 
@@ -464,5 +515,259 @@ describe('API Response Transformation', () => {
 
     expect(result[0].parentId).toBeNull();
     expect(result[1].parentId).toBe('1');
+  });
+});
+
+describe('Study Plan API', () => {
+  beforeEach(() => {
+    mockFetch.mockClear();
+  });
+
+  describe('fetchStudyPlan', () => {
+    it('学習プランを取得できる', async () => {
+      const mockStudyPlan: StudyPlan = {
+        id: '1',
+        userId: 'user123',
+        examDate: '2026-03-15',
+        targetQuestionsPerDay: 20,
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-01T00:00:00Z',
+      };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockStudyPlan,
+      });
+
+      const result = await fetchStudyPlan('user123');
+
+      expect(result).toEqual(mockStudyPlan);
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/study-plan?user_id=user123'),
+        expect.any(Object)
+      );
+    });
+
+    it('存在しない学習プランはnullを返す', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+      });
+
+      const result = await fetchStudyPlan('nonexistent');
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('createStudyPlan', () => {
+    it('学習プランを作成できる', async () => {
+      const mockStudyPlan: StudyPlan = {
+        id: '1',
+        userId: 'user123',
+        examDate: '2026-03-15',
+        targetQuestionsPerDay: 25,
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-01T00:00:00Z',
+      };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockStudyPlan,
+      });
+
+      const result = await createStudyPlan({
+        userId: 'user123',
+        examDate: '2026-03-15',
+        targetQuestionsPerDay: 25,
+      });
+
+      expect(result).toEqual(mockStudyPlan);
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/study-plan'),
+        expect.objectContaining({
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        })
+      );
+    });
+  });
+
+  describe('updateStudyPlan', () => {
+    it('学習プランを更新できる', async () => {
+      const mockStudyPlan: StudyPlan = {
+        id: '1',
+        userId: 'user123',
+        examDate: '2026-04-01',
+        targetQuestionsPerDay: 30,
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-02-01T00:00:00Z',
+      };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockStudyPlan,
+      });
+
+      const result = await updateStudyPlan('user123', {
+        examDate: '2026-04-01',
+        targetQuestionsPerDay: 30,
+      });
+
+      expect(result).toEqual(mockStudyPlan);
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/study-plan?user_id=user123'),
+        expect.objectContaining({
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+        })
+      );
+    });
+  });
+
+  describe('deleteStudyPlan', () => {
+    it('学習プランを削除できる', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ message: 'Study plan deleted successfully' }),
+      });
+
+      await deleteStudyPlan('user123');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/study-plan?user_id=user123'),
+        expect.objectContaining({
+          method: 'DELETE',
+        })
+      );
+    });
+  });
+
+  describe('fetchStudyPlanSummary', () => {
+    it('学習プランサマリーを取得できる', async () => {
+      const mockSummary: StudyPlanSummary = {
+        daysRemaining: 40,
+        totalAnswered: 100,
+        totalCorrect: 80,
+        accuracy: 80.0,
+        streak: 5,
+        dailyProgress: [
+          {
+            date: '2026-02-01',
+            targetCount: 20,
+            actualCount: 22,
+            correctCount: 18,
+          },
+          {
+            date: '2026-02-02',
+            targetCount: 20,
+            actualCount: 20,
+            correctCount: 16,
+          },
+        ],
+      };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockSummary,
+      });
+
+      const result = await fetchStudyPlanSummary('user123');
+
+      expect(result).toEqual(mockSummary);
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/study-plan/summary?user_id=user123'),
+        expect.any(Object)
+      );
+    });
+
+    it('学習プランがない場合はnullを返す', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+      });
+
+      const result = await fetchStudyPlanSummary('nonexistent');
+
+      expect(result).toBeNull();
+    });
+  });
+});
+
+describe('Category Coverage API', () => {
+  beforeEach(() => {
+    mockFetch.mockClear();
+  });
+
+  describe('fetchCategoryCoverage', () => {
+    it('カテゴリ別網羅率を取得できる', async () => {
+      const mockCoverage: CategoryCoverage[] = [
+        {
+          categoryId: '1',
+          categoryName: '応用数学',
+          totalQuestions: 50,
+          answeredCount: 30,
+          correctCount: 25,
+          coverageRate: 60.0,
+          accuracy: 83.3,
+        },
+        {
+          categoryId: '2',
+          categoryName: '機械学習',
+          totalQuestions: 40,
+          answeredCount: 20,
+          correctCount: 15,
+          coverageRate: 50.0,
+          accuracy: 75.0,
+        },
+      ];
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockCoverage,
+      });
+
+      const result = await fetchCategoryCoverage('user123');
+
+      expect(result).toEqual(mockCoverage);
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/stats/category-coverage?user_id=user123'),
+        expect.any(Object)
+      );
+    });
+
+    it('空のリストを正しく返す', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],
+      });
+
+      const result = await fetchCategoryCoverage('user123');
+
+      expect(result).toEqual([]);
+    });
+
+    it('snake_caseレスポンスをcamelCaseに変換する', async () => {
+      const snakeCaseResponse = [
+        {
+          category_id: '1',
+          category_name: '応用数学',
+          total_questions: 50,
+          answered_count: 30,
+          correct_count: 25,
+          coverage_rate: 60.0,
+          accuracy: 83.3,
+        },
+      ];
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => snakeCaseResponse,
+      });
+
+      const result = await fetchCategoryCoverage('user123');
+
+      expect(result[0].categoryId).toBe('1');
+      expect(result[0].categoryName).toBe('応用数学');
+      expect(result[0].totalQuestions).toBe(50);
+      expect(result[0].answeredCount).toBe(30);
+      expect(result[0].correctCount).toBe(25);
+      expect(result[0].coverageRate).toBe(60.0);
+      expect(result[0].accuracy).toBe(83.3);
+    });
   });
 });
