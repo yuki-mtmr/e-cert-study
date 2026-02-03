@@ -52,6 +52,18 @@ yarn-debug.log*
 # Database dumps (migration)
 *.dump
 
+# SQLite database
+*.db
+
+# Backend data directory
+backend/data/
+
+# Pip install error outputs
+backend/=*
+
+# Playwright reports
+playwright-report/
+
 # Secrets
 credentials.json
 service-account*.json
