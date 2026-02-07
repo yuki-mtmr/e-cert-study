@@ -33,4 +33,5 @@ npm test     # テスト実行
 ## 重要なファイル
 
 - `backend/app/services/pdf_extractor.py` - PDF問題抽出サービス
+- `backend/app/services/explanation_generator.py` - 解説再生成サービス
 - `backend/tests/test_pdf_service.py` - PDF抽出のテスト

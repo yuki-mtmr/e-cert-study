@@ -179,11 +179,7 @@ export function QuestionCard({
           {/* 解説 */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h3 className="font-bold text-blue-800 mb-2">解説</h3>
-            {(question.contentType || 'plain') === 'plain' ? (
-              <p className="text-gray-700">{question.explanation}</p>
-            ) : (
-              <MarkdownRenderer content={question.explanation} />
-            )}
+            <MarkdownRenderer content={question.explanation} />
           </div>
         </div>
       ) : (

@@ -49,6 +49,7 @@ from app.services.vlm_analyzer import VLMAnalyzer
 from app.services.image_storage import ImageStorage
 from app.services.image_matcher import ImageMatcherService
 from app.services.caption_generator import CaptionGeneratorService
+from app.services.explanation_generator import generate_explanation
 
 router = APIRouter(prefix="/api/questions", tags=["questions"])
 
@@ -993,6 +994,124 @@ async def auto_classify_questions(
     return AutoClassifyResponse(
         total=total,
         classified=classified,
+        failed=failed,
+        results=results,
+    )
+
+
+class RegenerateExplanationResponse(BaseModel):
+    """個別解説再生成レスポンス"""
+    question_id: str
+    explanation: str
+    status: str
+
+
+class RegenerateExplanationsResponse(BaseModel):
+    """一括解説再生成レスポンス"""
+    total: int
+    regenerated: int
+    failed: int
+    results: list[dict[str, Any]] = []
+
+
+@router.post("/{question_id}/regenerate-explanation", response_model=RegenerateExplanationResponse)
+async def regenerate_explanation_single(
+    question_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+) -> RegenerateExplanationResponse:
+    """個別問題の解説を再生成
+
+    Args:
+        question_id: 問題ID
+    """
+    result = await db.execute(
+        select(Question).where(Question.id == question_id)
+    )
+    question = result.scalar_one_or_none()
+
+    if not question:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="問題が見つかりません",
+        )
+
+    new_explanation = await generate_explanation(
+        content=question.content,
+        choices=question.choices,
+        correct_answer=question.correct_answer,
+    )
+
+    question.explanation = new_explanation
+    await db.commit()
+
+    return RegenerateExplanationResponse(
+        question_id=str(question.id),
+        explanation=new_explanation,
+        status="success",
+    )
+
+
+@router.post("/regenerate-explanations", response_model=RegenerateExplanationsResponse)
+async def regenerate_explanations_bulk(
+    dry_run: bool = False,
+    limit: int = 100,
+    category_id: Optional[uuid.UUID] = None,
+    db: AsyncSession = Depends(get_db),
+) -> RegenerateExplanationsResponse:
+    """一括で問題の解説を再生成
+
+    Args:
+        dry_run: Trueの場合、実際の更新は行わず再生成結果のみ返す
+        limit: 一度に処理する問題数
+        category_id: 対象カテゴリID（指定なしで全問題）
+    """
+    query = select(Question)
+    if category_id:
+        query = query.where(Question.category_id == category_id)
+    query = query.limit(limit)
+
+    result = await db.execute(query)
+    questions = list(result.scalars().all())
+
+    total = len(questions)
+    regenerated = 0
+    failed = 0
+    results: list[dict[str, Any]] = []
+
+    for question in questions:
+        try:
+            new_explanation = await generate_explanation(
+                content=question.content,
+                choices=question.choices,
+                correct_answer=question.correct_answer,
+            )
+
+            if not dry_run:
+                question.explanation = new_explanation
+
+            regenerated += 1
+            results.append({
+                "question_id": str(question.id),
+                "content_preview": question.content[:50] + "...",
+                "status": "regenerated",
+            })
+
+        except Exception as e:
+            logger.error(f"Failed to regenerate explanation for {question.id}: {e}")
+            failed += 1
+            results.append({
+                "question_id": str(question.id),
+                "content_preview": question.content[:50] + "...",
+                "error": str(e),
+                "status": "error",
+            })
+
+    if not dry_run:
+        await db.commit()
+
+    return RegenerateExplanationsResponse(
+        total=total,
+        regenerated=regenerated,
         failed=failed,
         results=results,
     )

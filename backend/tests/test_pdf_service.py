@@ -634,3 +634,73 @@ class TestParseLlmResponseLogging:
         logged_preview = [r for r in caplog.records if "Response preview:" in r.message][0].message
         preview_content = logged_preview.split("Response preview:")[1].strip()
         assert len(preview_content) <= 500
+
+
+class TestExplanationQuality:
+    """解説の品質向上に関するテスト"""
+
+    def test_extraction_prompt_contains_choice_comparison_instruction(self) -> None:
+        """EXTRACTION_PROMPTに選択肢比較の指示が含まれている"""
+        from app.services.pdf_extractor import EXTRACTION_PROMPT
+
+        # 選択肢の違いを比較する指示が含まれている
+        assert "選択肢" in EXTRACTION_PROMPT
+        assert "比較" in EXTRACTION_PROMPT or "差" in EXTRACTION_PROMPT
+
+    def test_extraction_prompt_contains_derivation_steps_instruction(self) -> None:
+        """EXTRACTION_PROMPTに正解導出手順の指示が含まれている"""
+        from app.services.pdf_extractor import EXTRACTION_PROMPT
+
+        # 正解を導く手順・消去法の指示が含まれている
+        assert "消去法" in EXTRACTION_PROMPT or "導" in EXTRACTION_PROMPT
+
+    def test_extraction_prompt_contains_memorization_tips_instruction(self) -> None:
+        """EXTRACTION_PROMPTに覚え方のコツの指示が含まれている"""
+        from app.services.pdf_extractor import EXTRACTION_PROMPT
+
+        # 覚え方のコツ・ゴロ合わせの指示が含まれている
+        assert "覚え方" in EXTRACTION_PROMPT or "ゴロ合わせ" in EXTRACTION_PROMPT or "コツ" in EXTRACTION_PROMPT
+
+    def test_extraction_prompt_contains_math_formula_guidance(self) -> None:
+        """EXTRACTION_PROMPTに数式問題のガイダンスが含まれている"""
+        from app.services.pdf_extractor import EXTRACTION_PROMPT
+
+        # 数式問題での記号反転パターン指摘の指示が含まれている
+        assert "数式" in EXTRACTION_PROMPT
+        assert "記号" in EXTRACTION_PROMPT or "反転" in EXTRACTION_PROMPT or "転置" in EXTRACTION_PROMPT
+
+    def test_extraction_prompt_contains_wrong_answer_explanation_instruction(self) -> None:
+        """EXTRACTION_PROMPTに不正解選択肢の説明指示が含まれている"""
+        from app.services.pdf_extractor import EXTRACTION_PROMPT
+
+        # 不正解の選択肢がなぜ間違いかの説明指示が含まれている
+        assert "不正解" in EXTRACTION_PROMPT or "間違い" in EXTRACTION_PROMPT or "誤り" in EXTRACTION_PROMPT
+
+    def test_extraction_prompt_contains_explicit_markdown_section_headers(self) -> None:
+        """EXTRACTION_PROMPTに明示的なMarkdownセクションヘッダーが含まれている"""
+        from app.services.pdf_extractor import EXTRACTION_PROMPT
+
+        # 解説の出力形式として明示的なMarkdownセクションヘッダーが指定されている
+        assert "### 正解を導く手順" in EXTRACTION_PROMPT
+        assert "### 選択肢の比較" in EXTRACTION_PROMPT
+        assert "### 覚え方のコツ" in EXTRACTION_PROMPT
+
+    def test_parse_response_with_detailed_explanation(self) -> None:
+        """詳細な解説を含むレスポンスをパースできる"""
+        response = """
+        [
+            {
+                "content": "勾配降下法の更新式として正しいものはどれか？",
+                "choices": ["θ = θ + α∇L", "θ = θ - α∇L", "θ = θ × α∇L", "θ = θ ÷ α∇L"],
+                "correct_answer": 1,
+                "explanation": "## 正解導出の手順\\n\\n1. 勾配降下法は損失関数を最小化する手法\\n2. 最小化するためには勾配の**逆方向**に進む必要がある\\n3. したがって「マイナス」が正解\\n\\n## 選択肢の比較\\n\\n- 選択肢1（+α∇L）: 勾配方向に進むため損失が増加する\\n- 選択肢2（-α∇L）: 勾配の逆方向に進むため損失が減少する（正解）\\n- 選択肢3（×α∇L）: 更新式として意味をなさない\\n- 選択肢4（÷α∇L）: 更新式として意味をなさない\\n\\n## 覚え方のコツ\\n\\n「勾配降下はマイナス方向」と覚えましょう。",
+                "difficulty": 3,
+                "content_type": "markdown"
+            }
+        ]
+        """
+        result = parse_llm_response(response)
+        assert len(result) == 1
+        assert "正解導出" in result[0]["explanation"] or "手順" in result[0]["explanation"]
+        assert "選択肢" in result[0]["explanation"]
+        assert "覚え方" in result[0]["explanation"] or "コツ" in result[0]["explanation"]

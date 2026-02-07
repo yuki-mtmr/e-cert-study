@@ -126,6 +126,34 @@ describe('QuestionCard', () => {
     expect(img.getAttribute('src')).toMatch(/^https?:\/\/.+\/api\/questions/);
   });
 
+  it('contentType=plainでも解説はMarkdownRendererで表示される', () => {
+    const markdownExplanation = '### 正解を導く手順\n\n活性化関数の役割を考えましょう。\n\n### 選択肢の比較\n\n各選択肢を比較します。';
+    const questionWithMarkdownExplanation: Question = {
+      ...mockQuestion,
+      contentType: 'plain',
+      explanation: markdownExplanation,
+    };
+
+    render(
+      <QuestionCard
+        question={questionWithMarkdownExplanation}
+        onAnswer={vi.fn()}
+        showResult={true}
+        selectedAnswer={1}
+        isCorrect={true}
+      />
+    );
+
+    // 解説セクションが表示される
+    expect(screen.getByText('解説')).toBeInTheDocument();
+    // Markdownがレンダリングされている（h3ヘッダーが存在する）
+    const headings = document.querySelectorAll('h3');
+    const explanationHeadings = Array.from(headings).filter(
+      h => h.textContent === '正解を導く手順' || h.textContent === '選択肢の比較'
+    );
+    expect(explanationHeadings.length).toBeGreaterThan(0);
+  });
+
   it('問題が変わると選択状態がリセットされる', () => {
     const newQuestion: Question = {
       ...mockQuestion,
