@@ -138,6 +138,22 @@ export default function Home() {
               グラフで可視化しましょう。
             </p>
           </Link>
+
+          <Link
+            href="/mock-exam"
+            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow group border-2 border-orange-200"
+          >
+            <div className="flex items-center mb-4">
+              <span className="text-4xl mr-4">📝</span>
+              <h2 className="text-xl font-semibold text-gray-800 group-hover:text-orange-600">
+                模擬試験
+              </h2>
+            </div>
+            <p className="text-gray-600">
+              100問・120分の本番シミュレーション。
+              合否判定と詳細な分析で実力を確認。
+            </p>
+          </Link>
         </section>
 
         {/* ユーザー情報 */}

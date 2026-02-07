@@ -163,3 +163,85 @@ export interface CategoryCoverage {
   coverageRate: number;
   accuracy: number;
 }
+
+/**
+ * 模試問題（正解・解説なし）
+ */
+export interface MockExamQuestion {
+  questionIndex: number;
+  questionId: string;
+  content: string;
+  choices: string[];
+  contentType: ContentType;
+  examArea: string;
+  images: QuestionImage[];
+}
+
+/**
+ * 模試開始レスポンス
+ */
+export interface MockExamStartResponse {
+  examId: string;
+  totalQuestions: number;
+  timeLimitMinutes: number;
+  questions: MockExamQuestion[];
+  startedAt: string;
+}
+
+/**
+ * 模試回答リクエスト
+ */
+export interface MockExamAnswerRequest {
+  questionIndex: number;
+  selectedAnswer: number;
+}
+
+/**
+ * 模試回答レスポンス
+ */
+export interface MockExamAnswerResponse {
+  questionIndex: number;
+  isCorrect: boolean;
+}
+
+/**
+ * カテゴリ別スコア詳細
+ */
+export interface CategoryScoreDetail {
+  areaName: string;
+  total: number;
+  correct: number;
+  accuracy: number;
+  grade: string;
+}
+
+/**
+ * 模試結果
+ */
+export interface MockExamResult {
+  examId: string;
+  userId: string;
+  startedAt: string;
+  finishedAt: string | null;
+  totalQuestions: number;
+  correctCount: number;
+  score: number;
+  passed: boolean | null;
+  passingThreshold: number;
+  categoryScores: CategoryScoreDetail[];
+  analysis: string;
+  aiAnalysis: string | null;
+  status: string;
+}
+
+/**
+ * 模試履歴アイテム
+ */
+export interface MockExamHistoryItem {
+  examId: string;
+  startedAt: string;
+  finishedAt: string | null;
+  score: number;
+  passed: boolean | null;
+  status: string;
+}

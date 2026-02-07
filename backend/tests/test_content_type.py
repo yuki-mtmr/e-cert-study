@@ -81,8 +81,13 @@ async def test_import_uses_claude_content_type_plain(
     mock_no_duplicate = MagicMock()
     mock_no_duplicate.scalar_one_or_none.return_value = None
 
+    # カテゴリマップ構築用（空）
+    mock_all_categories = MagicMock()
+    mock_all_categories.scalars.return_value.all.return_value = []
+
     mock_db.set_execute_results([
         mock_category_result,
+        mock_all_categories,
         mock_no_duplicate,
     ])
 
@@ -144,8 +149,13 @@ async def test_import_uses_claude_content_type_markdown(
     mock_no_duplicate = MagicMock()
     mock_no_duplicate.scalar_one_or_none.return_value = None
 
+    # カテゴリマップ構築用（空）
+    mock_all_categories = MagicMock()
+    mock_all_categories.scalars.return_value.all.return_value = []
+
     mock_db.set_execute_results([
         mock_category_result,
+        mock_all_categories,
         mock_no_duplicate,
     ])
 
@@ -206,8 +216,13 @@ async def test_import_uses_claude_content_type_code(
     mock_no_duplicate = MagicMock()
     mock_no_duplicate.scalar_one_or_none.return_value = None
 
+    # カテゴリマップ構築用（空）
+    mock_all_categories = MagicMock()
+    mock_all_categories.scalars.return_value.all.return_value = []
+
     mock_db.set_execute_results([
         mock_category_result,
+        mock_all_categories,
         mock_no_duplicate,
     ])
 
@@ -268,8 +283,13 @@ async def test_import_defaults_to_plain_when_no_content_type(
     mock_no_duplicate = MagicMock()
     mock_no_duplicate.scalar_one_or_none.return_value = None
 
+    # カテゴリマップ構築用（空）
+    mock_all_categories = MagicMock()
+    mock_all_categories.scalars.return_value.all.return_value = []
+
     mock_db.set_execute_results([
         mock_category_result,
+        mock_all_categories,
         mock_no_duplicate,
     ])
 

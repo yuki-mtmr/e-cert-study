@@ -136,8 +136,13 @@ async def test_import_skips_duplicate_questions(
     mock_duplicate_result_2 = MagicMock()
     mock_duplicate_result_2.scalar_one_or_none.return_value = None  # 重複なし
 
+    # カテゴリマップ構築用（空）
+    mock_all_categories = MagicMock()
+    mock_all_categories.scalars.return_value.all.return_value = []
+
     mock_db.set_execute_results([
         mock_category_result,
+        mock_all_categories,
         mock_duplicate_result_1,
         mock_duplicate_result_2,
     ])
@@ -210,8 +215,13 @@ async def test_import_saves_all_new_questions(
     mock_no_duplicate = MagicMock()
     mock_no_duplicate.scalar_one_or_none.return_value = None
 
+    # カテゴリマップ構築用（空）
+    mock_all_categories = MagicMock()
+    mock_all_categories.scalars.return_value.all.return_value = []
+
     mock_db.set_execute_results([
         mock_category_result,
+        mock_all_categories,
         mock_no_duplicate,
         mock_no_duplicate,
     ])
@@ -282,8 +292,13 @@ async def test_import_skips_all_duplicate_questions(
     mock_duplicate = MagicMock()
     mock_duplicate.scalar_one_or_none.return_value = MockQuestion()
 
+    # カテゴリマップ構築用（空）
+    mock_all_categories = MagicMock()
+    mock_all_categories.scalars.return_value.all.return_value = []
+
     mock_db.set_execute_results([
         mock_category_result,
+        mock_all_categories,
         mock_duplicate,
         mock_duplicate,
     ])

@@ -73,14 +73,9 @@ def mock_db() -> MockDBSession:
 E_CERT_CATEGORIES = {
     "応用数学": ["線形代数", "確率・統計", "情報理論"],
     "機械学習": ["教師あり学習", "教師なし学習", "評価指標"],
-    "深層学習": [
-        "順伝播型ニューラルネットワーク",
-        "CNN",
-        "RNN",
-        "Transformer",
-        "生成モデル",
-        "強化学習",
-    ],
+    "深層学習の基礎": ["順伝播型ニューラルネットワーク", "CNN", "RNN"],
+    "深層学習の応用": ["Transformer", "生成モデル", "強化学習"],
+    "開発・運用環境": ["ミドルウェア", "フレームワーク", "計算リソース", "データ収集・加工", "MLOps"],
 }
 
 
@@ -114,8 +109,8 @@ class TestSeedCategories:
             data = response.json()
             assert "message" in data
             assert "created_count" in data
-            # 親3 + 子12 = 15カテゴリ
-            assert data["created_count"] == 15
+            # 親5 + 子17 = 22カテゴリ
+            assert data["created_count"] == 22
         finally:
             app.dependency_overrides.clear()
 
@@ -124,11 +119,15 @@ class TestSeedCategories:
         self,
         mock_db: MockDBSession,
     ) -> None:
-        """既にカテゴリが存在する場合はスキップする"""
-        # 既存カテゴリがあることを示すモック
-        existing = MockCategory(name="応用数学")
+        """既にカテゴリが存在する場合は既存分をスキップする（追加型）"""
+        # 全カテゴリ名が既に存在することを示すモック
+        all_names = []
+        for parent, children in E_CERT_CATEGORIES.items():
+            all_names.append(parent)
+            all_names.extend(children)
+
         mock_result = MagicMock()
-        mock_result.scalars.return_value.all.return_value = [existing]
+        mock_result.scalars.return_value.all.return_value = all_names
         mock_db.set_execute_result(mock_result)
 
         async def override_get_db() -> AsyncGenerator[MockDBSession, None]:
@@ -146,7 +145,7 @@ class TestSeedCategories:
             assert response.status_code == 200
             data = response.json()
             assert data["created_count"] == 0
-            assert "already exists" in data["message"].lower() or "既" in data["message"]
+            assert "既" in data["message"]
         finally:
             app.dependency_overrides.clear()
 

@@ -58,6 +58,11 @@ class Question(Base):
         nullable=True,
         index=True,
     )
+    framework: Mapped[Optional[str]] = mapped_column(
+        String(50),
+        nullable=True,
+        index=True,
+    )
 
     # リレーションシップ
     category: Mapped["Category"] = relationship(

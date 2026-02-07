@@ -49,7 +49,12 @@ from app.services.vlm_analyzer import VLMAnalyzer
 from app.services.image_storage import ImageStorage
 from app.services.image_matcher import ImageMatcherService
 from app.services.caption_generator import CaptionGeneratorService
-from app.services.explanation_generator import generate_explanation
+from app.services.explanation_generator import (
+    generate_explanation,
+    generate_explanations_batch,
+    is_already_formatted,
+)
+from app.services.framework_detector import detect_framework
 
 router = APIRouter(prefix="/api/questions", tags=["questions"])
 
@@ -194,6 +199,24 @@ async def _link_images_by_semantic_matching(
 
     return linked_count
 
+def resolve_category_id(
+    category_name: str | None,
+    category_map: dict[str, uuid.UUID],
+) -> uuid.UUID | None:
+    """カテゴリ名からIDを解決する
+
+    Args:
+        category_name: PDF抽出で得られたカテゴリ名
+        category_map: カテゴリ名→IDのマッピング
+
+    Returns:
+        カテゴリID。解決できない場合はNone
+    """
+    if not category_name:
+        return None
+    return category_map.get(category_name)
+
+
 # デフォルトカテゴリ名
 DEFAULT_CATEGORY_NAME = "未分類"
 
@@ -283,6 +306,11 @@ async def get_random_question_service(
         query = query.where(Question.category_id.in_(category_ids))
     elif category_id:
         query = query.where(Question.category_id == category_id)
+
+    # TensorFlow専用問題を除外
+    query = query.where(
+        (Question.framework.is_(None)) | (Question.framework != "tensorflow")
+    )
 
     query = query.order_by(func.random()).limit(1)
     result = await db.execute(query)
@@ -419,6 +447,11 @@ async def get_smart_question(
     # 出題クエリを構築
     query = select(Question).options(selectinload(Question.images))
 
+    # TensorFlow専用問題を除外
+    query = query.where(
+        (Question.framework.is_(None)) | (Question.framework != "tensorflow")
+    )
+
     # 最近の問題を除外
     if recent_question_ids:
         query = query.where(Question.id.notin_(recent_question_ids))
@@ -436,6 +469,11 @@ async def get_smart_question(
     # 苦手カテゴリから問題が見つからない場合、全体からランダム
     if not question:
         fallback_query = select(Question).options(selectinload(Question.images))
+        # TensorFlow専用問題を除外
+        fallback_query = fallback_query.where(
+            (Question.framework.is_(None))
+            | (Question.framework != "tensorflow")
+        )
         if recent_question_ids:
             fallback_query = fallback_query.where(Question.id.notin_(recent_question_ids))
         fallback_query = fallback_query.order_by(func.random()).limit(1)
@@ -576,11 +614,16 @@ async def import_questions_from_pdf(
         # DBに保存
         saved_count = 0
         if save_to_db and questions:
-            # category_idが未指定の場合はデフォルトカテゴリを使用
-            effective_category_id = category_id
-            if not effective_category_id:
-                effective_category_id = await get_or_create_default_category(db)
+            # デフォルトカテゴリを準備
+            default_category_id = category_id
+            if not default_category_id:
+                default_category_id = await get_or_create_default_category(db)
                 logger.info(f"Using default category: {DEFAULT_CATEGORY_NAME}")
+
+            # カテゴリ名→IDマッピングを構築（per-questionカテゴリ振り分け用）
+            cat_result = await db.execute(select(Category))
+            all_categories = list(cat_result.scalars().all())
+            category_map = {c.name: c.id for c in all_categories}
 
             # 画像解析・保存の準備
             vlm_analyzer = VLMAnalyzer() if image_index else None
@@ -599,7 +642,16 @@ async def import_questions_from_pdf(
                         skipped_count += 1
                         continue
 
+                    # per-questionカテゴリ振り分け
+                    q_category_id = resolve_category_id(
+                        q.get("category"), category_map
+                    )
+                    effective_category_id = q_category_id or default_category_id
+
                     question_id = uuid.uuid4()
+                    framework = detect_framework(
+                        q["content"], q["choices"]
+                    )
                     question = Question(
                         id=question_id,
                         category_id=effective_category_id,
@@ -611,6 +663,7 @@ async def import_questions_from_pdf(
                         source=q.get("source", file.filename),
                         content_type=q.get("content_type", "plain"),
                         content_hash=content_hash,
+                        framework=framework,
                     )
                     db.add(question)
 
@@ -1011,6 +1064,7 @@ class RegenerateExplanationsResponse(BaseModel):
     total: int
     regenerated: int
     failed: int
+    skipped: int = 0
     results: list[dict[str, Any]] = []
 
 
@@ -1056,14 +1110,18 @@ async def regenerate_explanations_bulk(
     dry_run: bool = False,
     limit: int = 100,
     category_id: Optional[uuid.UUID] = None,
+    skip_formatted: bool = True,
+    concurrency: int = 3,
     db: AsyncSession = Depends(get_db),
 ) -> RegenerateExplanationsResponse:
-    """一括で問題の解説を再生成
+    """一括で問題の解説を再生成（並列バッチ処理）
 
     Args:
         dry_run: Trueの場合、実際の更新は行わず再生成結果のみ返す
         limit: 一度に処理する問題数
         category_id: 対象カテゴリID（指定なしで全問題）
+        skip_formatted: Trueの場合、新フォーマット済みの解説をスキップ
+        concurrency: 同時実行数（デフォルト: 3）
     """
     query = select(Question)
     if category_id:
@@ -1074,35 +1132,51 @@ async def regenerate_explanations_bulk(
     questions = list(result.scalars().all())
 
     total = len(questions)
+    skipped = 0
+
+    # フォーマット済みの問題をフィルタリング
+    if skip_formatted:
+        questions_to_process = []
+        for q in questions:
+            if is_already_formatted(q.explanation):
+                skipped += 1
+            else:
+                questions_to_process.append(q)
+    else:
+        questions_to_process = questions
+
+    # バッチ処理で並列生成
+    batch_results = await generate_explanations_batch(
+        questions_to_process, concurrency=concurrency
+    )
+
+    # 結果を集計
     regenerated = 0
     failed = 0
     results: list[dict[str, Any]] = []
 
-    for question in questions:
-        try:
-            new_explanation = await generate_explanation(
-                content=question.content,
-                choices=question.choices,
-                correct_answer=question.correct_answer,
-            )
+    # question_id → questionオブジェクトのマッピング
+    question_map = {str(q.id): q for q in questions_to_process}
 
+    for br in batch_results:
+        q_id = br["question_id"]
+        if br["status"] == "success":
             if not dry_run:
-                question.explanation = new_explanation
-
+                q_obj = question_map.get(q_id)
+                if q_obj:
+                    q_obj.explanation = br["explanation"]
             regenerated += 1
             results.append({
-                "question_id": str(question.id),
-                "content_preview": question.content[:50] + "...",
+                "question_id": q_id,
+                "content_preview": question_map[q_id].content[:50] + "..." if q_id in question_map else "",
                 "status": "regenerated",
             })
-
-        except Exception as e:
-            logger.error(f"Failed to regenerate explanation for {question.id}: {e}")
+        else:
             failed += 1
             results.append({
-                "question_id": str(question.id),
-                "content_preview": question.content[:50] + "...",
-                "error": str(e),
+                "question_id": q_id,
+                "content_preview": question_map[q_id].content[:50] + "..." if q_id in question_map else "",
+                "error": br.get("error", "Unknown error"),
                 "status": "error",
             })
 
@@ -1113,5 +1187,6 @@ async def regenerate_explanations_bulk(
         total=total,
         regenerated=regenerated,
         failed=failed,
+        skipped=skipped,
         results=results,
     )

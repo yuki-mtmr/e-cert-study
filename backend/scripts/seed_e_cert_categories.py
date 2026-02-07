@@ -16,19 +16,8 @@ from app.models.category import Category
 import uuid
 
 
-# E資格カテゴリ構成
-E_CERT_CATEGORIES: dict[str, list[str]] = {
-    "応用数学": ["線形代数", "確率・統計", "情報理論"],
-    "機械学習": ["教師あり学習", "教師なし学習", "評価指標"],
-    "深層学習": [
-        "順伝播型ニューラルネットワーク",
-        "CNN",
-        "RNN",
-        "Transformer",
-        "生成モデル",
-        "強化学習",
-    ],
-}
+# E資格カテゴリ構成（公式シラバス準拠）
+from app.api.categories import E_CERT_CATEGORIES
 
 
 async def seed_categories() -> None:

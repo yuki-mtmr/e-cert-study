@@ -19,7 +19,9 @@ class TestCategoryClassifier:
             # 親カテゴリ
             "応用数学",
             "機械学習",
-            "深層学習",
+            "深層学習の基礎",
+            "深層学習の応用",
+            "開発・運用環境",
             # 子カテゴリ
             "線形代数",
             "確率・統計",
@@ -33,6 +35,11 @@ class TestCategoryClassifier:
             "Transformer",
             "生成モデル",
             "強化学習",
+            "ミドルウェア",
+            "フレームワーク",
+            "計算リソース",
+            "データ収集・加工",
+            "MLOps",
         ]
         for category in expected_categories:
             assert category in E_CERT_CATEGORY_NAMES

@@ -44,6 +44,22 @@ EXPLANATION_PROMPT = """
 """
 
 
+def is_already_formatted(explanation: str | None) -> bool:
+    """解説が新フォーマット（構造化済み）かどうかチェック
+
+    「### 正解を導く手順」ヘッダーが含まれていれば新フォーマットと判定する。
+
+    Args:
+        explanation: 解説テキスト
+
+    Returns:
+        新フォーマットの場合True
+    """
+    if not explanation or not explanation.strip():
+        return False
+    return "### 正解を導く手順" in explanation
+
+
 async def call_claude_cli(prompt: str) -> str:
     """
     Claude Code CLIをsubprocessで呼び出してレスポンスを取得
@@ -121,3 +137,56 @@ async def generate_explanation(
 
     result = await call_claude_cli(prompt)
     return result.strip()
+
+
+async def generate_explanations_batch(
+    questions: list,
+    concurrency: int = 3,
+) -> list[dict]:
+    """複数問題の解説をバッチ生成（並列度制御付き）
+
+    asyncio.Semaphoreで同時実行数を制限しながら、
+    asyncio.gatherで並列実行する。
+
+    Args:
+        questions: Questionオブジェクトのリスト（id, content, choices, correct_answer属性を持つ）
+        concurrency: 同時実行数（デフォルト: 3）
+
+    Returns:
+        各結果を {"question_id", "explanation", "status", "error"} のdictで返すリスト
+    """
+    if not questions:
+        return []
+
+    semaphore = asyncio.Semaphore(concurrency)
+    total = len(questions)
+    results: list[dict] = [{}] * total
+
+    async def process_one(index: int, question: object) -> dict:
+        async with semaphore:
+            q_id = str(question.id)  # type: ignore[union-attr]
+            logger.info(f"Processing {index + 1}/{total}: question {q_id}")
+            try:
+                explanation = await generate_explanation(
+                    content=question.content,  # type: ignore[union-attr]
+                    choices=question.choices,  # type: ignore[union-attr]
+                    correct_answer=question.correct_answer,  # type: ignore[union-attr]
+                )
+                return {
+                    "question_id": q_id,
+                    "explanation": explanation,
+                    "status": "success",
+                    "error": None,
+                }
+            except Exception as e:
+                logger.error(f"Failed to generate explanation for {q_id}: {e}")
+                return {
+                    "question_id": q_id,
+                    "explanation": None,
+                    "status": "error",
+                    "error": str(e),
+                }
+
+    tasks = [process_one(i, q) for i, q in enumerate(questions)]
+    results = await asyncio.gather(*tasks, return_exceptions=False)
+    return list(results)

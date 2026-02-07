@@ -19,18 +19,13 @@ from app.schemas.category import (
 
 router = APIRouter(prefix="/api/categories", tags=["categories"])
 
-# E資格カテゴリ構成
+# E資格カテゴリ構成（公式シラバス準拠）
 E_CERT_CATEGORIES: dict[str, list[str]] = {
     "応用数学": ["線形代数", "確率・統計", "情報理論"],
     "機械学習": ["教師あり学習", "教師なし学習", "評価指標"],
-    "深層学習": [
-        "順伝播型ニューラルネットワーク",
-        "CNN",
-        "RNN",
-        "Transformer",
-        "生成モデル",
-        "強化学習",
-    ],
+    "深層学習の基礎": ["順伝播型ニューラルネットワーク", "CNN", "RNN"],
+    "深層学習の応用": ["Transformer", "生成モデル", "強化学習"],
+    "開発・運用環境": ["ミドルウェア", "フレームワーク", "計算リソース", "データ収集・加工", "MLOps"],
 }
 
 
@@ -135,39 +130,52 @@ async def create_category(
 async def seed_categories(
     db: AsyncSession = Depends(get_db),
 ) -> CategorySeedResponse:
-    """E資格カテゴリ初期データを作成"""
-    # 既存カテゴリを確認
-    existing = await get_categories_service(db)
-    if existing:
+    """E資格カテゴリ初期データを作成（追加型）
+
+    既存カテゴリがあっても、不足分を追加する。
+    """
+    # 既存カテゴリ名を取得
+    result = await db.execute(select(Category.name))
+    existing_names = set(result.scalars().all())
+
+    created_count = 0
+
+    for parent_name, children_names in E_CERT_CATEGORIES.items():
+        # 親カテゴリ
+        if parent_name not in existing_names:
+            parent = Category(
+                id=uuid.uuid4(),
+                name=parent_name,
+                parent_id=None,
+            )
+            db.add(parent)
+            await db.flush()
+            created_count += 1
+        else:
+            # 既存の親カテゴリを取得
+            parent_result = await db.execute(
+                select(Category).where(Category.name == parent_name)
+            )
+            parent = parent_result.scalar_one()
+
+        # 子カテゴリ
+        for child_name in children_names:
+            if child_name not in existing_names:
+                child = Category(
+                    id=uuid.uuid4(),
+                    name=child_name,
+                    parent_id=parent.id,
+                )
+                db.add(child)
+                created_count += 1
+
+    await db.commit()
+
+    if created_count == 0:
         return CategorySeedResponse(
             message="カテゴリは既に存在します",
             created_count=0,
         )
-
-    created_count = 0
-
-    # 親カテゴリを作成
-    for parent_name, children_names in E_CERT_CATEGORIES.items():
-        parent = Category(
-            id=uuid.uuid4(),
-            name=parent_name,
-            parent_id=None,
-        )
-        db.add(parent)
-        await db.flush()
-        created_count += 1
-
-        # 子カテゴリを作成
-        for child_name in children_names:
-            child = Category(
-                id=uuid.uuid4(),
-                name=child_name,
-                parent_id=parent.id,
-            )
-            db.add(child)
-            created_count += 1
-
-    await db.commit()
 
     return CategorySeedResponse(
         message=f"{created_count}個のカテゴリを作成しました",
