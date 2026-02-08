@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useMemo } from 'react';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/github-dark.css';
 
@@ -12,14 +12,20 @@ interface CodeBlockProps {
 
 /**
  * シンタックスハイライト付きコードブロックコンポーネント
+ *
+ * hljs.highlight()でHTML文字列を生成しdangerouslySetInnerHTMLで描画。
+ * DOM直接操作を避けることでReactとの競合（点滅）を防止。
  */
 export function CodeBlock({ code, language, filename }: CodeBlockProps) {
-  const codeRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    if (codeRef.current && language) {
-      hljs.highlightElement(codeRef.current);
+  const highlighted = useMemo(() => {
+    if (language) {
+      try {
+        return hljs.highlight(code, { language }).value;
+      } catch {
+        // 不明言語の場合はフォールバック
+      }
     }
+    return null;
   }, [code, language]);
 
   return (
@@ -31,11 +37,11 @@ export function CodeBlock({ code, language, filename }: CodeBlockProps) {
       )}
       <pre className="p-4 overflow-x-auto">
         <code
-          ref={codeRef}
-          className={language ? `language-${language}` : undefined}
-        >
-          {code}
-        </code>
+          className={language ? `language-${language} hljs` : undefined}
+          {...(highlighted
+            ? { dangerouslySetInnerHTML: { __html: highlighted } }
+            : { children: code })}
+        />
       </pre>
     </div>
   );

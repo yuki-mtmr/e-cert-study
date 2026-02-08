@@ -199,6 +199,84 @@ async def _link_images_by_semantic_matching(
 
     return linked_count
 
+async def _link_images_to_existing_question(
+    db: AsyncSession,
+    question: Question,
+    image_refs: list[str],
+    image_index: dict[str, dict[str, Any]],
+    vlm_analyzer: VLMAnalyzer,
+    image_storage: ImageStorage,
+) -> int:
+    """既存問題に画像を紐付け
+
+    再インポート時に重複検出された問題に画像がない場合、
+    image_refsに基づいて画像を紐付ける。
+
+    Args:
+        db: データベースセッション
+        question: 既存の問題オブジェクト
+        image_refs: 画像ファイル名のリスト
+        image_index: ファイル名→画像データの辞書
+        vlm_analyzer: VLM解析器
+        image_storage: 画像ストレージ
+
+    Returns:
+        紐付けられた画像数
+    """
+    linked_count = 0
+    for pos, img_filename in enumerate(image_refs):
+        if img_filename not in image_index:
+            logger.warning(
+                f"Image not found: {img_filename} for existing question {question.id}"
+            )
+            continue
+
+        img_info_data = image_index[img_filename]
+        img_data = img_info_data["data"]
+
+        try:
+            vlm_result = await vlm_analyzer.analyze(
+                img_data, detect_type=True, fallback_on_error=True,
+            )
+
+            alt_text = None
+            image_type = "unknown"
+            if vlm_result:
+                alt_text = vlm_result.description
+                image_type = vlm_result.image_type
+
+            img_info = image_storage.save(
+                image_data=img_data,
+                question_id=question.id,
+                position=pos,
+                alt_text=alt_text,
+                image_type=image_type,
+            )
+
+            question_image = QuestionImage(
+                id=img_info.id,
+                question_id=question.id,
+                file_path=img_info.file_path,
+                alt_text=alt_text,
+                position=pos,
+                image_type=image_type,
+            )
+            db.add(question_image)
+            linked_count += 1
+            logger.info(
+                f"Linked image {img_filename} to existing question {question.id}"
+            )
+        except Exception as e:
+            logger.warning(f"Failed to link image {img_filename} to existing question: {e}")
+            continue
+
+    if linked_count > 0:
+        await db.flush()
+        logger.info(f"Linked {linked_count} images to existing question {question.id}")
+
+    return linked_count
+
+
 def resolve_category_id(
     category_name: str | None,
     category_map: dict[str, uuid.UUID],
@@ -635,9 +713,18 @@ async def import_questions_from_pdf(
                     # 重複チェック
                     content_hash = get_question_hash(q["content"])
                     existing = await db.execute(
-                        select(Question).where(Question.content_hash == content_hash)
+                        select(Question)
+                        .options(selectinload(Question.images))
+                        .where(Question.content_hash == content_hash)
                     )
-                    if existing.scalar_one_or_none():
+                    existing_q = existing.scalar_one_or_none()
+                    if existing_q:
+                        # 既存問題に画像がなく、新規importに画像参照がある場合は画像を追加
+                        image_refs = q.get("image_refs", [])
+                        if len(existing_q.images) == 0 and image_refs and image_index and vlm_analyzer and image_storage:
+                            await _link_images_to_existing_question(
+                                db, existing_q, image_refs, image_index, vlm_analyzer, image_storage,
+                            )
                         logger.info(f"Skipping duplicate question: {content_hash[:8]}...")
                         skipped_count += 1
                         continue

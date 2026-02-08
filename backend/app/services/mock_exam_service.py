@@ -7,7 +7,7 @@ import math
 import uuid
 from typing import Any, Optional
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -34,6 +34,7 @@ async def select_questions_for_exam(
         選択された問題リスト（各要素にquestion, exam_area, category_nameを含む）
     """
     selected: list[dict[str, Any]] = []
+    selected_ids: set[uuid.UUID] = set()
 
     for area_name, area_config in EXAM_AREAS.items():
         db_category_name = area_config["db_category"]
@@ -58,8 +59,8 @@ async def select_questions_for_exam(
         child_ids = [row[0] for row in children_result.all()]
         category_ids = [parent.id] + child_ids
 
-        # ランダムに問題を選択（TensorFlow専用問題を除外）
-        questions_result = await db.execute(
+        # ランダムに問題を選択（TensorFlow専用問題を除外、既出問題を除外）
+        query = (
             select(Question)
             .options(selectinload(Question.images))
             .where(Question.category_id.in_(category_ids))
@@ -67,9 +68,13 @@ async def select_questions_for_exam(
                 (Question.framework.is_(None))
                 | (Question.framework != "tensorflow")
             )
-            .order_by(Question.id)  # 再現性のためにIDでソート後にシャッフル
+            .order_by(func.random())
             .limit(target_count)
         )
+        if selected_ids:
+            query = query.where(~Question.id.in_(selected_ids))
+
+        questions_result = await db.execute(query)
         questions = list(questions_result.scalars().all())
 
         if len(questions) < target_count:
@@ -78,6 +83,7 @@ async def select_questions_for_exam(
             )
 
         for q in questions:
+            selected_ids.add(q.id)
             selected.append({
                 "question": q,
                 "exam_area": area_name,
