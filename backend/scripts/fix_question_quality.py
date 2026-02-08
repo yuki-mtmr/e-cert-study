@@ -10,11 +10,11 @@
     python -m scripts.fix_question_quality --fix-context      # 文脈欠落のみ
 """
 import argparse
-import asyncio
 import logging
 import os
 import re
 import sys
+import uuid as uuid_mod
 from pathlib import Path
 from typing import Any
 
@@ -117,16 +117,20 @@ def delete_duplicates(engine: Any, groups: list[dict[str, Any]], dry_run: bool) 
             continue
 
         with engine.begin() as conn:
+            # Python側でUUIDオブジェクトに変換（PostgreSQLの型マッチ）
+            uuid_ids = [uuid_mod.UUID(d) for d in delete_ids]
             # 関連データを先に削除（外部キー制約）
             for table in ["mock_exam_answers", "answers", "question_images"]:
+                for uid in uuid_ids:
+                    conn.execute(
+                        text(f"DELETE FROM {table} WHERE question_id = :id"),
+                        {"id": uid},
+                    )
+            for uid in uuid_ids:
                 conn.execute(
-                    text(f"DELETE FROM {table} WHERE question_id = ANY(:ids)"),
-                    {"ids": delete_ids},
+                    text("DELETE FROM questions WHERE id = :id"),
+                    {"id": uid},
                 )
-            conn.execute(
-                text("DELETE FROM questions WHERE id = ANY(:ids)"),
-                {"ids": delete_ids},
-            )
             total_deleted += len(delete_ids)
 
     return total_deleted
@@ -227,10 +231,11 @@ def fix_text_corruption(
             continue
 
         with engine.begin() as conn:
+            uid = uuid_mod.UUID(q_id)
             # 現在のcontentを取得
             result = conn.execute(
                 text("SELECT content FROM questions WHERE id = :id"),
-                {"id": q_id},
+                {"id": uid},
             )
             row = result.fetchone()
             if not row:
@@ -242,7 +247,7 @@ def fix_text_corruption(
 
             conn.execute(
                 text("UPDATE questions SET content = :content WHERE id = :id"),
-                {"id": q_id, "content": content},
+                {"id": uid, "content": content},
             )
             fixed_count += 1
 
