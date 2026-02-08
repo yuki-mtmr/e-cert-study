@@ -38,6 +38,30 @@ class TestTextFixPatterns:
             text = re.sub(pattern, replacement, text)
         assert text == original
 
+    def test_no_false_positive_sorezore(self) -> None:
+        """「それぞれ」が「そそれぞれ」にならないこと"""
+        text = "距離の計算方法について、それぞれの特徴として最も適切なものを一つ選べ。"
+        original = text
+        for pattern, replacement in TEXT_FIX_PATTERNS:
+            text = re.sub(pattern, replacement, text)
+        assert text == original
+
+    def test_no_false_positive_kanryou(self) -> None:
+        """「を完了した」が「を完完了した」にならないこと"""
+        text = "事前学習を完了したBERTに対して"
+        original = text
+        for pattern, replacement in TEXT_FIX_PATTERNS:
+            text = re.sub(pattern, replacement, text)
+        assert text == original
+
+    def test_no_false_positive_tsuite(self) -> None:
+        """「について」が「についついて」にならないこと"""
+        text = "機械学習について述べよ"
+        original = text
+        for pattern, replacement in TEXT_FIX_PATTERNS:
+            text = re.sub(pattern, replacement, text)
+        assert text == original
+
     def test_multiple_fixes_in_one_text(self) -> None:
         """1つのテキストに複数の破損がある場合"""
         text = "学習を了した後、れぞれの結果にいて比較する"
