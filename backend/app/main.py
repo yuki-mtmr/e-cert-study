@@ -5,7 +5,7 @@ import sys
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import questions, answers, categories, stats, study_plan, mock_exam
+from app.api import questions, answers, categories, stats, study_plan, mock_exam, review
 from app.core.config import settings
 
 # ログ設定: appモジュール以下のログをINFOレベルで出力
@@ -45,6 +45,7 @@ app.include_router(categories.router)
 app.include_router(stats.router)
 app.include_router(study_plan.router)
 app.include_router(mock_exam.router)
+app.include_router(review.router)
 
 
 @app.get("/health")

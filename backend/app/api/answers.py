@@ -11,6 +11,7 @@ from app.core.database import get_db
 from app.models.answer import Answer
 from app.models.question import Question
 from app.schemas.answer import AnswerCreate, AnswerResponse
+from app.services.review_service import update_review_on_answer
 
 router = APIRouter(prefix="/api/answers", tags=["answers"])
 
@@ -59,6 +60,12 @@ async def create_answer_service(
         answered_at=datetime.now(),
     )
     db.add(answer)
+
+    # 復習アイテムを更新
+    await update_review_on_answer(
+        db, answer.question_id, answer.user_id, is_correct
+    )
+
     await db.commit()
     await db.refresh(answer)
     return answer

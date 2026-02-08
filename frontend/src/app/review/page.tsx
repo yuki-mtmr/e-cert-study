@@ -1,14 +1,20 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { QuestionCard } from '@/components/QuestionCard';
 import { useLocalProgress } from '@/hooks/useLocalProgress';
-import { fetchQuestionById, submitAnswer } from '@/lib/api';
-import type { Question } from '@/types';
+import { fetchQuestionById, submitAnswer, fetchReviewItems } from '@/lib/api';
+import type { Question, ReviewItem } from '@/types';
 
+/**
+ * 復習ページ
+ *
+ * バックエンドAPIから復習対象問題を取得。
+ * API失敗時はlocalStorageにフォールバック。
+ */
 export default function ReviewPage() {
-  const { userId, recordAnswer, getIncorrectQuestionIds, stats, isInitialized } = useLocalProgress();
+  const { userId, recordAnswer, getIncorrectQuestionIds, isInitialized } = useLocalProgress();
   const [question, setQuestion] = useState<Question | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -18,56 +24,69 @@ export default function ReviewPage() {
   const [remainingIds, setRemainingIds] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [idsLoaded, setIdsLoaded] = useState(false);
+  // 各問題のcorrect_count（バックエンドから取得した復習アイテム情報）
+  const [reviewItemMap, setReviewItemMap] = useState<Map<string, ReviewItem>>(new Map());
 
-  // 復習対象の問題IDを取得（初期化完了後、一度だけ）
+  // 復習対象の問題IDを取得（バックエンドAPI優先、localStorageフォールバック）
   useEffect(() => {
-    // 初期化完了まで待つ
     if (!isInitialized) return;
-    // すでにロード済みならスキップ
     if (idsLoaded) return;
 
-    const ids = getIncorrectQuestionIds();
+    const loadReviewIds = async () => {
+      // バックエンドAPIから復習アイテムを取得
+      if (userId) {
+        try {
+          const items = await fetchReviewItems(userId);
+          if (items.length > 0) {
+            const ids = items.map(item => item.questionId);
+            const itemMap = new Map<string, ReviewItem>();
+            items.forEach(item => itemMap.set(item.questionId, item));
+            setRemainingIds(ids);
+            setReviewItemMap(itemMap);
+            setIdsLoaded(true);
+            return;
+          }
+        } catch {
+          // API失敗時はlocalStorageにフォールバック
+        }
+      }
 
-    // IDが取得できた場合のみロード完了とする
-    // （progressDataがまだ空の場合は再試行）
-    if (ids.length > 0) {
-      setRemainingIds(ids);
-      setIdsLoaded(true);
-    } else {
-      // ローカルストレージに回答データがあるかチェック
-      const stored = localStorage.getItem('e-cert-study-progress');
-      if (!stored) {
-        // 本当に回答データがない場合のみエラー表示
-        setLoading(false);
-        setError('復習する問題がありません。問題演習を行ってください。');
+      // localStorageフォールバック
+      const ids = getIncorrectQuestionIds();
+      if (ids.length > 0) {
+        setRemainingIds(ids);
         setIdsLoaded(true);
       } else {
-        // storedがある場合、データがあるかパースして確認
-        try {
-          const data = JSON.parse(stored);
-          // 最新の結果が不正解の問題があるか確認
-          const latestResults = new Map<string, boolean>();
-          for (const answer of data.answers || []) {
-            latestResults.set(answer.questionId, answer.isCorrect);
-          }
-          const hasIncorrect = Array.from(latestResults.values()).some(v => !v);
-
-          if (!hasIncorrect) {
-            // 本当に復習問題がない（全て正解済み）
+        // localStorageに回答データがあるかチェック
+        const stored = localStorage.getItem('e-cert-study-progress');
+        if (!stored) {
+          setLoading(false);
+          setError('復習する問題がありません。問題演習を行ってください。');
+          setIdsLoaded(true);
+        } else {
+          try {
+            const data = JSON.parse(stored);
+            const latestResults = new Map<string, boolean>();
+            for (const answer of data.answers || []) {
+              latestResults.set(answer.questionId, answer.isCorrect);
+            }
+            const hasIncorrect = Array.from(latestResults.values()).some(v => !v);
+            if (!hasIncorrect) {
+              setLoading(false);
+              setError('復習する問題がありません。問題演習を行ってください。');
+              setIdsLoaded(true);
+            }
+          } catch {
             setLoading(false);
             setError('復習する問題がありません。問題演習を行ってください。');
             setIdsLoaded(true);
           }
-          // hasIncorrectがtrueなら次のレンダリングで再試行
-        } catch {
-          // パースエラーの場合はエラー表示
-          setLoading(false);
-          setError('復習する問題がありません。問題演習を行ってください。');
-          setIdsLoaded(true);
         }
       }
-    }
-  }, [isInitialized, idsLoaded, getIncorrectQuestionIds]);
+    };
+
+    loadReviewIds();
+  }, [isInitialized, idsLoaded, getIncorrectQuestionIds, userId]);
 
   // 問題を読み込む
   useEffect(() => {
@@ -89,7 +108,6 @@ export default function ReviewPage() {
         if (q) {
           setQuestion(q);
         } else {
-          // APIから取得できない場合は次の問題へ
           setCurrentIndex(prev => prev + 1);
         }
       } catch (e) {
@@ -138,6 +156,9 @@ export default function ReviewPage() {
       setQuestion(null);
     }
   };
+
+  // 現在の問題のcorrect_count（バックエンドから取得した場合のみ表示）
+  const currentReviewItem = question ? reviewItemMap.get(question.id) : null;
 
   if (loading) {
     return (
@@ -213,6 +234,24 @@ export default function ReviewPage() {
             />
           </div>
         </div>
+
+        {/* 復習進捗表示（バックエンドから取得した場合） */}
+        {currentReviewItem && (
+          <div className="mb-4 flex items-center justify-between bg-white rounded-lg p-3 shadow-sm">
+            <span className="text-sm text-gray-600">習得進捗</span>
+            <div className="flex items-center gap-2">
+              <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-green-500 transition-all duration-300"
+                  style={{ width: `${(currentReviewItem.correctCount / 10) * 100}%` }}
+                />
+              </div>
+              <span className="text-sm font-medium text-gray-700">
+                {currentReviewItem.correctCount} / 10
+              </span>
+            </div>
+          </div>
+        )}
 
         <QuestionCard
           key={question.id}

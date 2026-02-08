@@ -17,6 +17,8 @@ import type {
   MockExamAnswerResponse,
   MockExamResult,
   MockExamHistoryItem,
+  ReviewItem,
+  ReviewStats,
 } from '@/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -495,6 +497,44 @@ export async function fetchMockExamHistory(
 
   const data = await parseResponse<{ exams: MockExamHistoryItem[]; totalCount: number }>(response);
   return data || { exams: [], totalCount: 0 };
+}
+
+/**
+ * 復習アイテム（active）を取得
+ */
+export async function fetchReviewItems(userId: string): Promise<ReviewItem[]> {
+  const response = await fetch(`${API_BASE_URL}/api/review/items?user_id=${userId}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  const data = await parseResponse<ReviewItem[]>(response);
+  return data || [];
+}
+
+/**
+ * 習得済みアイテムを取得
+ */
+export async function fetchMasteredItems(userId: string): Promise<ReviewItem[]> {
+  const response = await fetch(`${API_BASE_URL}/api/review/mastered?user_id=${userId}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  const data = await parseResponse<ReviewItem[]>(response);
+  return data || [];
+}
+
+/**
+ * 復習統計を取得
+ */
+export async function fetchReviewStats(userId: string): Promise<ReviewStats | null> {
+  const response = await fetch(`${API_BASE_URL}/api/review/stats?user_id=${userId}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  return parseResponse<ReviewStats>(response);
 }
 
 /**

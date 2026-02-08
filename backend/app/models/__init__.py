@@ -6,6 +6,7 @@ from app.models.question import Question
 from app.models.question_image import QuestionImage
 from app.models.study_plan import StudyPlan, DailyGoal
 from app.models.mock_exam import MockExam, MockExamAnswer
+from app.models.review_item import ReviewItem
 
 __all__ = [
     "Base",
@@ -17,4 +18,5 @@ __all__ = [
     "DailyGoal",
     "MockExam",
     "MockExamAnswer",
+    "ReviewItem",
 ]

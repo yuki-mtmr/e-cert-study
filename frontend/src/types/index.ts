@@ -245,3 +245,26 @@ export interface MockExamHistoryItem {
   passed: boolean | null;
   status: string;
 }
+
+/**
+ * 復習アイテム
+ */
+export interface ReviewItem {
+  id: string;
+  questionId: string;
+  userId: string;
+  correctCount: number;
+  status: 'active' | 'mastered';
+  firstWrongAt: string;
+  lastAnsweredAt: string;
+  masteredAt: string | null;
+}
+
+/**
+ * 復習統計
+ */
+export interface ReviewStats {
+  activeCount: number;
+  masteredCount: number;
+  totalCount: number;
+}
