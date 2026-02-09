@@ -12,27 +12,29 @@ import type {
 } from '@/types';
 
 export default function MockExamHistoryPage() {
-  const { userId } = useLocalProgress();
+  const { userId, isInitialized } = useLocalProgress();
   const [exams, setExams] = useState<MockExamHistoryItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedResult, setSelectedResult] = useState<MockExamResultType | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
+    if (!isInitialized || !userId) return;
     async function load() {
       try {
         const data = await fetchMockExamHistory(userId);
         setExams(data.exams);
         setTotalCount(data.totalCount);
       } catch {
-        // エラーは静かに処理
+        setError('履歴の読み込みに失敗しました。');
       } finally {
         setLoading(false);
       }
     }
     load();
-  }, [userId]);
+  }, [userId, isInitialized]);
 
   const handleSelectExam = async (examId: string) => {
     try {
@@ -62,6 +64,27 @@ export default function MockExamHistoryPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+      </div>
+    );
+  }
+
+  // エラー表示
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-white shadow-sm">
+          <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-gray-900">模試履歴</h1>
+            <Link href="/" className="text-blue-600 hover:underline text-sm">
+              ホームに戻る
+            </Link>
+          </div>
+        </header>
+        <main className="max-w-4xl mx-auto px-4 py-8">
+          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
+            {error}
+          </div>
+        </main>
       </div>
     );
   }

@@ -1,4 +1,5 @@
 """模試APIエンドポイント"""
+import logging
 import uuid
 from datetime import datetime
 from typing import Any
@@ -31,6 +32,9 @@ from app.services.mock_exam_service import (
     generate_rule_based_analysis,
     select_questions_for_exam,
 )
+from app.services.review_service import update_review_on_answer
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/mock-exam", tags=["mock-exam"])
 
@@ -170,7 +174,9 @@ async def finish_mock_exam(
 ) -> MockExamResultResponse:
     """模試終了（スコア計算・分析生成）"""
     exam_result = await db.execute(
-        select(MockExam).where(MockExam.id == exam_id)
+        select(MockExam)
+        .options(selectinload(MockExam.answers))
+        .where(MockExam.id == exam_id)
     )
     exam = exam_result.scalar_one_or_none()
     if not exam:
@@ -204,6 +210,14 @@ async def finish_mock_exam(
     exam.passed = scores["passed"]
     exam.category_scores = scores["category_scores"]
     exam.status = "finished"
+
+    # 各回答を復習アイテムに連携
+    for a in exam.answers:
+        if a.is_correct is not None:
+            try:
+                await update_review_on_answer(db, a.question_id, exam.user_id, a.is_correct)
+            except Exception as e:
+                logger.warning(f"復習アイテム更新失敗 (question_id={a.question_id}): {e}")
 
     await db.commit()
 

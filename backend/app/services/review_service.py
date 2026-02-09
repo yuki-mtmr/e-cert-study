@@ -13,6 +13,7 @@ from typing import Optional
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.mock_exam import MockExam
 from app.models.review_item import ReviewItem
 
 # 習得に必要な連続正解数
@@ -165,4 +166,93 @@ async def get_review_stats(
         "active_count": active_count,
         "mastered_count": mastered_count,
         "total_count": active_count + mastered_count,
+    }
+
+
+async def get_review_items_with_details(
+    db: AsyncSession,
+    user_id: str,
+    status_filter: Optional[str] = None,
+) -> list[dict]:
+    """復習アイテムを問題内容・カテゴリ名と共に取得する
+
+    N+1回避のため selectinload で question をプリフェッチ。
+    """
+    from sqlalchemy.orm import selectinload
+    from app.models.question import Question
+
+    query = (
+        select(ReviewItem)
+        .options(
+            selectinload(ReviewItem.question).selectinload(Question.category)
+        )
+        .where(ReviewItem.user_id == user_id)
+    )
+
+    if status_filter:
+        query = query.where(ReviewItem.status == status_filter)
+
+    query = query.order_by(ReviewItem.last_answered_at.desc())
+    result = await db.execute(query)
+    items = result.scalars().all()
+
+    details = []
+    for item in items:
+        content = item.question.content if item.question else ""
+        # 100文字に切り詰め
+        truncated = content[:100] if len(content) > 100 else content
+
+        category_name = None
+        if item.question and hasattr(item.question, "category") and item.question.category:
+            category_name = item.question.category.name
+
+        details.append({
+            "id": item.id,
+            "question_id": item.question_id,
+            "user_id": item.user_id,
+            "correct_count": item.correct_count,
+            "status": item.status,
+            "first_wrong_at": item.first_wrong_at,
+            "last_answered_at": item.last_answered_at,
+            "mastered_at": item.mastered_at,
+            "question_content": truncated,
+            "question_category_name": category_name,
+        })
+
+    return details
+
+
+async def backfill_review_items_for_user(
+    db: AsyncSession,
+    user_id: str,
+) -> dict[str, int]:
+    """既存の完了済み模試から復習アイテムを遡及的に作成する
+
+    update_review_on_answer は冪等なので、2回実行しても安全。
+    """
+    from sqlalchemy.orm import selectinload
+
+    result = await db.execute(
+        select(MockExam)
+        .options(selectinload(MockExam.answers))
+        .where(
+            MockExam.user_id == user_id,
+            MockExam.status == "finished",
+        )
+    )
+    exams = result.scalars().all()
+
+    items_created = 0
+    for exam in exams:
+        for answer in exam.answers:
+            if answer.is_correct is not None:
+                item = await update_review_on_answer(
+                    db, answer.question_id, user_id, answer.is_correct
+                )
+                if item is not None:
+                    items_created += 1
+
+    return {
+        "exams_processed": len(exams),
+        "items_created": items_created,
     }

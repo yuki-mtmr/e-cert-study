@@ -75,6 +75,13 @@ export default function MockExamPage() {
     newAnswers.set(currentIndex, selectedIndex);
     setAnswers(newAnswers);
 
+    // 次の問題に自動で進む（最後の問題なら終了確認ダイアログ表示）
+    if (currentIndex < examData.totalQuestions - 1) {
+      setCurrentIndex(currentIndex + 1);
+    } else {
+      setShowConfirmDialog(true);
+    }
+
     try {
       await submitMockExamAnswer(examData.examId, {
         questionIndex: currentIndex,
@@ -87,10 +94,11 @@ export default function MockExamPage() {
 
   const handleFinish = async () => {
     if (!examData) return;
-    setShowConfirmDialog(false);
     setLoading(true);
+    setError(null);
     try {
       const examResult = await finishMockExam(examData.examId, userId);
+      setShowConfirmDialog(false);
       setResult(examResult);
       setPhase('result');
     } catch (e) {
@@ -173,6 +181,13 @@ export default function MockExamPage() {
             >
               {loading ? '準備中...' : '模試を開始する'}
             </button>
+
+            <Link
+              href="/mock-exam/history"
+              className="text-blue-600 hover:underline text-sm mt-4 inline-block"
+            >
+              過去の模試結果を見る
+            </Link>
           </div>
         </main>
       </div>
@@ -287,6 +302,11 @@ export default function MockExamPage() {
               <p className="text-gray-600 mb-4">
                 {answers.size}/{examData.totalQuestions}問 回答済み
               </p>
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg mb-4 text-sm">
+                  {error}
+                </div>
+              )}
               <div className="flex gap-4">
                 <button
                   onClick={() => setShowConfirmDialog(false)}

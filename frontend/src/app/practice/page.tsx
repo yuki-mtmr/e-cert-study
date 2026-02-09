@@ -138,32 +138,33 @@ export default function PracticePage() {
   };
 
   const handleAnswer = async (selected: number) => {
-    if (!question || !userId) return;
+    if (!question) return;
 
     setSelectedAnswer(selected);
+    const localCorrect = selected === question.correctAnswer;
 
     try {
-      const answer = await submitAnswer({
-        questionId: question.id,
-        userId,
-        selectedAnswer: selected,
-      });
-
-      setIsCorrect(answer.isCorrect);
-      recordAnswer(question.id, answer.isCorrect);
-      setShowResult(true);
-
-      // 結果を記録
-      setResults(prev => [...prev, { questionId: question.id, isCorrect: answer.isCorrect }]);
+      if (userId) {
+        const answer = await submitAnswer({
+          questionId: question.id,
+          userId,
+          selectedAnswer: selected,
+        });
+        setIsCorrect(answer.isCorrect);
+        recordAnswer(question.id, answer.isCorrect);
+        setShowResult(true);
+        setResults(prev => [...prev, { questionId: question.id, isCorrect: answer.isCorrect }]);
+      } else {
+        setIsCorrect(localCorrect);
+        recordAnswer(question.id, localCorrect);
+        setShowResult(true);
+        setResults(prev => [...prev, { questionId: question.id, isCorrect: localCorrect }]);
+      }
     } catch (e) {
-      // API接続エラーの場合はローカルで判定
-      const correct = selected === question.correctAnswer;
-      setIsCorrect(correct);
-      recordAnswer(question.id, correct);
+      setIsCorrect(localCorrect);
+      recordAnswer(question.id, localCorrect);
       setShowResult(true);
-
-      // 結果を記録
-      setResults(prev => [...prev, { questionId: question.id, isCorrect: correct }]);
+      setResults(prev => [...prev, { questionId: question.id, isCorrect: localCorrect }]);
       console.error('Answer submission failed, using local evaluation:', e);
     }
   };

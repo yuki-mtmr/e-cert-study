@@ -70,26 +70,31 @@ export default function Home() {
             </p>
           </Link>
 
-          <Link
-            href="/review"
-            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow group"
-          >
-            <div className="flex items-center mb-4">
-              <span className="text-4xl mr-4">🔄</span>
-              <h2 className="text-xl font-semibold text-gray-800 group-hover:text-blue-600">
-                復習モード
-              </h2>
-            </div>
-            <p className="text-gray-600">
-              間違えた問題を重点的に復習します。
-              苦手分野を克服しましょう。
-            </p>
-            {getIncorrectQuestionIds().length > 0 && (
-              <span className="inline-block mt-2 bg-red-100 text-red-800 text-sm px-2 py-1 rounded">
-                {getIncorrectQuestionIds().length}問の復習待ち
-              </span>
-            )}
-          </Link>
+          <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+            <Link href="/review" className="block group">
+              <div className="flex items-center mb-4">
+                <span className="text-4xl mr-4">🔄</span>
+                <h2 className="text-xl font-semibold text-gray-800 group-hover:text-blue-600">
+                  復習モード
+                </h2>
+              </div>
+              <p className="text-gray-600">
+                間違えた問題を重点的に復習します。
+                苦手分野を克服しましょう。
+              </p>
+              {getIncorrectQuestionIds().length > 0 && (
+                <span className="inline-block mt-2 bg-red-100 text-red-800 text-sm px-2 py-1 rounded">
+                  {getIncorrectQuestionIds().length}問の復習待ち
+                </span>
+              )}
+            </Link>
+            <Link
+              href="/review/dashboard"
+              className="block mt-2 text-sm text-blue-600 hover:underline"
+            >
+              復習管理ダッシュボード
+            </Link>
+          </div>
 
           <Link
             href="/stats"
@@ -153,6 +158,12 @@ export default function Home() {
               100問・120分の本番シミュレーション。
               合否判定と詳細な分析で実力を確認。
             </p>
+          </Link>
+          <Link
+            href="/mock-exam/history"
+            className="text-sm text-orange-600 hover:underline mt-1 ml-1 inline-block"
+          >
+            過去の結果を見る
           </Link>
         </section>
 

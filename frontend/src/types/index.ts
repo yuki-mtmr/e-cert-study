@@ -261,6 +261,22 @@ export interface ReviewItem {
 }
 
 /**
+ * 復習アイテム詳細（問題内容・カテゴリ名付き）
+ */
+export interface ReviewItemDetail extends ReviewItem {
+  questionContent: string;
+  questionCategoryName: string | null;
+}
+
+/**
+ * バックフィルレスポンス
+ */
+export interface BackfillResponse {
+  examsProcessed: number;
+  itemsCreated: number;
+}
+
+/**
  * 復習統計
  */
 export interface ReviewStats {

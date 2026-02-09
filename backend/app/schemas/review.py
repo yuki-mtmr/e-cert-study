@@ -27,3 +27,23 @@ class ReviewStatsResponse(BaseModel):
     active_count: int
     mastered_count: int
     total_count: int
+
+
+class ReviewItemDetailResponse(ReviewItemResponse):
+    """復習アイテム詳細レスポンス（問題内容・カテゴリ名付き）"""
+
+    question_content: str
+    question_category_name: Optional[str] = None
+
+
+class BackfillRequest(BaseModel):
+    """バックフィルリクエスト"""
+
+    user_id: str
+
+
+class BackfillResponse(BaseModel):
+    """バックフィルレスポンス"""
+
+    exams_processed: int
+    items_created: int
