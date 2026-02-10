@@ -28,14 +28,13 @@ raw_url = os.getenv(
 # alembicは同期ドライバを使用するため、asyncpgを除去
 raw_url = raw_url.replace("+asyncpg", "")
 
-# デバッグ: DATABASE_URLの形式を確認（パスワードはマスク）
-print(f"DEBUG: raw_url length={len(raw_url)}, first_30='{raw_url[:30]}...'")
+# プロトコルプレフィックスが無い場合は自動追加
+if "://" not in raw_url:
+    raw_url = f"postgresql://{raw_url}"
 
 # パスワードに特殊文字（#等）が含まれる場合に対応するため、URL.createで構築
 match = re.match(r"(\w+):\/\/([^:]+):(.+)@([^:\/]+):(\d+)\/(.+)", raw_url)
-print(f"DEBUG: regex match={'yes' if match else 'no'}")
 if match:
-    print(f"DEBUG: driver={match.group(1)}, user={match.group(2)}, host={match.group(4)}, port={match.group(5)}, db={match.group(6)}")
     database_url = URL.create(
         drivername=match.group(1),
         username=match.group(2),
@@ -45,7 +44,6 @@ if match:
         database=match.group(6),
     )
 else:
-    print(f"DEBUG: full raw_url='{raw_url}'")
     database_url = raw_url
 
 # モデルのメタデータ

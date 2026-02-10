@@ -1,4 +1,5 @@
 """アプリケーション設定"""
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -12,6 +13,17 @@ class Settings(BaseSettings):
 
     # データベース
     database_url: str = "postgresql+asyncpg://user:pass@localhost:5432/e_cert_study"
+
+    @model_validator(mode="after")
+    def ensure_database_url_prefix(self):
+        """DATABASE_URLにプロトコルプレフィックスが無い場合は自動追加"""
+        if "://" not in self.database_url:
+            self.database_url = f"postgresql+asyncpg://{self.database_url}"
+        elif not self.database_url.startswith("postgresql+asyncpg://"):
+            self.database_url = self.database_url.replace(
+                "postgresql://", "postgresql+asyncpg://"
+            )
+        return self
 
     # Supabase
     supabase_url: str = ""
