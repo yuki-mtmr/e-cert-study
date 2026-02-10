@@ -13,5 +13,9 @@ COPY . .
 ENV PORT=8080
 EXPOSE 8080
 
+# 起動スクリプトをコピー
+COPY start.sh .
+RUN chmod +x start.sh
+
 # 起動コマンド（マイグレーション実行後にサーバー起動）
-CMD alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+CMD ["./start.sh"]
