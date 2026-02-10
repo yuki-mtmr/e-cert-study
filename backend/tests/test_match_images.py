@@ -1,12 +1,14 @@
 """画像マッチングのテスト
 
 sentence-transformersを使用した問題-画像マッチングのユニットテスト
+numpy/sentence-transformersはオプショナル依存(vlm)のため、未インストール時はスキップ
 """
 import json
 import pytest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-import numpy as np
+
+np = pytest.importorskip("numpy", reason="numpy is required for image matching tests")
 
 
 class TestImageMatcher:

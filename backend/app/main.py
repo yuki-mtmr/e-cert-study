@@ -2,11 +2,15 @@
 import logging
 import sys
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api import questions, answers, categories, stats, study_plan, mock_exam, review, chat
 from app.core.config import settings
+from app.core.database import get_db
 
 # ログ設定: appモジュール以下のログをINFOレベルで出力
 logging.basicConfig(
@@ -50,6 +54,13 @@ app.include_router(chat.router)
 
 
 @app.get("/health")
-async def health_check() -> dict[str, str]:
-    """ヘルスチェックエンドポイント"""
-    return {"status": "healthy"}
+async def health_check(db: AsyncSession = Depends(get_db)):
+    """ヘルスチェックエンドポイント（DB接続確認付き）"""
+    try:
+        await db.execute(text("SELECT 1"))
+        return {"status": "healthy", "database": "connected"}
+    except Exception:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "unhealthy", "database": "disconnected"},
+        )
