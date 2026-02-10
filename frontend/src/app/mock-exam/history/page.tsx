@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useLocalProgress } from '@/hooks/useLocalProgress';
 import { fetchMockExamHistory, fetchMockExamResult } from '@/lib/api';
@@ -20,21 +20,25 @@ export default function MockExamHistoryPage() {
   const [selectedResult, setSelectedResult] = useState<MockExamResultType | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
 
+  const loadHistory = useCallback(async () => {
+    if (!userId) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await fetchMockExamHistory(userId);
+      setExams(data.exams);
+      setTotalCount(data.totalCount);
+    } catch {
+      setError('履歴の読み込みに失敗しました。');
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
+
   useEffect(() => {
     if (!isInitialized || !userId) return;
-    async function load() {
-      try {
-        const data = await fetchMockExamHistory(userId);
-        setExams(data.exams);
-        setTotalCount(data.totalCount);
-      } catch {
-        setError('履歴の読み込みに失敗しました。');
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
-  }, [userId, isInitialized]);
+    loadHistory();
+  }, [isInitialized, userId, loadHistory]);
 
   const handleSelectExam = async (examId: string) => {
     try {
@@ -82,7 +86,13 @@ export default function MockExamHistoryPage() {
         </header>
         <main className="max-w-4xl mx-auto px-4 py-8">
           <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
-            {error}
+            <p>{error}</p>
+            <button
+              onClick={loadHistory}
+              className="mt-3 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
+            >
+              再試行
+            </button>
           </div>
         </main>
       </div>

@@ -489,16 +489,26 @@ export async function fetchMockExamResult(examId: string): Promise<MockExamResul
 export async function fetchMockExamHistory(
   userId: string
 ): Promise<{ exams: MockExamHistoryItem[]; totalCount: number }> {
-  const response = await fetch(
-    `${API_BASE_URL}/api/mock-exam/history?user_id=${userId}`,
-    {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    }
-  );
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-  const data = await parseResponse<{ exams: MockExamHistoryItem[]; totalCount: number }>(response);
-  return data || { exams: [], totalCount: 0 };
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/mock-exam/history?user_id=${userId}`,
+      {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+      }
+    );
+
+    clearTimeout(timeoutId);
+    const data = await parseResponse<{ exams: MockExamHistoryItem[]; totalCount: number }>(response);
+    return data || { exams: [], totalCount: 0 };
+  } catch (e) {
+    clearTimeout(timeoutId);
+    throw e;
+  }
 }
 
 /**

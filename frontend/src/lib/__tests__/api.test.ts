@@ -17,6 +17,7 @@ import {
   deleteStudyPlan,
   fetchStudyPlanSummary,
   fetchCategoryCoverage,
+  fetchMockExamHistory,
   type CategoryCoverage,
 } from '../api';
 import type { Question, Answer, StudyPlan, StudyPlanSummary } from '@/types';
@@ -688,6 +689,42 @@ describe('Study Plan API', () => {
       expect(result).toBeNull();
     });
   });
+});
+
+describe('fetchMockExamHistory', () => {
+  beforeEach(() => {
+    mockFetch.mockClear();
+  });
+
+  it('fetchにAbortSignalが渡される（タイムアウト防止）', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ exams: [], total_count: 0 }),
+    });
+
+    await fetchMockExamHistory('test-user');
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+      })
+    );
+  });
+
+  it('タイムアウト時にエラーをスローする', async () => {
+    mockFetch.mockImplementationOnce((_url: string, options: RequestInit) => {
+      return new Promise((_resolve, reject) => {
+        options.signal?.addEventListener('abort', () => {
+          const error = new Error('The operation was aborted');
+          error.name = 'AbortError';
+          reject(error);
+        });
+      });
+    });
+
+    await expect(fetchMockExamHistory('test-user')).rejects.toThrow();
+  }, 15000);
 });
 
 describe('Category Coverage API', () => {

@@ -5,7 +5,7 @@
  * エラー表示、ナビゲーションリンクをテスト
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, act } from '@testing-library/react';
+import { render, screen, waitFor, act, fireEvent } from '@testing-library/react';
 import MockExamHistoryPage from '../page';
 
 // localStorageモック
@@ -138,7 +138,39 @@ describe('MockExamHistoryPage', () => {
         expect(screen.getByText('履歴の読み込みに失敗しました。')).toBeInTheDocument();
       });
     });
-  });
+
+    it('API失敗時にリトライボタンを表示し、クリックで再取得する', async () => {
+      mockLocalStorage._setStore({
+        'e-cert-study-user-id': 'test-user-123',
+      });
+
+      // 1回目: エラー
+      mockHistoryApiError();
+
+      await act(async () => {
+        render(<MockExamHistoryPage />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('履歴の読み込みに失敗しました。')).toBeInTheDocument();
+      });
+
+      // リトライボタンが存在する
+      const retryButton = screen.getByRole('button', { name: /再試行/ });
+      expect(retryButton).toBeInTheDocument();
+
+      // 2回目: 成功
+      mockHistoryApi([], 0);
+
+      await act(async () => {
+        fireEvent.click(retryButton);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('まだ模試を受験していません。')).toBeInTheDocument();
+      });
+    });
+  });  // end of エラーハンドリング
 
   describe('履歴の表示', () => {
     it('履歴がない場合は「まだ模試を受験していません」を表示', async () => {
