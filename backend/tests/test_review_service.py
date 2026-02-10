@@ -152,7 +152,7 @@ class TestHandleCorrectAnswer:
             id=uuid.uuid4(),
             question_id=question_id,
             user_id=user_id,
-            correct_count=3,
+            correct_count=0,
             status="active",
             first_wrong_at=datetime.now(),
             last_answered_at=datetime.now(),
@@ -164,7 +164,7 @@ class TestHandleCorrectAnswer:
         item = await handle_correct_answer(db, question_id, user_id)
 
         assert item is not None
-        assert item.correct_count == 4
+        assert item.correct_count == 1
         assert item.status == "active"
 
     @pytest.mark.asyncio

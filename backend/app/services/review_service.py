@@ -17,7 +17,7 @@ from app.models.mock_exam import MockExam
 from app.models.review_item import ReviewItem
 
 # 習得に必要な連続正解数
-MASTERY_THRESHOLD = 10
+MASTERY_THRESHOLD = 3
 
 
 async def handle_incorrect_answer(

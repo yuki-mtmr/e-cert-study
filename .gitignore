@@ -58,6 +58,9 @@ yarn-debug.log*
 # Backend data directory
 backend/data/
 
+# Backend static files (images uploaded to Supabase)
+backend/static/
+
 # Pip install error outputs
 backend/=*
 

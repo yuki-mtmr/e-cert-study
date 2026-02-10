@@ -284,3 +284,11 @@ export interface ReviewStats {
   masteredCount: number;
   totalCount: number;
 }
+
+/**
+ * チャットメッセージ
+ */
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}

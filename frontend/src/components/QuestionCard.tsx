@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import type { Question } from '@/types';
 import { MarkdownRenderer } from './MarkdownRenderer';
+import { ExplanationChat } from './ExplanationChat';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -181,6 +182,9 @@ export function QuestionCard({
             <h3 className="font-bold text-blue-800 mb-2">解説</h3>
             <MarkdownRenderer content={question.explanation} />
           </div>
+
+          {/* 追加質問チャット */}
+          <ExplanationChat question={question} />
         </div>
       ) : (
         <button

@@ -27,6 +27,8 @@ class Settings(BaseSettings):
         # 本番環境（Vercel）
         "https://e-cert-study.vercel.app",
         "https://e-cert-study-bg9uguen4-matts-projects-d5aa6f04.vercel.app",
+        # バックエンドAPI（Render.com）
+        "https://e-cert-study-api.onrender.com",
     ]
 
     # 環境変数で追加のオリジンを指定可能（カンマ区切り）
