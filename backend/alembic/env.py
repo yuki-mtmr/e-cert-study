@@ -1,8 +1,10 @@
 """Alembic マイグレーション環境設定"""
 import os
+import re
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import create_engine, pool
+from sqlalchemy.engine import URL
 
 from alembic import context
 
@@ -18,14 +20,27 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# 環境変数からデータベースURLを取得（asyncpg部分を標準ドライバに置換）
-database_url = os.getenv(
+# 環境変数からデータベースURLを取得
+raw_url = os.getenv(
     "DATABASE_URL",
     "postgresql://user:pass@localhost:5432/e_cert_study",
 )
-# alembicは同期ドライバを使用するため、asyncpgをpsycopg2に置換
-database_url = database_url.replace("+asyncpg", "")
-config.set_main_option("sqlalchemy.url", database_url)
+# alembicは同期ドライバを使用するため、asyncpgを除去
+raw_url = raw_url.replace("+asyncpg", "")
+
+# パスワードに特殊文字（#等）が含まれる場合に対応するため、URL.createで構築
+match = re.match(r"(\w+):\/\/([^:]+):(.+)@([^:\/]+):(\d+)\/(.+)", raw_url)
+if match:
+    database_url = URL.create(
+        drivername=match.group(1),
+        username=match.group(2),
+        password=match.group(3),
+        host=match.group(4),
+        port=int(match.group(5)),
+        database=match.group(6),
+    )
+else:
+    database_url = raw_url
 
 # モデルのメタデータ
 target_metadata = Base.metadata
@@ -47,11 +62,7 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     """オンラインモードでマイグレーション実行"""
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    connectable = create_engine(database_url, poolclass=pool.NullPool)
 
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)
