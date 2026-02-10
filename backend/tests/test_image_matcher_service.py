@@ -207,6 +207,7 @@ class TestImageMatcherServiceGetMatcher:
 
     def test_get_matcher_loads_matcher(self):
         """_get_matcherがImageMatcherをロードすること"""
+        pytest.importorskip("numpy", reason="numpy required for match_images")
         from app.services.image_matcher import ImageMatcherService
 
         service = ImageMatcherService()
@@ -222,6 +223,7 @@ class TestImageMatcherServiceGetMatcher:
 
     def test_get_matcher_loads_with_custom_model(self):
         """_get_matcherがカスタムモデル名でロードすること"""
+        pytest.importorskip("numpy", reason="numpy required for match_images")
         from app.services.image_matcher import ImageMatcherService
 
         service = ImageMatcherService(model_name="custom-model")
@@ -237,6 +239,7 @@ class TestImageMatcherServiceGetMatcher:
 
     def test_get_matcher_caches_instance(self):
         """_get_matcherがインスタンスをキャッシュすること"""
+        pytest.importorskip("numpy", reason="numpy required for match_images")
         from app.services.image_matcher import ImageMatcherService
 
         service = ImageMatcherService()

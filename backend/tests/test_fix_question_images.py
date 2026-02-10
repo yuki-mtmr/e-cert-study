@@ -27,12 +27,25 @@ class TestGetQuestionImagesFromDb:
         """画像レコードが正しく取得できること"""
         from scripts.fix_question_images import get_question_images_from_db
 
-        # 実際のDBに接続してテスト
-        images = await get_question_images_from_db()
+        img_id = str(uuid.uuid4())
+        q_id = str(uuid.uuid4())
+        # row[0]〜row[5]でアクセスされるタプル形式
+        mock_row = (img_id, q_id, "/images/test.png", "テスト画像", 0, "テスト問題")
 
-        # 27件の画像が存在するはず
+        mock_conn = MagicMock()
+        mock_result = MagicMock()
+        mock_result.__iter__ = MagicMock(return_value=iter([mock_row]))
+        mock_conn.execute.return_value = mock_result
+
+        mock_engine = MagicMock()
+        mock_engine.connect.return_value.__enter__ = MagicMock(return_value=mock_conn)
+        mock_engine.connect.return_value.__exit__ = MagicMock(return_value=False)
+
+        with patch("scripts.fix_question_images.get_db_url", return_value="postgresql://test:test@localhost/test"), \
+             patch("scripts.fix_question_images.create_engine", return_value=mock_engine):
+            images = await get_question_images_from_db()
+
         assert len(images) >= 1
-        # 各レコードに必要なフィールドがあること
         for img in images:
             assert "id" in img
             assert "question_id" in img
