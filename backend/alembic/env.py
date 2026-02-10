@@ -12,6 +12,10 @@ from app.models.base import Base
 from app.models.category import Category  # noqa: F401
 from app.models.question import Question  # noqa: F401
 from app.models.answer import Answer  # noqa: F401
+from app.models.question_image import QuestionImage  # noqa: F401
+from app.models.mock_exam import MockExam  # noqa: F401
+from app.models.study_plan import StudyPlan  # noqa: F401
+from app.models.review_item import ReviewItem  # noqa: F401
 
 # Alembic Configオブジェクト
 config = context.config
