@@ -19,13 +19,18 @@ export default function ReviewDashboardPage() {
   const [stats, setStats] = useState<ReviewStats | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('active');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [backfillMessage, setBackfillMessage] = useState<string | null>(null);
   const [backfilling, setBackfilling] = useState(false);
 
   const loadData = useCallback(
     async (tab: TabType) => {
-      if (!userId) return;
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
       setLoading(true);
+      setError(null);
       try {
         const [itemsData, statsData] = await Promise.all([
           fetchReviewItemsDetailed(userId, tab),
@@ -36,7 +41,7 @@ export default function ReviewDashboardPage() {
           setStats(statsData);
         }
       } catch {
-        // エラー時は空表示
+        setError('データの取得に失敗しました');
       } finally {
         setLoading(false);
       }
@@ -48,10 +53,8 @@ export default function ReviewDashboardPage() {
     loadData(activeTab);
   }, [loadData, activeTab]);
 
-  const handleTabChange = async (tab: TabType) => {
+  const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
-    const data = await fetchReviewItemsDetailed(userId, tab);
-    setItems(data);
   };
 
   const handleBackfill = async () => {
@@ -169,6 +172,16 @@ export default function ReviewDashboardPage() {
           {loading ? (
             <div className="flex justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+            </div>
+          ) : error ? (
+            <div className="text-center py-12 text-red-500">
+              <p className="text-lg">{error}</p>
+              <button
+                onClick={() => loadData(activeTab)}
+                className="mt-4 text-blue-600 hover:underline text-sm"
+              >
+                再試行
+              </button>
             </div>
           ) : items.length === 0 ? (
             <div className="text-center py-12 text-gray-500">

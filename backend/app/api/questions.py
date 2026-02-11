@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 
 logger = logging.getLogger(__name__)
 
@@ -865,7 +865,7 @@ async def get_question_image(
     question_id: uuid.UUID,
     image_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
-) -> FileResponse:
+):
     """問題に紐づく画像を取得
 
     Args:
@@ -885,6 +885,11 @@ async def get_question_image(
             detail="Image not found",
         )
 
+    # URL（Supabase Storage等）の場合はリダイレクト
+    if image.file_path.startswith(("http://", "https://")):
+        return RedirectResponse(url=image.file_path)
+
+    # ローカルファイルの場合は従来通りFileResponse
     file_path = Path(image.file_path)
     if not file_path.exists():
         raise HTTPException(

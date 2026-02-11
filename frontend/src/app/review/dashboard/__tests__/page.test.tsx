@@ -191,11 +191,16 @@ describe('ReviewDashboardPage', () => {
       { timeout: 3000 }
     );
 
-    // 習得済みタブのfetchモック
+    // 習得済みタブのfetchモック（loadDataがitems+statsの2つを呼ぶ）
     mockFetch.mockResolvedValueOnce({
       ok: true,
       status: 200,
       json: async () => mockMasteredItems,
+    });
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => mockReviewStats,
     });
 
     // 習得済みタブをクリック（タブにはカウントが含まれる）
@@ -303,5 +308,53 @@ describe('ReviewDashboardPage', () => {
       },
       { timeout: 3000 }
     );
+  });
+
+  it('APIエラー時にローディングが止まりエラーメッセージが表示される', async () => {
+    mockFetch.mockRejectedValueOnce(new Error('Network error'));
+    mockFetch.mockRejectedValueOnce(new Error('Network error'));
+
+    await act(async () => {
+      render(<ReviewDashboardPage />);
+    });
+
+    await waitFor(
+      () => {
+        // ローディングスピナーが消えていること
+        const spinner = document.querySelector('.animate-spin');
+        expect(spinner).not.toBeInTheDocument();
+      },
+      { timeout: 3000 }
+    );
+
+    // エラーメッセージが表示されること
+    expect(screen.getByText(/データの取得に失敗しました/)).toBeInTheDocument();
+  });
+
+  it('API 500エラー時にローディングが止まりエラーメッセージが表示される', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      json: async () => ({ detail: 'Internal server error' }),
+    });
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      json: async () => ({ detail: 'Internal server error' }),
+    });
+
+    await act(async () => {
+      render(<ReviewDashboardPage />);
+    });
+
+    await waitFor(
+      () => {
+        const spinner = document.querySelector('.animate-spin');
+        expect(spinner).not.toBeInTheDocument();
+      },
+      { timeout: 3000 }
+    );
+
+    expect(screen.getByText(/データの取得に失敗しました/)).toBeInTheDocument();
   });
 });
