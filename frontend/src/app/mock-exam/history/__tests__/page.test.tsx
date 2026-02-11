@@ -122,6 +122,41 @@ describe('MockExamHistoryPage', () => {
     });
   });
 
+  describe('ローディング表示', () => {
+    it('3秒以上かかるとサーバー起動中メッセージを表示する', async () => {
+      vi.useFakeTimers();
+      mockLocalStorage._setStore({
+        'e-cert-study-user-id': 'test-user-123',
+      });
+
+      // fetchを遅延させる（resolveしない）
+      let resolveFetch: ((value: unknown) => void) | undefined;
+      mockFetch.mockImplementationOnce(() => new Promise((resolve) => {
+        resolveFetch = resolve;
+      }));
+
+      await act(async () => {
+        render(<MockExamHistoryPage />);
+      });
+
+      // 最初はメッセージなし
+      expect(screen.queryByText(/サーバー起動中/)).not.toBeInTheDocument();
+
+      // 3秒経過をシミュレート
+      await act(async () => {
+        vi.advanceTimersByTime(3000);
+      });
+
+      expect(screen.getByText(/サーバー起動中/)).toBeInTheDocument();
+
+      // fetchを解決してクリーンアップ
+      vi.useRealTimers();
+      await act(async () => {
+        resolveFetch?.({ ok: true, json: async () => ({ exams: [], total_count: 0 }) });
+      });
+    });
+  });
+
   describe('エラーハンドリング', () => {
     it('API失敗時にエラーメッセージを表示する', async () => {
       mockLocalStorage._setStore({

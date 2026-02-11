@@ -19,11 +19,14 @@ export default function MockExamHistoryPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedResult, setSelectedResult] = useState<MockExamResultType | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
+  const [slowLoad, setSlowLoad] = useState(false);
 
   const loadHistory = useCallback(async () => {
     if (!userId) return;
     setLoading(true);
     setError(null);
+    setSlowLoad(false);
+    const slowTimer = setTimeout(() => setSlowLoad(true), 3000);
     try {
       const data = await fetchMockExamHistory(userId);
       setExams(data.exams);
@@ -31,6 +34,7 @@ export default function MockExamHistoryPage() {
     } catch {
       setError('履歴の読み込みに失敗しました。');
     } finally {
+      clearTimeout(slowTimer);
       setLoading(false);
     }
   }, [userId]);
@@ -66,8 +70,13 @@ export default function MockExamHistoryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-4">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        {slowLoad && (
+          <p className="text-sm text-gray-500">
+            サーバー起動中です。しばらくお待ちください...
+          </p>
+        )}
       </div>
     );
   }

@@ -713,6 +713,8 @@ describe('fetchMockExamHistory', () => {
   });
 
   it('タイムアウト時にエラーをスローする', async () => {
+    vi.useFakeTimers();
+
     mockFetch.mockImplementationOnce((_url: string, options: RequestInit) => {
       return new Promise((_resolve, reject) => {
         options.signal?.addEventListener('abort', () => {
@@ -723,8 +725,15 @@ describe('fetchMockExamHistory', () => {
       });
     });
 
-    await expect(fetchMockExamHistory('test-user')).rejects.toThrow();
-  }, 15000);
+    const promise = fetchMockExamHistory('test-user');
+
+    // 30秒のタイムアウトを即座にトリガー
+    vi.advanceTimersByTime(30000);
+
+    await expect(promise).rejects.toThrow();
+
+    vi.useRealTimers();
+  });
 });
 
 describe('Category Coverage API', () => {
