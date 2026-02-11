@@ -17,6 +17,7 @@ import {
   finishMockExam,
   requestAIAnalysis,
 } from '@/lib/api';
+import { FullscreenButton } from '@/components/FullscreenButton';
 
 type Phase = 'intro' | 'active' | 'result';
 
@@ -224,12 +225,15 @@ export default function MockExamPage() {
             >
               {timer.formattedTime}
             </span>
-            <button
-              onClick={() => setShowConfirmDialog(true)}
-              className="text-sm text-red-600 hover:text-red-800 font-medium"
-            >
-              模試を終了する
-            </button>
+            <div className="flex items-center gap-3">
+              <FullscreenButton />
+              <button
+                onClick={() => setShowConfirmDialog(true)}
+                className="text-sm text-red-600 hover:text-red-800 font-medium"
+              >
+                模試を終了する
+              </button>
+            </div>
           </div>
         </header>
 

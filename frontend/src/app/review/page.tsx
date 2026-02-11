@@ -7,6 +7,7 @@ import { useLocalProgress } from '@/hooks/useLocalProgress';
 import { fetchQuestionById, submitAnswer, fetchReviewItems } from '@/lib/api';
 import type { Question, ReviewItem } from '@/types';
 import { MASTERY_THRESHOLD } from '@/constants/review';
+import { FullscreenButton } from '@/components/FullscreenButton';
 
 /**
  * 復習ページ
@@ -219,8 +220,11 @@ export default function ReviewPage() {
             </Link>
             <h1 className="text-xl font-bold text-gray-900">復習モード</h1>
           </div>
-          <div className="text-sm text-gray-600">
-            {currentIndex + 1} / {remainingIds.length} 問
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-600">
+              {currentIndex + 1} / {remainingIds.length} 問
+            </span>
+            <FullscreenButton />
           </div>
         </div>
       </header>

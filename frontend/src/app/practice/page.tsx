@@ -12,6 +12,7 @@ import {
   submitAnswer,
 } from '@/lib/api';
 import type { Question, CategoryTree } from '@/types';
+import { FullscreenButton } from '@/components/FullscreenButton';
 
 const CATEGORY_STORAGE_KEY = 'selectedCategoryIds';
 
@@ -369,10 +370,11 @@ export default function PracticePage() {
             </button>
             <h1 className="text-xl font-bold text-gray-900">問題演習</h1>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <span className="text-sm font-medium text-gray-700 bg-gray-100 px-3 py-1 rounded-full">
               {progress}
             </span>
+            <FullscreenButton />
           </div>
         </div>
       </header>
