@@ -9,6 +9,7 @@ import {
   triggerReviewBackfill,
 } from '@/lib/api';
 import type { ReviewItemDetail, ReviewStats } from '@/types';
+import { MASTERY_THRESHOLD } from '@/constants/review';
 
 type TabType = 'active' | 'mastered';
 
@@ -197,7 +198,7 @@ export default function ReviewDashboardPage() {
                   <div className="mt-3">
                     <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
                       <span>
-                        正解数: {item.correctCount} / 10
+                        正解数: {item.correctCount} / {MASTERY_THRESHOLD}
                       </span>
                       <span>
                         {new Date(item.lastAnsweredAt).toLocaleDateString(
@@ -214,7 +215,7 @@ export default function ReviewDashboardPage() {
                         }`}
                         style={{
                           width: `${Math.min(
-                            (item.correctCount / 10) * 100,
+                            (item.correctCount / MASTERY_THRESHOLD) * 100,
                             100
                           )}%`,
                         }}

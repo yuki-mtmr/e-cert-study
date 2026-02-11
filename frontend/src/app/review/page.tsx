@@ -6,6 +6,7 @@ import { QuestionCard } from '@/components/QuestionCard';
 import { useLocalProgress } from '@/hooks/useLocalProgress';
 import { fetchQuestionById, submitAnswer, fetchReviewItems } from '@/lib/api';
 import type { Question, ReviewItem } from '@/types';
+import { MASTERY_THRESHOLD } from '@/constants/review';
 
 /**
  * 復習ページ
@@ -243,11 +244,11 @@ export default function ReviewPage() {
               <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-green-500 transition-all duration-300"
-                  style={{ width: `${(currentReviewItem.correctCount / 10) * 100}%` }}
+                  style={{ width: `${(currentReviewItem.correctCount / MASTERY_THRESHOLD) * 100}%` }}
                 />
               </div>
               <span className="text-sm font-medium text-gray-700">
-                {currentReviewItem.correctCount} / 10
+                {currentReviewItem.correctCount} / {MASTERY_THRESHOLD}
               </span>
             </div>
           </div>

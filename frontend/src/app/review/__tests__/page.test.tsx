@@ -248,7 +248,7 @@ describe('ReviewPage', () => {
 
       // 習得進捗バーが表示される
       await waitFor(() => {
-        expect(screen.getByText('3 / 10')).toBeInTheDocument();
+        expect(screen.getByText('3 / 3')).toBeInTheDocument();
       });
     });
 
