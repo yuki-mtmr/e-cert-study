@@ -263,12 +263,20 @@ class MinerUExtractor:
         try:
             doc = pymupdf.open(stream=pdf_data, filetype="pdf")
             position = 0
+            seen_xrefs: set[int] = set()
 
             for page in doc:
                 page_images = page.get_images(full=True)
 
                 for img_info in page_images:
                     xref = img_info[0]
+
+                    # 同一xrefの画像を重複抽出しない
+                    if xref in seen_xrefs:
+                        logger.debug(f"Skipping duplicate xref={xref} on page {page.number}")
+                        continue
+                    seen_xrefs.add(xref)
+
                     # より堅牢な抽出メソッドを使用
                     data = ImageConverter.extract_image_robust(doc, xref)
 

@@ -97,9 +97,15 @@ EXTRACTION_PROMPT = """
 - 解説は丁寧に記述してください
 - コードを含む問題は必ずcontent_typeを"markdown"に設定し、コードブロック記法を使用してください
 - 数式を含む問題は必ずcontent_typeを"markdown"に設定し、LaTeX記法（$...$）を使用してください
-- テキスト中に画像参照（![...](xxx.png)形式）がある場合は、必ずimage_refsに含めてください
+- テキスト中に画像参照（![...](xxx.png)形式）がある場合は、以下の「画像の取り扱い」ルールに従ってください
 - テキストから抽出できる問題がない場合は空の配列を返してください
 - JSONのみを出力し、それ以外のテキストは含めないでください
+
+【画像の取り扱い】
+- 数式画像 → LaTeX記法（$...$）に変換して問題文・選択肢に直接記述し、image_refsには含めない
+- テキストのみの画像 → 文字として問題文に記述し、image_refsには含めない
+- 図表・グラフ・ダイアグラム → image_refsに含める（視覚的に必要なもののみ）
+- 判断に迷う場合は、テキスト化を優先してください
 """
 
 
@@ -190,6 +196,34 @@ def parse_llm_response(response_text: str) -> list[dict[str, Any]]:
     for item in data:
         if isinstance(item, dict) and required_fields.issubset(item.keys()):
             if isinstance(item["choices"], list) and len(item["choices"]) >= 2:
+                # 選択肢の空白トリムと重複除去
+                trimmed = [c.strip() if isinstance(c, str) else c for c in item["choices"]]
+                seen: set[str] = set()
+                unique_choices: list[str] = []
+                for c in trimmed:
+                    if c not in seen:
+                        seen.add(c)
+                        unique_choices.append(c)
+
+                # 重複除去後に選択肢が2個未満 → スキップ
+                if len(unique_choices) < 2:
+                    logger.warning(
+                        f"Skipping question with too few unique choices: "
+                        f"{len(unique_choices)} (original: {len(item['choices'])})"
+                    )
+                    continue
+
+                item["choices"] = unique_choices
+
+                # correct_answerが範囲外 → スキップ
+                correct = item["correct_answer"]
+                if not isinstance(correct, int) or correct < 0 or correct >= len(unique_choices):
+                    logger.warning(
+                        f"Skipping question with invalid correct_answer: "
+                        f"{correct} (choices: {len(unique_choices)})"
+                    )
+                    continue
+
                 valid_questions.append(item)
 
     return valid_questions
@@ -235,11 +269,21 @@ def save_to_cache(text_hash: str, questions: list[dict[str, Any]]) -> None:
         logger.warning(f"Failed to save cache: {e}")
 
 
+QUESTION_BOUNDARY = re.compile(
+    r'\n(?=(?:問題?\s*\d+|第\d+問)(?:\s|[\.．。:：])|【問\d+】)'
+)
+
+
 def split_text_into_chunks(text: str, max_length: int = MAX_TEXT_LENGTH) -> list[str]:
     """
     テキストを適切な長さのチャンクに分割する
 
-    段落境界で分割を試み、それが難しい場合は文境界で分割する
+    分割優先度:
+    1. 問題境界（問1, 問題 2, 【問3】, 第4問）
+    2. 段落境界（空行）
+    3. 文境界（。や.）
+
+    小問パターン（(1), 小問1）は分割点にしない。
 
     Args:
         text: 分割するテキスト
@@ -259,21 +303,28 @@ def split_text_into_chunks(text: str, max_length: int = MAX_TEXT_LENGTH) -> list
         end_pos = min(current_pos + max_length, len(text))
 
         if end_pos < len(text):
-            # 段落境界（空行）を探す
             search_text = text[current_pos:end_pos]
-            paragraph_break = search_text.rfind("\n\n")
 
-            if paragraph_break > max_length // 2:
-                end_pos = current_pos + paragraph_break + 2
+            # 優先度1: 問題境界を探す
+            question_break = _find_last_question_boundary(search_text, max_length)
+
+            if question_break > max_length // 4:
+                end_pos = current_pos + question_break
             else:
-                # 文境界（。や.）を探す
-                sentence_break = max(
-                    search_text.rfind("。"),
-                    search_text.rfind(". "),
-                    search_text.rfind(".\n"),
-                )
-                if sentence_break > max_length // 2:
-                    end_pos = current_pos + sentence_break + 1
+                # 優先度2: 段落境界（空行）を探す
+                paragraph_break = search_text.rfind("\n\n")
+
+                if paragraph_break > max_length // 2:
+                    end_pos = current_pos + paragraph_break + 2
+                else:
+                    # 優先度3: 文境界（。や.）を探す
+                    sentence_break = max(
+                        search_text.rfind("。"),
+                        search_text.rfind(". "),
+                        search_text.rfind(".\n"),
+                    )
+                    if sentence_break > max_length // 2:
+                        end_pos = current_pos + sentence_break + 1
 
         chunk = text[current_pos:end_pos].strip()
         if chunk:
@@ -283,6 +334,25 @@ def split_text_into_chunks(text: str, max_length: int = MAX_TEXT_LENGTH) -> list
 
     logger.info(f"Split text into {len(chunks)} chunks")
     return chunks
+
+
+def _find_last_question_boundary(text: str, max_length: int) -> int:
+    """テキスト内で最後の問題境界位置を返す
+
+    Args:
+        text: 検索対象テキスト
+        max_length: チャンクの最大長
+
+    Returns:
+        問題境界の位置（改行の位置）。見つからない場合は-1
+    """
+    last_pos = -1
+    for match in QUESTION_BOUNDARY.finditer(text):
+        pos = match.start()
+        if pos <= max_length:
+            last_pos = pos
+    # 改行文字の次（問題ヘッダーの開始位置）で分割するため+1
+    return last_pos + 1 if last_pos > 0 else -1
 
 
 async def extract_questions_from_text(

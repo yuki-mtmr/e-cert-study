@@ -174,6 +174,20 @@ async def _link_images_by_semantic_matching(
                     image_type=caption_info["image_type"],
                 )
 
+                # 既存の同一画像レコードをチェック
+                existing_img = await db.execute(
+                    select(QuestionImage).where(
+                        QuestionImage.question_id == uuid.UUID(question_id),
+                        QuestionImage.file_path == img_info.file_path,
+                    )
+                )
+                if existing_img.scalar_one_or_none():
+                    logger.info(
+                        f"Skipping duplicate image {img_info.file_path} "
+                        f"for question {question_id}"
+                    )
+                    continue
+
                 # QuestionImageレコード作成
                 question_image = QuestionImage(
                     id=img_info.id,
@@ -252,6 +266,20 @@ async def _link_images_to_existing_question(
                 alt_text=alt_text,
                 image_type=image_type,
             )
+
+            # 既存の同一画像レコードをチェック
+            existing_img = await db.execute(
+                select(QuestionImage).where(
+                    QuestionImage.question_id == question.id,
+                    QuestionImage.file_path == img_info.file_path,
+                )
+            )
+            if existing_img.scalar_one_or_none():
+                logger.info(
+                    f"Skipping duplicate image {img_info.file_path} "
+                    f"for existing question {question.id}"
+                )
+                continue
 
             question_image = QuestionImage(
                 id=img_info.id,
@@ -650,6 +678,11 @@ async def import_questions_from_pdf(
                 text = result.markdown
                 # ファイル名でインデックス化
                 for img in result.images:
+                    if img.filename in image_index:
+                        logger.warning(
+                            f"Image filename collision: {img.filename} "
+                            f"(page {img.page_number}, pos {img.position})"
+                        )
                     image_index[img.filename] = {
                         "data": img.data,
                         "position": img.position,
@@ -793,6 +826,20 @@ async def import_questions_from_pdf(
                                     image_type=image_type,
                                 )
 
+                                # 既存の同一画像レコードをチェック
+                                existing_img = await db.execute(
+                                    select(QuestionImage).where(
+                                        QuestionImage.question_id == question_id,
+                                        QuestionImage.file_path == img_info.file_path,
+                                    )
+                                )
+                                if existing_img.scalar_one_or_none():
+                                    logger.info(
+                                        f"Skipping duplicate image {img_info.file_path} "
+                                        f"for question {question_id}"
+                                    )
+                                    continue
+
                                 # QuestionImageレコード作成
                                 question_image = QuestionImage(
                                     id=img_info.id,
@@ -830,6 +877,18 @@ async def import_questions_from_pdf(
                     image_index=image_index,
                     vlm_analyzer=vlm_analyzer,
                     image_storage=image_storage,
+                )
+
+        # 未参照画像の警告ログ
+        if image_index:
+            all_refs_set = set(
+                ref for q in questions for ref in q.get("image_refs", [])
+            )
+            unreferenced = set(image_index.keys()) - all_refs_set
+            if unreferenced:
+                logger.warning(
+                    f"Unreferenced images ({len(unreferenced)}): "
+                    f"{sorted(unreferenced)[:10]}"
                 )
 
         # デバッグ情報を収集

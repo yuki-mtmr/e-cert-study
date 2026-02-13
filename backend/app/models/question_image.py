@@ -2,7 +2,7 @@
 import uuid
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, Integer, String, Text
+from sqlalchemy import ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -16,6 +16,9 @@ class QuestionImage(Base):
     """問題に紐づく画像"""
 
     __tablename__ = "question_images"
+    __table_args__ = (
+        UniqueConstraint("question_id", "file_path", name="uq_question_image_path"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
