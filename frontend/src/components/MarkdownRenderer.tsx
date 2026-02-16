@@ -37,7 +37,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
             if (isInline) {
               return (
                 <code
-                  className="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono"
+                  className="bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-sm font-mono"
                   {...props}
                 >
                   {children}
@@ -73,21 +73,21 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
           // 見出しのスタイリング
           h1({ children }) {
             return (
-              <h1 className="text-2xl font-bold mt-6 mb-4 text-gray-900">
+              <h1 className="text-2xl font-bold mt-6 mb-4 text-gray-900 dark:text-gray-100">
                 {children}
               </h1>
             );
           },
           h2({ children }) {
             return (
-              <h2 className="text-xl font-bold mt-5 mb-3 text-gray-900">
+              <h2 className="text-xl font-bold mt-5 mb-3 text-gray-900 dark:text-gray-100">
                 {children}
               </h2>
             );
           },
           h3({ children }) {
             return (
-              <h3 className="text-lg font-semibold mt-4 mb-2 text-gray-900">
+              <h3 className="text-lg font-semibold mt-4 mb-2 text-gray-900 dark:text-gray-100">
                 {children}
               </h3>
             );
@@ -95,15 +95,15 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
 
           // 段落
           p({ children }) {
-            return <p className="my-3 text-gray-800 leading-relaxed">{children}</p>;
+            return <p className="my-3 text-gray-800 dark:text-gray-200 leading-relaxed">{children}</p>;
           },
 
           // リスト
           ul({ children }) {
-            return <ul className="my-3 ml-6 list-disc text-gray-800">{children}</ul>;
+            return <ul className="my-3 ml-6 list-disc text-gray-800 dark:text-gray-200">{children}</ul>;
           },
           ol({ children }) {
-            return <ol className="my-3 ml-6 list-decimal text-gray-800">{children}</ol>;
+            return <ol className="my-3 ml-6 list-decimal text-gray-800 dark:text-gray-200">{children}</ol>;
           },
           li({ children }) {
             return <li className="my-1">{children}</li>;
@@ -126,7 +126,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
           // 引用
           blockquote({ children }) {
             return (
-              <blockquote className="my-4 pl-4 border-l-4 border-gray-300 italic text-gray-600">
+              <blockquote className="my-4 pl-4 border-l-4 border-gray-300 dark:border-gray-600 italic text-gray-600 dark:text-gray-400">
                 {children}
               </blockquote>
             );
@@ -134,14 +134,14 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
 
           // 水平線
           hr() {
-            return <hr className="my-6 border-gray-300" />;
+            return <hr className="my-6 border-gray-300 dark:border-gray-600" />;
           },
 
           // テーブル
           table({ children }) {
             return (
               <div className="my-4 overflow-x-auto">
-                <table className="min-w-full border-collapse border border-gray-300">
+                <table className="min-w-full border-collapse border border-gray-300 dark:border-gray-600">
                   {children}
                 </table>
               </div>
@@ -149,14 +149,14 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
           },
           th({ children }) {
             return (
-              <th className="border border-gray-300 bg-gray-100 px-4 py-2 text-left font-semibold">
+              <th className="border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 px-4 py-2 text-left font-semibold">
                 {children}
               </th>
             );
           },
           td({ children }) {
             return (
-              <td className="border border-gray-300 px-4 py-2">{children}</td>
+              <td className="border border-gray-300 dark:border-gray-600 px-4 py-2">{children}</td>
             );
           },
         }}

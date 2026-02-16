@@ -111,8 +111,8 @@ export function ExplanationChat({ question }: ExplanationChatProps) {
   };
 
   return (
-    <div className="mt-4 border border-gray-200 rounded-lg p-4">
-      <h4 className="font-semibold text-gray-700 mb-3">追加質問</h4>
+    <div className="mt-4 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+      <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-3">追加質問</h4>
 
       {/* メッセージ一覧 */}
       {messages.length > 0 && (
@@ -125,8 +125,8 @@ export function ExplanationChat({ question }: ExplanationChatProps) {
               <div
                 className={`max-w-[80%] rounded-lg p-3 ${
                   msg.role === 'user'
-                    ? 'bg-blue-100 text-blue-900'
-                    : 'bg-gray-100 text-gray-900'
+                    ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-900 dark:text-blue-100'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
                 }`}
               >
                 {msg.role === 'assistant' ? (
@@ -149,7 +149,7 @@ export function ExplanationChat({ question }: ExplanationChatProps) {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="この問題について質問する..."
-          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           disabled={isLoading}
         />
         <button
@@ -157,7 +157,7 @@ export function ExplanationChat({ question }: ExplanationChatProps) {
           disabled={!input.trim() || isLoading}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             !input.trim() || isLoading
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
               : 'bg-blue-600 text-white hover:bg-blue-700'
           }`}
         >

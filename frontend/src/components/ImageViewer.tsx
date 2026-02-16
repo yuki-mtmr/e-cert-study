@@ -51,7 +51,7 @@ export function ImageViewer({ src, alt, caption, className }: ImageViewerProps) 
           className="max-w-full h-auto rounded-lg cursor-zoom-in hover:opacity-90 transition-opacity mx-auto"
         />
         {caption && (
-          <figcaption className="text-center text-sm text-gray-600 mt-2">
+          <figcaption className="text-center text-sm text-gray-600 dark:text-gray-400 mt-2">
             {caption}
           </figcaption>
         )}

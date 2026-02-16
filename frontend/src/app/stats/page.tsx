@@ -68,30 +68,30 @@ export default function StatsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">統計を読み込み中...</p>
+          <p className="text-gray-600 dark:text-gray-400">統計を読み込み中...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <header className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/10">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center">
           <Link href="/" className="text-blue-600 hover:text-blue-800 mr-4">
             ← 戻る
           </Link>
-          <h1 className="text-xl font-bold text-gray-900">分析ダッシュボード</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">分析ダッシュボード</h1>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-8">
         {/* 概要統計 */}
-        <section className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">学習概要</h2>
+        <section className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/20 p-6">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">学習概要</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <StatCard
               label="総回答数"
@@ -117,10 +117,10 @@ export default function StatsPage() {
 
           {/* 合格水準との比較 */}
           <div className="mt-6">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">
+            <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
               合格水準との比較（目標: 70%以上）
             </h3>
-            <div className="h-4 bg-gray-200 rounded-full overflow-hidden">
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
               <div
                 className={`h-full transition-all duration-500 ${
                   (displayStats?.accuracy || 0) >= 70
@@ -132,7 +132,7 @@ export default function StatsPage() {
                 style={{ width: `${Math.min(displayStats?.accuracy || 0, 100)}%` }}
               />
             </div>
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
               <span>0%</span>
               <span className="text-green-600 font-medium">合格ライン 70%</span>
               <span>100%</span>
@@ -141,20 +141,20 @@ export default function StatsPage() {
         </section>
 
         {/* カテゴリ別網羅率 */}
-        <section className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+        <section className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/20 p-6">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
             カテゴリ別網羅率
           </h2>
           {coverage.length > 0 ? (
             <div className="space-y-4">
               {coverage.map((cat) => (
-                <div key={cat.categoryId} className="border rounded-lg p-4">
+                <div key={cat.categoryId} className="border dark:border-gray-700 rounded-lg p-4">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="font-medium text-gray-800">
+                    <span className="font-medium text-gray-800 dark:text-gray-200">
                       {cat.categoryName}
                     </span>
                     <div className="flex items-center gap-4">
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
                         正答率: {cat.accuracy}%
                       </span>
                       <span
@@ -170,7 +170,7 @@ export default function StatsPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div
                       className={`h-full transition-all duration-300 ${
                         cat.coverageRate >= 70
@@ -182,14 +182,14 @@ export default function StatsPage() {
                       style={{ width: `${cat.coverageRate}%` }}
                     />
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     {cat.answeredCount}/{cat.totalQuestions}問
                   </p>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-4">
+            <p className="text-gray-500 dark:text-gray-400 text-center py-4">
               {useLocalData
                 ? 'ローカルデータでは網羅率の分析ができません。サーバーに接続してください。'
                 : 'カテゴリデータがありません。'}
@@ -198,16 +198,16 @@ export default function StatsPage() {
         </section>
 
         {/* 苦手分野 */}
-        <section className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+        <section className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/20 p-6">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
             苦手分野（正解率が低い順）
           </h2>
           {weakAreas.length > 0 ? (
             <div className="space-y-4">
               {weakAreas.map((area) => (
-                <div key={area.categoryId} className="border rounded-lg p-4">
+                <div key={area.categoryId} className="border dark:border-gray-700 rounded-lg p-4">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="font-medium text-gray-800">
+                    <span className="font-medium text-gray-800 dark:text-gray-200">
                       {area.categoryName}
                     </span>
                     <span
@@ -222,7 +222,7 @@ export default function StatsPage() {
                       {area.accuracy}%
                     </span>
                   </div>
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div
                       className={`h-full ${
                         area.accuracy >= 70
@@ -234,14 +234,14 @@ export default function StatsPage() {
                       style={{ width: `${area.accuracy}%` }}
                     />
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     {area.totalAnswered}問中{area.correctCount}問正解
                   </p>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-4">
+            <p className="text-gray-500 dark:text-gray-400 text-center py-4">
               {useLocalData
                 ? 'ローカルデータでは苦手分野の分析ができません。サーバーに接続してください。'
                 : 'まだ十分なデータがありません。問題を解いてみましょう！'}
@@ -250,8 +250,8 @@ export default function StatsPage() {
         </section>
 
         {/* 日別進捗 */}
-        <section className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+        <section className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/20 p-6">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
             日別学習進捗（過去30日間）
           </h2>
           {progress.length > 0 ? (
@@ -283,7 +283,7 @@ export default function StatsPage() {
                     );
                   })}
                 </div>
-                <div className="flex justify-between text-xs text-gray-500 mt-2">
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-2">
                   <span>{progress[0]?.date}</span>
                   <span>{progress[progress.length - 1]?.date}</span>
                 </div>
@@ -300,7 +300,7 @@ export default function StatsPage() {
               </div>
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-4">
+            <p className="text-gray-500 dark:text-gray-400 text-center py-4">
               まだ学習履歴がありません。問題を解いてみましょう！
             </p>
           )}
@@ -338,16 +338,16 @@ function StatCard({
   color: 'blue' | 'green' | 'red' | 'purple';
 }) {
   const colorClasses = {
-    blue: 'bg-blue-50 text-blue-600',
-    green: 'bg-green-50 text-green-600',
-    red: 'bg-red-50 text-red-600',
-    purple: 'bg-purple-50 text-purple-600',
+    blue: 'bg-blue-50 dark:bg-blue-900/30 text-blue-600',
+    green: 'bg-green-50 dark:bg-green-900/30 text-green-600',
+    red: 'bg-red-50 dark:bg-red-900/30 text-red-600',
+    purple: 'bg-purple-50 dark:bg-purple-900/30 text-purple-600',
   };
 
   return (
     <div className={`${colorClasses[color]} rounded-lg p-4 text-center`}>
       <p className="text-3xl font-bold">{value}</p>
-      <p className="text-sm text-gray-600">{label}</p>
+      <p className="text-sm text-gray-600 dark:text-gray-400">{label}</p>
     </div>
   );
 }

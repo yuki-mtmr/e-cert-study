@@ -7,6 +7,7 @@ interface MockExamResultProps {
   result: MockExamResultType;
   onRequestAIAnalysis: () => void;
   aiLoading?: boolean;
+  aiError?: string | null;
 }
 
 /**
@@ -16,6 +17,7 @@ export function MockExamResult({
   result,
   onRequestAIAnalysis,
   aiLoading = false,
+  aiError = null,
 }: MockExamResultProps) {
   const isPassed = result.passed === true;
 
@@ -25,28 +27,28 @@ export function MockExamResult({
       <div
         className={`p-8 rounded-lg text-center ${
           isPassed
-            ? 'bg-green-100 border-2 border-green-500'
-            : 'bg-red-100 border-2 border-red-500'
+            ? 'bg-green-100 dark:bg-green-900/40 border-2 border-green-500'
+            : 'bg-red-100 dark:bg-red-900/40 border-2 border-red-500'
         }`}
       >
         <p
           className={`text-4xl font-bold ${
-            isPassed ? 'text-green-700' : 'text-red-700'
+            isPassed ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'
           }`}
         >
           {isPassed ? '合格' : '不合格'}
         </p>
-        <p className="text-2xl mt-2 text-gray-800">
+        <p className="text-2xl mt-2 text-gray-800 dark:text-gray-200">
           {result.score}% ({result.correctCount}/{result.totalQuestions})
         </p>
-        <p className="text-sm text-gray-600 mt-1">
+        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
           合格ライン: {result.passingThreshold}%
         </p>
       </div>
 
       {/* 合格ラインバー */}
-      <div className="bg-white rounded-lg shadow-md p-4">
-        <div className="relative h-6 bg-gray-200 rounded-full overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 dark:shadow-gray-900/20 rounded-lg shadow-md p-4">
+        <div className="relative h-6 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
           <div
             className={`absolute h-full rounded-full ${
               isPassed ? 'bg-green-500' : 'bg-red-500'
@@ -58,7 +60,7 @@ export function MockExamResult({
             style={{ left: `${result.passingThreshold}%` }}
           />
         </div>
-        <div className="flex justify-between mt-1 text-xs text-gray-500">
+        <div className="flex justify-between mt-1 text-xs text-gray-500 dark:text-gray-400">
           <span>0%</span>
           <span className="text-yellow-600">合格ライン {result.passingThreshold}%</span>
           <span>100%</span>
@@ -67,13 +69,13 @@ export function MockExamResult({
 
       {/* カテゴリ別スコア */}
       {result.categoryScores.length > 0 && (
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white dark:bg-gray-800 dark:shadow-gray-900/20 rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold mb-4">カテゴリ別成績</h3>
           <div className="space-y-3">
             {result.categoryScores.map((cat) => (
               <div key={cat.areaName} className="flex items-center gap-3">
                 <span className="w-32 text-sm font-medium truncate">{cat.areaName}</span>
-                <div className="flex-1 h-4 bg-gray-200 rounded-full overflow-hidden">
+                <div className="flex-1 h-4 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full ${getGradeColor(cat.grade)}`}
                     style={{ width: `${cat.accuracy}%` }}
@@ -93,7 +95,7 @@ export function MockExamResult({
 
       {/* ルールベース分析 */}
       {result.analysis && (
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white dark:bg-gray-800 dark:shadow-gray-900/20 rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold mb-4">分析</h3>
           <div className="prose prose-sm max-w-none">
             <MarkdownRenderer content={result.analysis} />
@@ -102,7 +104,7 @@ export function MockExamResult({
       )}
 
       {/* AI分析 */}
-      <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="bg-white dark:bg-gray-800 dark:shadow-gray-900/20 rounded-lg shadow-md p-6">
         {result.aiAnalysis ? (
           <>
             <h3 className="text-lg font-semibold mb-4">AI詳細分析</h3>
@@ -111,17 +113,24 @@ export function MockExamResult({
             </div>
           </>
         ) : (
-          <button
-            onClick={onRequestAIAnalysis}
-            disabled={aiLoading}
-            className={`w-full py-3 rounded-lg font-medium transition-colors ${
-              aiLoading
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-purple-600 text-white hover:bg-purple-700'
-            }`}
-          >
-            {aiLoading ? 'AI分析を生成中...' : 'AI詳細分析を生成する'}
-          </button>
+          <>
+            {aiError && (
+              <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-400 p-4 rounded-lg mb-4">
+                {aiError}
+              </div>
+            )}
+            <button
+              onClick={onRequestAIAnalysis}
+              disabled={aiLoading}
+              className={`w-full py-3 rounded-lg font-medium transition-colors ${
+                aiLoading
+                  ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                  : 'bg-purple-600 text-white hover:bg-purple-700'
+              }`}
+            >
+              {aiLoading ? 'AI分析を生成中...' : 'AI詳細分析を生成する'}
+            </button>
+          </>
         )}
       </div>
     </div>

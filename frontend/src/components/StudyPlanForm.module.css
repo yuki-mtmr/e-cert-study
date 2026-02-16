@@ -13,26 +13,24 @@
 
 .label {
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   font-size: 0.9rem;
 }
 
 .input {
   padding: 0.75rem;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 1rem;
   transition: border-color 0.2s ease;
-  /* ダークモード対応: 明示的に背景色・テキスト色を設定 */
-  background-color: #fff;
-  color: #333;
-  /* date/number入力のUI要素もライトテーマで表示 */
-  color-scheme: light;
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  color-scheme: light dark;
 }
 
 .input:focus {
   outline: none;
-  border-color: #4a90d9;
+  border-color: var(--accent-blue);
   box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.1);
 }
 
@@ -45,7 +43,7 @@
 .submitButton {
   flex: 1;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #4a90d9 0%, #357abd 100%);
+  background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-hover) 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -56,7 +54,7 @@
 }
 
 .submitButton:hover:not(:disabled) {
-  background: linear-gradient(135deg, #357abd 0%, #2d6aa5 100%);
+  background: linear-gradient(135deg, var(--accent-blue-hover) 0%, var(--accent-blue-dark) 100%);
   transform: translateY(-1px);
 }
 
@@ -67,9 +65,9 @@
 
 .deleteButton {
   padding: 0.75rem 1.5rem;
-  background: #f8f8f8;
-  color: #e74c3c;
-  border: 1px solid #e74c3c;
+  background: var(--delete-bg);
+  color: var(--accent-red);
+  border: 1px solid var(--accent-red);
   border-radius: 8px;
   font-size: 1rem;
   font-weight: 600;
@@ -78,6 +76,6 @@
 }
 
 .deleteButton:hover {
-  background: #e74c3c;
+  background: var(--accent-red);
   color: white;
 }

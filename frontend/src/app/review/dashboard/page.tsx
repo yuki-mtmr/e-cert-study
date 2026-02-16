@@ -81,11 +81,11 @@ export default function ReviewDashboardPage() {
       : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <header className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/10">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">復習管理</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">復習管理</h1>
             <div className="flex gap-4 text-sm">
               <Link href="/" className="text-blue-600 hover:underline">
                 ホーム
@@ -101,29 +101,29 @@ export default function ReviewDashboardPage() {
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* 統計カード */}
         <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-red-50 rounded-lg p-4 text-center">
+          <div className="bg-red-50 dark:bg-red-900/30 rounded-lg p-4 text-center">
             <p className="text-3xl font-bold text-red-600">
               {stats?.activeCount ?? 0}
             </p>
-            <p className="text-sm text-gray-600">未習得</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">未習得</p>
           </div>
-          <div className="bg-green-50 rounded-lg p-4 text-center">
+          <div className="bg-green-50 dark:bg-green-900/30 rounded-lg p-4 text-center">
             <p className="text-3xl font-bold text-green-600">
               {stats?.masteredCount ?? 0}
             </p>
-            <p className="text-sm text-gray-600">習得済み</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">習得済み</p>
           </div>
-          <div className="bg-blue-50 rounded-lg p-4 text-center">
+          <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4 text-center">
             <p className="text-3xl font-bold text-blue-600">
               {stats?.totalCount ?? 0}
             </p>
-            <p className="text-sm text-gray-600">合計</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">合計</p>
           </div>
-          <div className="bg-purple-50 rounded-lg p-4 text-center">
+          <div className="bg-purple-50 dark:bg-purple-900/30 rounded-lg p-4 text-center">
             <p className="text-3xl font-bold text-purple-600">
               {masteryRate}%
             </p>
-            <p className="text-sm text-gray-600">習得率</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">習得率</p>
           </div>
         </section>
 
@@ -137,19 +137,19 @@ export default function ReviewDashboardPage() {
             {backfilling ? '取り込み中...' : '過去の模試データを取り込む'}
           </button>
           {backfillMessage && (
-            <p className="mt-2 text-sm text-gray-700">{backfillMessage}</p>
+            <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">{backfillMessage}</p>
           )}
         </section>
 
         {/* タブ */}
         <section className="mb-6">
-          <div className="flex border-b">
+          <div className="flex border-b dark:border-gray-700">
             <button
               onClick={() => handleTabChange('active')}
               className={`px-4 py-2 font-medium ${
                 activeTab === 'active'
                   ? 'border-b-2 border-blue-600 text-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
             >
               未習得 ({stats?.activeCount ?? 0})
@@ -159,7 +159,7 @@ export default function ReviewDashboardPage() {
               className={`px-4 py-2 font-medium ${
                 activeTab === 'mastered'
                   ? 'border-b-2 border-green-600 text-green-600'
-                  : 'text-gray-500 hover:text-gray-700'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
             >
               習得済み ({stats?.masteredCount ?? 0})
@@ -184,7 +184,7 @@ export default function ReviewDashboardPage() {
               </button>
             </div>
           ) : items.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
               <p className="text-lg">復習アイテムはありません</p>
               <p className="mt-2 text-sm">
                 問題演習や模試で間違えた問題が自動的に追加されます
@@ -195,21 +195,21 @@ export default function ReviewDashboardPage() {
               {items.map((item) => (
                 <div
                   key={item.id}
-                  className="bg-white rounded-lg shadow-sm p-4 border"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-gray-900/10 p-4 border dark:border-gray-700"
                 >
                   <div className="flex items-start justify-between mb-2">
-                    <p className="text-gray-800 flex-1">
+                    <p className="text-gray-800 dark:text-gray-200 flex-1">
                       {item.questionContent}
                     </p>
                     {item.questionCategoryName && (
-                      <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded whitespace-nowrap">
+                      <span className="ml-2 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 text-xs px-2 py-1 rounded whitespace-nowrap">
                         {item.questionCategoryName}
                       </span>
                     )}
                   </div>
                   {/* 進捗バー */}
                   <div className="mt-3">
-                    <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
                       <span>
                         正解数: {item.correctCount} / {MASTERY_THRESHOLD}
                       </span>
@@ -219,7 +219,7 @@ export default function ReviewDashboardPage() {
                         )}
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                       <div
                         className={`h-2 rounded-full ${
                           item.status === 'mastered'

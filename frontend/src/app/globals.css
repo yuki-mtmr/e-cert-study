@@ -1,8 +1,60 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* ダークモード用CSS変数 */
+  --bg-card: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --bg-input: #ffffff;
+  --bg-hover: #f5f5f5;
+  --bg-selected: #e8f0fe;
+  --text-primary: #1f2937;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+  --border-color: #dddddd;
+  --border-light: #d1d5db;
+  --accent-blue: #4a90d9;
+  --accent-blue-hover: #357abd;
+  --accent-blue-dark: #2d6aa5;
+  --accent-green: #10b981;
+  --accent-red: #e74c3c;
+  --accent-red-text: #dc2626;
+  --shadow-color: rgba(0, 0, 0, 0.05);
+  --shadow-dropdown: rgba(0, 0, 0, 0.1);
+  --error-bg: #fee2e2;
+  --error-text: #dc2626;
+  --delete-bg: #f8f8f8;
+}
+
+.dark {
+  --background: #111827;
+  --foreground: #e5e7eb;
+
+  --bg-card: #1f2937;
+  --bg-secondary: #111827;
+  --bg-input: #374151;
+  --bg-hover: #374151;
+  --bg-selected: #1e3a5f;
+  --text-primary: #e5e7eb;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --border-color: #4b5563;
+  --border-light: #374151;
+  --accent-blue: #60a5fa;
+  --accent-blue-hover: #3b82f6;
+  --accent-blue-dark: #2563eb;
+  --accent-green: #34d399;
+  --accent-red: #f87171;
+  --accent-red-text: #fca5a5;
+  --shadow-color: rgba(0, 0, 0, 0.2);
+  --shadow-dropdown: rgba(0, 0, 0, 0.3);
+  --error-bg: #451a1a;
+  --error-text: #fca5a5;
+  --delete-bg: #374151;
 }
 
 @theme inline {
@@ -12,9 +64,13 @@
   --font-mono: var(--font-geist-mono);
 }
 
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* KaTeX ダークモード対応 */
+.dark .katex {
+  color: var(--foreground);
 }

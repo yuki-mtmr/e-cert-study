@@ -40,6 +40,7 @@ export default function MockExamPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const handleTimeUp = useCallback(async () => {
@@ -112,11 +113,12 @@ export default function MockExamPage() {
   const handleRequestAIAnalysis = async () => {
     if (!result) return;
     setAiLoading(true);
+    setAiError(null);
     try {
       const data = await requestAIAnalysis(result.examId, userId);
       setResult({ ...result, aiAnalysis: data.aiAnalysis });
     } catch {
-      // AI分析失敗は静かに無視
+      setAiError('AI分析の生成に失敗しました。後でもう一度お試しください。');
     } finally {
       setAiLoading(false);
     }
@@ -127,32 +129,32 @@ export default function MockExamPage() {
   // イントロフェーズ
   if (phase === 'intro') {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white shadow-sm">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <header className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/10">
           <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">E資格 模擬試験</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">E資格 模擬試験</h1>
             <Link href="/" className="text-blue-600 hover:underline text-sm">
               ホームに戻る
             </Link>
           </div>
         </header>
         <main className="max-w-4xl mx-auto px-4 py-8">
-          <div className="bg-white rounded-lg shadow-md p-8 text-center">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">E資格 模擬試験</h2>
-            <p className="text-xl text-gray-600 mb-8">100問・120分の本番シミュレーション</p>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/20 p-8 text-center">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">E資格 模擬試験</h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400 mb-8">100問・120分の本番シミュレーション</p>
 
-            <div className="bg-gray-50 rounded-lg p-6 mb-8">
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 mb-8">
               <h3 className="text-lg font-semibold mb-4">出題配分</h3>
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b">
-                    <th className="py-2 text-gray-600">分野</th>
-                    <th className="py-2 text-right text-gray-600">問題数</th>
+                  <tr className="border-b dark:border-gray-700">
+                    <th className="py-2 text-gray-600 dark:text-gray-400">分野</th>
+                    <th className="py-2 text-right text-gray-600 dark:text-gray-400">問題数</th>
                   </tr>
                 </thead>
                 <tbody>
                   {EXAM_AREAS.map((area) => (
-                    <tr key={area.name} className="border-b last:border-0">
+                    <tr key={area.name} className="border-b dark:border-gray-700 last:border-0">
                       <td className="py-2">{area.name}</td>
                       <td className="py-2 text-right font-medium">{area.count}問</td>
                     </tr>
@@ -166,7 +168,7 @@ export default function MockExamPage() {
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-4">
+              <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-400 p-4 rounded-lg mb-4">
                 {error}
               </div>
             )}
@@ -176,7 +178,7 @@ export default function MockExamPage() {
               disabled={loading}
               className={`px-8 py-4 rounded-lg text-lg font-medium transition-colors ${
                 loading
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                   : 'bg-blue-600 text-white hover:bg-blue-700'
               }`}
             >
@@ -211,16 +213,16 @@ export default function MockExamPage() {
     };
 
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         {/* タイマーヘッダー */}
-        <header className="bg-white shadow-sm sticky top-0 z-10">
+        <header className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/10 sticky top-0 z-10">
           <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-gray-600 dark:text-gray-400">
               問題 {currentIndex + 1} / {examData.totalQuestions}
             </span>
             <span
               className={`text-lg font-mono font-bold ${
-                timer.isWarning ? 'text-red-600 animate-pulse' : 'text-gray-800'
+                timer.isWarning ? 'text-red-600 animate-pulse' : 'text-gray-800 dark:text-gray-200'
               }`}
             >
               {timer.formattedTime}
@@ -239,8 +241,13 @@ export default function MockExamPage() {
 
         <main className="max-w-4xl mx-auto px-4 py-4">
           {/* エリア表示 */}
-          <div className="text-sm text-gray-500 mb-2">
+          <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">
             分野: {currentQuestion.examArea}
+            {currentQuestion.topic && (
+              <span className="ml-2 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 text-xs px-2 py-0.5 rounded">
+                {currentQuestion.topic}
+              </span>
+            )}
           </div>
 
           {/* 問題表示 */}
@@ -256,7 +263,7 @@ export default function MockExamPage() {
             <button
               onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))}
               disabled={currentIndex === 0}
-              className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+              className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50"
             >
               前の問題
             </button>
@@ -272,8 +279,8 @@ export default function MockExamPage() {
           </div>
 
           {/* 問題グリッド */}
-          <div className="mt-6 bg-white rounded-lg shadow-md p-4">
-            <h3 className="text-sm font-semibold text-gray-600 mb-2">回答状況</h3>
+          <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/20 p-4">
+            <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">回答状況</h3>
             <div className="grid grid-cols-10 gap-1">
               {Array.from({ length: examData.totalQuestions }, (_, i) => {
                 const isAnswered = answers.has(i);
@@ -286,8 +293,8 @@ export default function MockExamPage() {
                       isCurrent
                         ? 'bg-blue-600 text-white'
                         : isAnswered
-                          ? 'bg-green-200 text-green-800'
-                          : 'bg-gray-100 text-gray-500'
+                          ? 'bg-green-200 dark:bg-green-900/50 text-green-800 dark:text-green-300'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
                     }`}
                   >
                     {i + 1}
@@ -301,20 +308,20 @@ export default function MockExamPage() {
         {/* 確認ダイアログ */}
         {showConfirmDialog && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 max-w-md mx-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md mx-4">
               <h3 className="text-lg font-bold mb-4">模試を終了しますか？</h3>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 {answers.size}/{examData.totalQuestions}問 回答済み
               </p>
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg mb-4 text-sm">
+                <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-400 p-3 rounded-lg mb-4 text-sm">
                   {error}
                 </div>
               )}
               <div className="flex gap-4">
                 <button
                   onClick={() => setShowConfirmDialog(false)}
-                  className="flex-1 py-2 rounded bg-gray-200 hover:bg-gray-300"
+                  className="flex-1 py-2 rounded bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
                 >
                   続ける
                 </button>
@@ -336,10 +343,10 @@ export default function MockExamPage() {
   // 結果フェーズ
   if (phase === 'result' && result) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white shadow-sm">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <header className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/10">
           <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">模試結果</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">模試結果</h1>
             <Link href="/" className="text-blue-600 hover:underline text-sm">
               ホームに戻る
             </Link>
@@ -350,12 +357,13 @@ export default function MockExamPage() {
             result={result}
             onRequestAIAnalysis={handleRequestAIAnalysis}
             aiLoading={aiLoading}
+            aiError={aiError}
           />
 
           <div className="flex gap-4 mt-6">
             <Link
               href="/mock-exam/history"
-              className="flex-1 py-3 rounded-lg text-center bg-gray-200 hover:bg-gray-300 font-medium"
+              className="flex-1 py-3 rounded-lg text-center bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 font-medium"
             >
               模試履歴を見る
             </Link>
@@ -380,7 +388,7 @@ export default function MockExamPage() {
 
   // ローディング
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
     </div>
   );

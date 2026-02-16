@@ -164,10 +164,10 @@ export default function ReviewPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">問題を読み込み中...</p>
+          <p className="text-gray-600 dark:text-gray-400">問題を読み込み中...</p>
         </div>
       </div>
     );
@@ -176,18 +176,18 @@ export default function ReviewPage() {
   if (error || !question) {
     const isComplete = error?.includes('完了');
     return (
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white shadow-sm">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <header className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/10">
           <div className="max-w-4xl mx-auto px-4 py-4 flex items-center">
             <Link href="/" className="text-blue-600 hover:text-blue-800 mr-4">
               ← 戻る
             </Link>
-            <h1 className="text-xl font-bold text-gray-900">復習モード</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">復習モード</h1>
           </div>
         </header>
         <main className="max-w-2xl mx-auto px-4 py-8">
-          <div className={`${isComplete ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'} border rounded-lg p-6 text-center`}>
-            <p className={`${isComplete ? 'text-green-800' : 'text-yellow-800'} mb-4`}>
+          <div className={`${isComplete ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-700' : 'bg-yellow-50 dark:bg-yellow-900/30 border-yellow-200 dark:border-yellow-700'} border rounded-lg p-6 text-center`}>
+            <p className={`${isComplete ? 'text-green-800 dark:text-green-300' : 'text-yellow-800 dark:text-yellow-300'} mb-4`}>
               {isComplete ? '🎉 ' : ''}{error}
             </p>
             <div className="space-x-4">
@@ -199,7 +199,7 @@ export default function ReviewPage() {
               </Link>
               <Link
                 href="/"
-                className="inline-block bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300"
+                className="inline-block bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-6 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
               >
                 ホームへ
               </Link>
@@ -211,17 +211,17 @@ export default function ReviewPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <header className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/10">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center">
             <Link href="/" className="text-blue-600 hover:text-blue-800 mr-4">
               ← 戻る
             </Link>
-            <h1 className="text-xl font-bold text-gray-900">復習モード</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">復習モード</h1>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-gray-600 dark:text-gray-400">
               {currentIndex + 1} / {remainingIds.length} 問
             </span>
             <FullscreenButton />
@@ -232,7 +232,7 @@ export default function ReviewPage() {
       <main className="max-w-2xl mx-auto px-4 py-8">
         {/* 進捗バー */}
         <div className="mb-6">
-          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
             <div
               className="h-full bg-blue-600 transition-all duration-300"
               style={{ width: `${((currentIndex + 1) / remainingIds.length) * 100}%` }}
@@ -242,16 +242,16 @@ export default function ReviewPage() {
 
         {/* 復習進捗表示（バックエンドから取得した場合） */}
         {currentReviewItem && (
-          <div className="mb-4 flex items-center justify-between bg-white rounded-lg p-3 shadow-sm">
-            <span className="text-sm text-gray-600">習得進捗</span>
+          <div className="mb-4 flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm dark:shadow-gray-900/10">
+            <span className="text-sm text-gray-600 dark:text-gray-400">習得進捗</span>
             <div className="flex items-center gap-2">
-              <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div className="w-32 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-green-500 transition-all duration-300"
                   style={{ width: `${(currentReviewItem.correctCount / MASTERY_THRESHOLD) * 100}%` }}
                 />
               </div>
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 {currentReviewItem.correctCount} / {MASTERY_THRESHOLD}
               </span>
             </div>

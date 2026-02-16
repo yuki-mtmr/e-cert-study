@@ -6,6 +6,7 @@ import { useLocalProgress } from '@/hooks/useLocalProgress';
 import { fetchMockExamHistory, fetchMockExamResult } from '@/lib/api';
 import { MockExamResult } from '@/components/MockExamResult';
 import { requestAIAnalysis } from '@/lib/api';
+import { MockExamScoreChart } from '@/components/MockExamScoreChart';
 import type {
   MockExamHistoryItem,
   MockExamResult as MockExamResultType,
@@ -19,6 +20,7 @@ export default function MockExamHistoryPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedResult, setSelectedResult] = useState<MockExamResultType | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
   const [slowLoad, setSlowLoad] = useState(false);
 
   const loadHistory = useCallback(async () => {
@@ -58,11 +60,12 @@ export default function MockExamHistoryPage() {
   const handleRequestAIAnalysis = async () => {
     if (!selectedResult) return;
     setAiLoading(true);
+    setAiError(null);
     try {
       const data = await requestAIAnalysis(selectedResult.examId, userId);
       setSelectedResult({ ...selectedResult, aiAnalysis: data.aiAnalysis });
     } catch {
-      // AI分析失敗
+      setAiError('AI分析の生成に失敗しました。後でもう一度お試しください。');
     } finally {
       setAiLoading(false);
     }
@@ -70,10 +73,10 @@ export default function MockExamHistoryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col items-center justify-center gap-4">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
         {slowLoad && (
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             サーバー起動中です。しばらくお待ちください...
           </p>
         )}
@@ -84,17 +87,17 @@ export default function MockExamHistoryPage() {
   // エラー表示
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white shadow-sm">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <header className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/10">
           <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">模試履歴</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">模試履歴</h1>
             <Link href="/" className="text-blue-600 hover:underline text-sm">
               ホームに戻る
             </Link>
           </div>
         </header>
         <main className="max-w-4xl mx-auto px-4 py-8">
-          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
+          <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-400 p-4 rounded-lg">
             <p>{error}</p>
             <button
               onClick={loadHistory}
@@ -111,10 +114,10 @@ export default function MockExamHistoryPage() {
   // 詳細表示モード
   if (selectedResult) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white shadow-sm">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <header className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/10">
           <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">模試結果詳細</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">模試結果詳細</h1>
             <button
               onClick={() => setSelectedResult(null)}
               className="text-blue-600 hover:underline text-sm"
@@ -128,6 +131,7 @@ export default function MockExamHistoryPage() {
             result={selectedResult}
             onRequestAIAnalysis={handleRequestAIAnalysis}
             aiLoading={aiLoading}
+            aiError={aiError}
           />
         </main>
       </div>
@@ -135,10 +139,10 @@ export default function MockExamHistoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <header className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/10">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">模試履歴</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">模試履歴</h1>
           <div className="flex gap-4">
             <Link href="/mock-exam" className="text-blue-600 hover:underline text-sm">
               模試を受験する
@@ -152,8 +156,8 @@ export default function MockExamHistoryPage() {
 
       <main className="max-w-4xl mx-auto px-4 py-8">
         {exams.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-8 text-center">
-            <p className="text-gray-600 mb-4">まだ模試を受験していません。</p>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/20 p-8 text-center">
+            <p className="text-gray-600 dark:text-gray-400 mb-4">まだ模試を受験していません。</p>
             <Link
               href="/mock-exam"
               className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -163,17 +167,18 @@ export default function MockExamHistoryPage() {
           </div>
         ) : (
           <>
-            <p className="text-sm text-gray-600 mb-4">全 {totalCount} 件</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">全 {totalCount} 件</p>
+            {exams.length >= 2 && <MockExamScoreChart exams={exams} />}
             <div className="space-y-3">
               {exams.map((exam) => (
                 <button
                   key={exam.examId}
                   onClick={() => handleSelectExam(exam.examId)}
-                  className="w-full bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow text-left"
+                  className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/20 p-4 hover:shadow-lg transition-shadow text-left"
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
                         {new Date(exam.startedAt).toLocaleDateString('ja-JP', {
                           year: 'numeric',
                           month: 'long',
@@ -191,15 +196,15 @@ export default function MockExamHistoryPage() {
                         <span
                           className={`px-3 py-1 rounded-full text-sm font-medium ${
                             exam.passed
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
+                              ? 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300'
+                              : 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300'
                           }`}
                         >
                           {exam.passed ? '合格' : '不合格'}
                         </span>
                       )}
                       {exam.status === 'in_progress' && (
-                        <span className="px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                        <span className="px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300">
                           受験中
                         </span>
                       )}

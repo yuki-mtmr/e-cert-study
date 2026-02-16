@@ -11,46 +11,46 @@
 }
 
 .card {
-  background: white;
+  background: var(--bg-card);
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px var(--shadow-color);
   text-align: center;
 }
 
 .cardLabel {
   font-size: 0.85rem;
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 0.5rem;
 }
 
 .cardValue {
   font-size: 2rem;
   font-weight: 700;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .cardValue.expired {
   font-size: 1rem;
-  color: #e74c3c;
+  color: var(--accent-red);
 }
 
 .cardUnit {
   font-size: 1rem;
   font-weight: 400;
-  color: #666;
+  color: var(--text-secondary);
   margin-left: 0.25rem;
 }
 
 .expiredText {
-  color: #e74c3c;
+  color: var(--accent-red);
 }
 
 .chartContainer {
-  background: white;
+  background: var(--bg-card);
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px var(--shadow-color);
   min-height: 350px;
 }
 
@@ -59,7 +59,7 @@
   align-items: center;
   justify-content: center;
   height: 300px;
-  color: #999;
+  color: var(--text-muted);
   font-size: 1rem;
 }
 

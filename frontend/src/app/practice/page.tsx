@@ -194,21 +194,21 @@ export default function PracticePage() {
   // 設定画面
   if (mode === 'setup') {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white shadow-sm">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <header className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/10">
           <div className="max-w-4xl mx-auto px-4 py-4 flex items-center">
             <Link href="/" className="text-emerald-600 hover:text-emerald-800 mr-4">
               ← 戻る
             </Link>
-            <h1 className="text-xl font-bold text-gray-900">E資格 問題演習</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">E資格 問題演習</h1>
           </div>
         </header>
 
         <main className="max-w-2xl mx-auto px-4 py-8">
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/20 p-6">
             {/* カテゴリ選択 */}
             <div className="mb-8">
-              <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+              <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4 flex items-center">
                 <span className="mr-2">📚</span>
                 カテゴリを選択
               </h2>
@@ -220,7 +220,7 @@ export default function PracticePage() {
                 multiSelect={true}
               />
               {selectedCategoryIds.length === 0 && (
-                <p className="mt-2 text-sm text-gray-500">
+                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                   未選択の場合は全カテゴリから出題されます
                 </p>
               )}
@@ -228,7 +228,7 @@ export default function PracticePage() {
 
             {/* 問題数選択 */}
             <div className="mb-8">
-              <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+              <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4 flex items-center">
                 <span className="mr-2">📝</span>
                 問題数を選択
               </h2>
@@ -243,7 +243,7 @@ export default function PracticePage() {
                       onChange={() => setQuestionCount(count)}
                       className="sr-only peer"
                     />
-                    <span className="px-4 py-2 rounded-lg border-2 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-700 border-gray-200 text-gray-600 transition-colors">
+                    <span className="px-4 py-2 rounded-lg border-2 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/30 peer-checked:text-emerald-700 dark:peer-checked:text-emerald-400 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 transition-colors">
                       {count === 0 ? '全問' : `${count}問`}
                     </span>
                   </label>
@@ -255,7 +255,7 @@ export default function PracticePage() {
             <button
               onClick={handleStart}
               disabled={categoriesLoading}
-              className="w-full py-3 rounded-lg font-medium transition-colors bg-emerald-600 text-white hover:bg-emerald-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
+              className="w-full py-3 rounded-lg font-medium transition-colors bg-emerald-600 text-white hover:bg-emerald-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:text-gray-500 dark:disabled:text-gray-400 disabled:cursor-not-allowed"
             >
               {categoriesLoading ? '読み込み中...' : '演習をスタート'}
             </button>
@@ -272,25 +272,25 @@ export default function PracticePage() {
     const percentage = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
 
     return (
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white shadow-sm">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <header className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/10">
           <div className="max-w-4xl mx-auto px-4 py-4 flex items-center">
             <Link href="/" className="text-emerald-600 hover:text-emerald-800 mr-4">
               ← ホームへ
             </Link>
-            <h1 className="text-xl font-bold text-gray-900">演習結果</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">演習結果</h1>
           </div>
         </header>
 
         <main className="max-w-2xl mx-auto px-4 py-8">
-          <div className="bg-white rounded-lg shadow-md p-8 text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">演習完了！</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/20 p-8 text-center">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">演習完了！</h2>
 
             <div className="mb-8">
               <div className="text-6xl font-bold text-emerald-600 mb-2">
                 {percentage}%
               </div>
-              <div className="text-gray-600">
+              <div className="text-gray-600 dark:text-gray-400">
                 {totalCount}問中 {correctCount}問正解
               </div>
             </div>
@@ -304,7 +304,7 @@ export default function PracticePage() {
               </button>
               <Link
                 href="/review"
-                className="px-6 py-3 rounded-lg font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
+                className="px-6 py-3 rounded-lg font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
               >
                 復習する
               </Link>
@@ -318,10 +318,10 @@ export default function PracticePage() {
   // 演習中（active mode）
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4" />
-          <p className="text-gray-600">問題を読み込み中...</p>
+          <p className="text-gray-600 dark:text-gray-400">問題を読み込み中...</p>
         </div>
       </div>
     );
@@ -329,18 +329,18 @@ export default function PracticePage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white shadow-sm">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <header className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/10">
           <div className="max-w-4xl mx-auto px-4 py-4 flex items-center">
             <Link href="/" className="text-emerald-600 hover:text-emerald-800 mr-4">
               ← 戻る
             </Link>
-            <h1 className="text-xl font-bold text-gray-900">問題演習</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">問題演習</h1>
           </div>
         </header>
         <main className="max-w-2xl mx-auto px-4 py-8">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-            <p className="text-yellow-800 mb-4">{error}</p>
+          <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-lg p-6 text-center">
+            <p className="text-yellow-800 dark:text-yellow-300 mb-4">{error}</p>
             <Link
               href="/import"
               className="inline-block bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700"
@@ -358,8 +358,8 @@ export default function PracticePage() {
   const progress = `${currentIndex + 1} / ${totalQuestions}`;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <header className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/10">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center">
             <button
@@ -368,10 +368,10 @@ export default function PracticePage() {
             >
               ← 設定に戻る
             </button>
-            <h1 className="text-xl font-bold text-gray-900">問題演習</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">問題演習</h1>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-sm font-medium text-gray-700 bg-gray-100 px-3 py-1 rounded-full">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
               {progress}
             </span>
             <FullscreenButton />

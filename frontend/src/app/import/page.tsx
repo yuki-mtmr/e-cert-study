@@ -121,21 +121,21 @@ export default function ImportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <header className="bg-white dark:bg-gray-800 shadow-sm dark:shadow-gray-900/10">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center">
           <Link href="/" className="text-blue-600 hover:text-blue-800 mr-4">
             ← 戻る
           </Link>
-          <h1 className="text-xl font-bold text-gray-900">問題インポート</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">問題インポート</h1>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* 成功メッセージ */}
         {importSuccess && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-            <p className="text-green-800 font-medium">
+          <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-gray-600 rounded-lg p-4 mb-6">
+            <p className="text-green-800 dark:text-green-300 font-medium">
               {savedCount}問のインポートが完了しました！（抽出: {extractedQuestions.length}問）
             </p>
             <div className="mt-4 space-x-4">
@@ -147,7 +147,7 @@ export default function ImportPage() {
               </Link>
               <button
                 onClick={handleReset}
-                className="inline-block bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300"
+                className="inline-block bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
               >
                 続けてインポート
               </button>
@@ -157,23 +157,23 @@ export default function ImportPage() {
 
         {/* エラーメッセージ */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-red-800">{error}</p>
+          <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-gray-600 rounded-lg p-4 mb-6">
+            <p className="text-red-800 dark:text-red-400">{error}</p>
           </div>
         )}
 
         {/* ファイル選択 */}
         {!importSuccess && extractedQuestions.length === 0 && (
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/20 p-6">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
               PDFファイルを選択
             </h2>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
               E資格の参考書や問題集のPDFをアップロードすると、
               AIが自動で問題を抽出します。
             </p>
 
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+            <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center">
               <input
                 type="file"
                 accept=".pdf"
@@ -187,22 +187,22 @@ export default function ImportPage() {
                 className="cursor-pointer block"
               >
                 <div className="text-6xl mb-4">📄</div>
-                <p className="text-gray-600 mb-2">
+                <p className="text-gray-600 dark:text-gray-400 mb-2">
                   クリックしてPDFを選択
                 </p>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-gray-400 dark:text-gray-500">
                   または、ファイルをドラッグ&ドロップ
                 </p>
               </label>
             </div>
 
             {file && (
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg flex items-center justify-between">
+              <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center justify-between">
                 <div className="flex items-center">
                   <span className="text-2xl mr-3">📄</span>
                   <div>
-                    <p className="font-medium text-gray-800">{file.name}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="font-medium text-gray-800 dark:text-gray-200">{file.name}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       {(file.size / 1024 / 1024).toFixed(2)} MB
                     </p>
                   </div>
@@ -217,9 +217,9 @@ export default function ImportPage() {
               </div>
             )}
 
-            <div className="mt-6 p-4 bg-yellow-50 rounded-lg">
-              <h3 className="font-medium text-yellow-800 mb-2">注意事項</h3>
-              <ul className="text-sm text-yellow-700 list-disc list-inside space-y-1">
+            <div className="mt-6 p-4 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg">
+              <h3 className="font-medium text-yellow-800 dark:text-yellow-300 mb-2">注意事項</h3>
+              <ul className="text-sm text-yellow-700 dark:text-yellow-400 list-disc list-inside space-y-1">
                 <li>著作権に注意してください。個人利用目的のみでご使用ください。</li>
                 <li>PDFのテキストが選択可能である必要があります。</li>
                 <li>大きなファイルは処理に時間がかかる場合があります。</li>
@@ -230,15 +230,15 @@ export default function ImportPage() {
 
         {/* 抽出結果プレビュー */}
         {extractedQuestions.length > 0 && importSuccess && (
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/20 p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold text-gray-800">
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
                 登録された問題（{savedCount}問）
               </h2>
               <div className="space-x-2">
                 <button
                   onClick={handleReset}
-                  className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                  className="px-4 py-2 border dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   続けてインポート
                 </button>
@@ -247,24 +247,24 @@ export default function ImportPage() {
 
             <div className="space-y-4 max-h-[60vh] overflow-y-auto">
               {extractedQuestions.map((question, index) => (
-                <div key={index} className="border rounded-lg p-4">
+                <div key={index} className="border dark:border-gray-700 rounded-lg p-4">
                   <div className="flex justify-between items-start mb-2">
-                    <span className="font-medium text-gray-800">
+                    <span className="font-medium text-gray-800 dark:text-gray-200">
                       問題 {index + 1}
                     </span>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
                       難易度: {'★'.repeat(question.difficulty)}{'☆'.repeat(5 - question.difficulty)}
                     </span>
                   </div>
-                  <p className="text-gray-700 mb-3">{question.content}</p>
+                  <p className="text-gray-700 dark:text-gray-300 mb-3">{question.content}</p>
                   <div className="space-y-1 text-sm">
                     {question.choices.map((choice, i) => (
                       <p
                         key={i}
                         className={`${
                           i === question.correctAnswer
-                            ? 'text-green-700 font-medium'
-                            : 'text-gray-600'
+                            ? 'text-green-700 dark:text-green-400 font-medium'
+                            : 'text-gray-600 dark:text-gray-400'
                         }`}
                       >
                         {String.fromCharCode(65 + i)}. {choice}
@@ -281,9 +281,9 @@ export default function ImportPage() {
         {/* ローディング */}
         {loading && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 text-center">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4" />
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400">
                 {extractedQuestions.length > 0
                   ? '問題を登録中...'
                   : 'AIが問題を抽出中...'}
