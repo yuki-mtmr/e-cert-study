@@ -42,6 +42,59 @@ vi.mock('next/link', () => ({
   ),
 }));
 
+describe('MockExamPage - トピック表示', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockLocalStorage.clear();
+    mockFetch.mockReset();
+    mockLocalStorage._setStore({
+      'e-cert-study-user-id': 'test-user-123',
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('アクティブフェーズでtopicバッジが表示される', async () => {
+    // 模試開始レスポンスをモック
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        examId: 'exam-1',
+        totalQuestions: 1,
+        timeLimitMinutes: 120,
+        questions: [
+          {
+            questionIndex: 0,
+            questionId: 'q-1',
+            content: 'テスト問題',
+            choices: ['A', 'B', 'C', 'D'],
+            contentType: 'plain',
+            examArea: '応用数学',
+            topic: 'ベイズ則',
+            images: [],
+          },
+        ],
+        startedAt: new Date().toISOString(),
+      }),
+    });
+
+    await act(async () => {
+      render(<MockExamPage />);
+    });
+
+    // 模試開始ボタンをクリック
+    const startButton = screen.getByText('模試を開始する');
+    await act(async () => {
+      startButton.click();
+    });
+
+    // topicバッジが表示される
+    expect(screen.getByText('ベイズ則')).toBeInTheDocument();
+  });
+});
+
 describe('MockExamPage - ナビゲーション', () => {
   beforeEach(() => {
     vi.clearAllMocks();

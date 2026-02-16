@@ -43,6 +43,13 @@ vi.mock('next/link', () => ({
   ),
 }));
 
+// MockExamScoreChartモック
+vi.mock('@/components/MockExamScoreChart', () => ({
+  MockExamScoreChart: ({ exams }: { exams: unknown[] }) => (
+    <div data-testid="mock-exam-score-chart">chart: {exams.length} exams</div>
+  ),
+}));
+
 /**
  * 履歴APIの成功レスポンスモック
  */
@@ -252,6 +259,60 @@ describe('MockExamHistoryPage', () => {
         expect(screen.getByText(/75%/)).toBeInTheDocument();
         expect(screen.getByText('合格')).toBeInTheDocument();
       });
+    });
+
+    it('履歴が2件以上ある場合はスコアグラフを表示する', async () => {
+      mockLocalStorage._setStore({
+        'e-cert-study-user-id': 'test-user-123',
+      });
+
+      mockHistoryApi(
+        [
+          {
+            exam_id: 'exam-1',
+            started_at: '2026-01-10T10:00:00',
+            finished_at: '2026-01-10T12:00:00',
+            score: 60.0,
+            passed: false,
+            status: 'finished',
+          },
+          {
+            exam_id: 'exam-2',
+            started_at: '2026-01-20T10:00:00',
+            finished_at: '2026-01-20T12:00:00',
+            score: 75.0,
+            passed: true,
+            status: 'finished',
+          },
+        ],
+        2
+      );
+
+      await act(async () => {
+        render(<MockExamHistoryPage />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('mock-exam-score-chart')).toBeInTheDocument();
+      });
+    });
+
+    it('履歴が0件の場合はスコアグラフを表示しない', async () => {
+      mockLocalStorage._setStore({
+        'e-cert-study-user-id': 'test-user-123',
+      });
+
+      mockHistoryApi([], 0);
+
+      await act(async () => {
+        render(<MockExamHistoryPage />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('まだ模試を受験していません。')).toBeInTheDocument();
+      });
+
+      expect(screen.queryByTestId('mock-exam-score-chart')).not.toBeInTheDocument();
     });
   });
 });

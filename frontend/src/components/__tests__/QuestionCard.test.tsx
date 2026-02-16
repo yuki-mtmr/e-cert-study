@@ -154,6 +154,23 @@ describe('QuestionCard', () => {
     expect(explanationHeadings.length).toBeGreaterThan(0);
   });
 
+  it('topicがある場合はバッジを表示する', () => {
+    const questionWithTopic: Question = {
+      ...mockQuestion,
+      topic: 'バッチ正規化',
+    };
+    render(<QuestionCard question={questionWithTopic} onAnswer={vi.fn()} />);
+
+    expect(screen.getByText('バッチ正規化')).toBeInTheDocument();
+  });
+
+  it('topicがない場合はバッジを表示しない', () => {
+    render(<QuestionCard question={mockQuestion} onAnswer={vi.fn()} />);
+
+    // topicバッジが表示されないことを確認
+    expect(screen.queryByTestId('topic-badge')).not.toBeInTheDocument();
+  });
+
   it('問題が変わると選択状態がリセットされる', () => {
     const newQuestion: Question = {
       ...mockQuestion,

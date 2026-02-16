@@ -79,6 +79,35 @@ describe('MockExamResult', () => {
     expect(onRequestAIAnalysis).toHaveBeenCalledTimes(1);
   });
 
+  it('エラーメッセージが表示されつつリトライボタンが残ること', () => {
+    const onRequestAIAnalysis = vi.fn();
+    const result = makeResult();
+    render(
+      <MockExamResult
+        result={result}
+        onRequestAIAnalysis={onRequestAIAnalysis}
+        aiError="AI分析の生成に失敗しました。後でもう一度お試しください。"
+      />
+    );
+    expect(screen.getByText('AI分析の生成に失敗しました。後でもう一度お試しください。')).toBeInTheDocument();
+    const button = screen.getByRole('button', { name: /AI詳細分析を生成する/ });
+    expect(button).toBeInTheDocument();
+    fireEvent.click(button);
+    expect(onRequestAIAnalysis).toHaveBeenCalledTimes(1);
+  });
+
+  it('エラーがnullの場合はエラーメッセージが表示されないこと', () => {
+    const result = makeResult();
+    render(
+      <MockExamResult
+        result={result}
+        onRequestAIAnalysis={vi.fn()}
+        aiError={null}
+      />
+    );
+    expect(screen.queryByText(/失敗しました/)).not.toBeInTheDocument();
+  });
+
   it('AI分析が既にある場合は分析内容が表示されること', () => {
     const result = makeResult({ aiAnalysis: 'AI分析結果テスト' });
     render(

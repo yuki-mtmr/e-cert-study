@@ -52,6 +52,7 @@ export interface Question {
   difficulty: number;
   source: string;
   contentType: ContentType;
+  topic?: string;
   images: QuestionImage[];
 }
 
@@ -174,6 +175,7 @@ export interface MockExamQuestion {
   choices: string[];
   contentType: ContentType;
   examArea: string;
+  topic?: string;
   images: QuestionImage[];
 }
 
