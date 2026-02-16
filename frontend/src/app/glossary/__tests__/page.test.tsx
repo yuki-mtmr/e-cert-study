@@ -75,4 +75,60 @@ describe('GlossaryPage', () => {
     const homeLink = screen.getByText('← ホーム');
     expect(homeLink.closest('a')).toHaveAttribute('href', '/');
   });
+
+  // マップビュー関連テスト
+  it('ViewToggleが表示される', () => {
+    render(<GlossaryPage />);
+    expect(screen.getByRole('tablist')).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /リスト/ })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /マップ/ })).toBeInTheDocument();
+  });
+
+  it('デフォルトはリストビュー', () => {
+    render(<GlossaryPage />);
+    expect(screen.getByRole('tab', { name: /リスト/ })).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('マップタブをクリックするとマップビューに切り替わる', async () => {
+    const user = userEvent.setup();
+    render(<GlossaryPage />);
+
+    await user.click(screen.getByRole('tab', { name: /マップ/ }));
+
+    // マップビューではコンセプトマップのタイトルが表示される
+    expect(screen.getByText('E資格 全体マップ')).toBeInTheDocument();
+    // SVGイメージが表示される
+    expect(screen.getByRole('img')).toHaveAttribute('src', '/concept-maps/overview.svg');
+  });
+
+  it('マップビューでセクション選択するとそのセクションのマップが表示される', async () => {
+    const user = userEvent.setup();
+    render(<GlossaryPage />);
+
+    // マップビューに切替
+    await user.click(screen.getByRole('tab', { name: /マップ/ }));
+
+    // セクションフィルタで機械学習を選択
+    const allButtons = screen.getAllByRole('button');
+    const mlFilterBtn = allButtons.find(
+      (btn) => btn.textContent?.includes('機械学習') && btn.classList.contains('rounded-full')
+    );
+    expect(mlFilterBtn).toBeDefined();
+    await user.click(mlFilterBtn!);
+
+    expect(screen.getByRole('img')).toHaveAttribute('src', '/concept-maps/ml.svg');
+  });
+
+  it('リストビューに戻るとセクション一覧が表示される', async () => {
+    const user = userEvent.setup();
+    render(<GlossaryPage />);
+
+    // マップビューに切替
+    await user.click(screen.getByRole('tab', { name: /マップ/ }));
+    // リストビューに戻す
+    await user.click(screen.getByRole('tab', { name: /リスト/ }));
+
+    // セクションアコーディオンが再度表示される
+    expect(screen.getAllByText(/応用数学/).length).toBeGreaterThanOrEqual(2);
+  });
 });

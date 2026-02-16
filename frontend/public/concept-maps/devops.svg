@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 450" font-family="'Helvetica Neue', Arial, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#6366f1"/>
+    </marker>
+    <filter id="shadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="1" dy="2" stdDeviation="3" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <text x="450" y="40" text-anchor="middle" font-size="22" font-weight="bold" fill="#3730a3">⚙️ 開発・運用環境 コンセプトマップ</text>
+  <text x="450" y="62" text-anchor="middle" font-size="13" fill="#64748b">フレームワーク・軽量化・アクセラレータ・環境構築</text>
+
+  <!-- フレームワーク -->
+  <g filter="url(#shadow)">
+    <rect x="30" y="90" width="200" height="170" rx="14" fill="#e0e7ff" stroke="#6366f1" stroke-width="2"/>
+    <text x="130" y="118" text-anchor="middle" font-size="15" font-weight="bold" fill="#3730a3">フレームワーク</text>
+    <rect x="45" y="135" width="170" height="28" rx="7" fill="#eef2ff" stroke="#a5b4fc" stroke-width="1"/>
+    <text x="130" y="154" text-anchor="middle" font-size="11" fill="#3730a3">PyTorch</text>
+    <rect x="45" y="170" width="170" height="28" rx="7" fill="#eef2ff" stroke="#a5b4fc" stroke-width="1"/>
+    <text x="130" y="189" text-anchor="middle" font-size="11" fill="#3730a3">TensorFlow / Keras</text>
+    <rect x="45" y="205" width="170" height="28" rx="7" fill="#eef2ff" stroke="#a5b4fc" stroke-width="1"/>
+    <text x="130" y="224" text-anchor="middle" font-size="11" fill="#3730a3">ONNX</text>
+  </g>
+
+  <!-- 軽量化・高速化 -->
+  <g filter="url(#shadow)">
+    <rect x="280" y="90" width="200" height="170" rx="14" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+    <text x="380" y="118" text-anchor="middle" font-size="15" font-weight="bold" fill="#92400e">軽量化・高速化</text>
+    <rect x="295" y="135" width="170" height="28" rx="7" fill="#fef9c3" stroke="#fde047" stroke-width="1"/>
+    <text x="380" y="154" text-anchor="middle" font-size="11" fill="#92400e">量子化</text>
+    <rect x="295" y="170" width="170" height="28" rx="7" fill="#fef9c3" stroke="#fde047" stroke-width="1"/>
+    <text x="380" y="189" text-anchor="middle" font-size="11" fill="#92400e">プルーニング</text>
+    <rect x="295" y="205" width="170" height="28" rx="7" fill="#fef9c3" stroke="#fde047" stroke-width="1"/>
+    <text x="380" y="224" text-anchor="middle" font-size="11" fill="#92400e">知識蒸留</text>
+  </g>
+
+  <!-- アクセラレータ -->
+  <g filter="url(#shadow)">
+    <rect x="530" y="90" width="200" height="170" rx="14" fill="#dcfce7" stroke="#22c55e" stroke-width="2"/>
+    <text x="630" y="118" text-anchor="middle" font-size="15" font-weight="bold" fill="#166534">アクセラレータ</text>
+    <rect x="545" y="135" width="170" height="28" rx="7" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+    <text x="630" y="154" text-anchor="middle" font-size="11" fill="#166534">GPU (CUDA)</text>
+    <rect x="545" y="170" width="170" height="28" rx="7" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+    <text x="630" y="189" text-anchor="middle" font-size="11" fill="#166534">TPU</text>
+    <rect x="545" y="205" width="170" height="28" rx="7" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+    <text x="630" y="224" text-anchor="middle" font-size="11" fill="#166534">エッジデバイス</text>
+  </g>
+
+  <!-- 環境構築 -->
+  <g filter="url(#shadow)">
+    <rect x="280" y="310" width="450" height="120" rx="14" fill="#fce7f3" stroke="#ec4899" stroke-width="2"/>
+    <text x="505" y="338" text-anchor="middle" font-size="15" font-weight="bold" fill="#9d174d">環境構築</text>
+    <rect x="300" y="355" width="120" height="28" rx="7" fill="#fdf2f8" stroke="#f9a8d4" stroke-width="1"/>
+    <text x="360" y="374" text-anchor="middle" font-size="11" fill="#9d174d">Docker</text>
+    <rect x="435" y="355" width="140" height="28" rx="7" fill="#fdf2f8" stroke="#f9a8d4" stroke-width="1"/>
+    <text x="505" y="374" text-anchor="middle" font-size="11" fill="#9d174d">クラウド (AWS/GCP)</text>
+    <rect x="590" y="355" width="120" height="28" rx="7" fill="#fdf2f8" stroke="#f9a8d4" stroke-width="1"/>
+    <text x="650" y="374" text-anchor="middle" font-size="11" fill="#9d174d">MLOps</text>
+  </g>
+
+  <!-- フロー矢印 -->
+  <line x1="230" y1="175" x2="275" y2="175" stroke="#6366f1" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="252" y="167" text-anchor="middle" font-size="9" fill="#64748b">モデル変換</text>
+
+  <line x1="480" y1="175" x2="525" y2="175" stroke="#6366f1" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="502" y="167" text-anchor="middle" font-size="9" fill="#64748b">高速実行</text>
+
+  <!-- FW → 環境構築 -->
+  <line x1="130" y1="260" x2="350" y2="308" stroke="#6366f1" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arrow)"/>
+  <text x="220" y="278" font-size="9" fill="#64748b">デプロイ</text>
+
+  <!-- アクセラレータ → 環境構築 -->
+  <line x1="630" y1="260" x2="580" y2="308" stroke="#6366f1" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arrow)"/>
+  <text x="620" y="278" font-size="9" fill="#64748b">インフラ</text>
+
+  <!-- 軽量化 → 環境構築 -->
+  <line x1="380" y1="260" x2="450" y2="308" stroke="#6366f1" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arrow)"/>
+  <text x="400" y="290" font-size="9" fill="#64748b">最適化デプロイ</text>
+</svg>

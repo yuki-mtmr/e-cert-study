@@ -5,10 +5,14 @@ import Link from 'next/link';
 import { SECTIONS, SUBSECTIONS, TERMS } from '@/data/glossary-terms';
 import { filterTerms, groupTermsBySection } from '@/lib/glossary';
 import { GlossarySection } from '@/components/GlossarySection';
+import { ViewToggle } from '@/components/ViewToggle';
+import { ConceptMapView } from '@/components/ConceptMapView';
+import type { GlossaryViewMode } from '@/types/concept-map';
 
 export default function GlossaryPage() {
   const [query, setQuery] = useState('');
   const [selectedSectionId, setSelectedSectionId] = useState<string | undefined>(undefined);
+  const [viewMode, setViewMode] = useState<GlossaryViewMode>('list');
 
   const filtered = useMemo(
     () => filterTerms(TERMS, query, selectedSectionId),
@@ -36,14 +40,17 @@ export default function GlossaryPage() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-6 space-y-4">
-        {/* 検索 */}
-        <input
-          type="text"
-          placeholder="用語を検索..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        {/* 検索 + ViewToggle */}
+        <div className="flex items-center gap-3">
+          <input
+            type="text"
+            placeholder="用語を検索..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <ViewToggle viewMode={viewMode} onChange={setViewMode} />
+        </div>
 
         {/* セクションフィルタ */}
         <div className="flex gap-2 overflow-x-auto pb-2">
@@ -81,21 +88,28 @@ export default function GlossaryPage() {
           全 {filtered.length} 用語
         </p>
 
-        {/* セクション一覧 */}
-        <div className="space-y-3">
-          {grouped.map((group) => (
-            <GlossarySection
-              key={group.section.id}
-              group={group}
-              defaultOpen={hasActiveFilter}
-            />
-          ))}
-        </div>
+        {/* ビュー切替 */}
+        {viewMode === 'map' ? (
+          <ConceptMapView selectedSectionId={selectedSectionId} />
+        ) : (
+          <>
+            {/* セクション一覧 */}
+            <div className="space-y-3">
+              {grouped.map((group) => (
+                <GlossarySection
+                  key={group.section.id}
+                  group={group}
+                  defaultOpen={hasActiveFilter}
+                />
+              ))}
+            </div>
 
-        {filtered.length === 0 && (
-          <p className="text-center text-gray-500 dark:text-gray-400 py-8">
-            該当する用語が見つかりません
-          </p>
+            {filtered.length === 0 && (
+              <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+                該当する用語が見つかりません
+              </p>
+            )}
+          </>
         )}
       </main>
     </div>

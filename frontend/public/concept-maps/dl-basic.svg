@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 620" font-family="'Helvetica Neue', Arial, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#d97706"/>
+    </marker>
+    <filter id="shadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="1" dy="2" stdDeviation="3" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <text x="480" y="40" text-anchor="middle" font-size="22" font-weight="bold" fill="#92400e">🧠 深層学習の基礎 コンセプトマップ</text>
+  <text x="480" y="62" text-anchor="middle" font-size="13" fill="#64748b">ネットワーク構造・最適化・正則化の関係</text>
+
+  <!-- 順伝播型NN -->
+  <g filter="url(#shadow)">
+    <rect x="30" y="90" width="200" height="150" rx="14" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+    <text x="130" y="115" text-anchor="middle" font-size="14" font-weight="bold" fill="#92400e">順伝播型NN</text>
+    <rect x="45" y="130" width="170" height="26" rx="6" fill="#fef9c3" stroke="#fde047" stroke-width="1"/>
+    <text x="130" y="148" text-anchor="middle" font-size="10" fill="#92400e">パーセプトロン</text>
+    <rect x="45" y="163" width="170" height="26" rx="6" fill="#fef9c3" stroke="#fde047" stroke-width="1"/>
+    <text x="130" y="181" text-anchor="middle" font-size="10" fill="#92400e">多層パーセプトロン</text>
+    <rect x="45" y="196" width="170" height="26" rx="6" fill="#fef9c3" stroke="#fde047" stroke-width="1"/>
+    <text x="130" y="214" text-anchor="middle" font-size="10" fill="#92400e">誤差逆伝播法</text>
+  </g>
+
+  <!-- 活性化関数 -->
+  <g filter="url(#shadow)">
+    <rect x="270" y="90" width="170" height="150" rx="14" fill="#fff7ed" stroke="#fb923c" stroke-width="2"/>
+    <text x="355" y="115" text-anchor="middle" font-size="14" font-weight="bold" fill="#9a3412">活性化関数</text>
+    <rect x="285" y="130" width="140" height="26" rx="6" fill="#ffedd5" stroke="#fdba74" stroke-width="1"/>
+    <text x="355" y="148" text-anchor="middle" font-size="10" fill="#9a3412">ReLU</text>
+    <rect x="285" y="163" width="140" height="26" rx="6" fill="#ffedd5" stroke="#fdba74" stroke-width="1"/>
+    <text x="355" y="181" text-anchor="middle" font-size="10" fill="#9a3412">Sigmoid / Tanh</text>
+    <rect x="285" y="196" width="140" height="26" rx="6" fill="#ffedd5" stroke="#fdba74" stroke-width="1"/>
+    <text x="355" y="214" text-anchor="middle" font-size="10" fill="#9a3412">Softmax</text>
+  </g>
+
+  <!-- 損失関数 -->
+  <g filter="url(#shadow)">
+    <rect x="480" y="90" width="170" height="120" rx="14" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+    <text x="565" y="115" text-anchor="middle" font-size="14" font-weight="bold" fill="#991b1b">損失関数</text>
+    <rect x="495" y="130" width="140" height="26" rx="6" fill="#fee2e2" stroke="#fca5a5" stroke-width="1"/>
+    <text x="565" y="148" text-anchor="middle" font-size="10" fill="#991b1b">交差エントロピー</text>
+    <rect x="495" y="163" width="140" height="26" rx="6" fill="#fee2e2" stroke="#fca5a5" stroke-width="1"/>
+    <text x="565" y="181" text-anchor="middle" font-size="10" fill="#991b1b">平均二乗誤差</text>
+  </g>
+
+  <!-- 最適化 -->
+  <g filter="url(#shadow)">
+    <rect x="690" y="90" width="240" height="180" rx="14" fill="#fdf4ff" stroke="#d946ef" stroke-width="2"/>
+    <text x="810" y="115" text-anchor="middle" font-size="14" font-weight="bold" fill="#86198f">最適化</text>
+    <rect x="705" y="130" width="105" height="26" rx="6" fill="#fae8ff" stroke="#e879f9" stroke-width="1"/>
+    <text x="757" y="148" text-anchor="middle" font-size="10" fill="#86198f">SGD</text>
+    <rect x="820" y="130" width="95" height="26" rx="6" fill="#fae8ff" stroke="#e879f9" stroke-width="1"/>
+    <text x="867" y="148" text-anchor="middle" font-size="10" fill="#86198f">Momentum</text>
+    <rect x="705" y="163" width="105" height="26" rx="6" fill="#fae8ff" stroke="#e879f9" stroke-width="1"/>
+    <text x="757" y="181" text-anchor="middle" font-size="10" fill="#86198f">Adam</text>
+    <rect x="820" y="163" width="95" height="26" rx="6" fill="#fae8ff" stroke="#e879f9" stroke-width="1"/>
+    <text x="867" y="181" text-anchor="middle" font-size="10" fill="#86198f">学習率</text>
+    <rect x="750" y="200" width="120" height="26" rx="6" fill="#fae8ff" stroke="#e879f9" stroke-width="1"/>
+    <text x="810" y="218" text-anchor="middle" font-size="10" fill="#86198f">学習率スケジューラ</text>
+    <rect x="750" y="233" width="120" height="26" rx="6" fill="#fae8ff" stroke="#e879f9" stroke-width="1"/>
+    <text x="810" y="251" text-anchor="middle" font-size="10" fill="#86198f">勾配消失/爆発</text>
+  </g>
+
+  <!-- 重み初期化 + 正則化 -->
+  <g filter="url(#shadow)">
+    <rect x="480" y="260" width="170" height="120" rx="14" fill="#f0fdf4" stroke="#22c55e" stroke-width="2"/>
+    <text x="565" y="285" text-anchor="middle" font-size="14" font-weight="bold" fill="#166534">重み初期化・正則化</text>
+    <rect x="495" y="300" width="140" height="26" rx="6" fill="#dcfce7" stroke="#86efac" stroke-width="1"/>
+    <text x="565" y="318" text-anchor="middle" font-size="10" fill="#166534">Xavier / He 初期化</text>
+    <rect x="495" y="333" width="140" height="26" rx="6" fill="#dcfce7" stroke="#86efac" stroke-width="1"/>
+    <text x="565" y="351" text-anchor="middle" font-size="10" fill="#166534">Dropout / BatchNorm</text>
+  </g>
+
+  <!-- CNN -->
+  <g filter="url(#shadow)">
+    <rect x="30" y="310" width="200" height="150" rx="14" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+    <text x="130" y="335" text-anchor="middle" font-size="14" font-weight="bold" fill="#1e40af">CNN</text>
+    <rect x="45" y="350" width="170" height="26" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1"/>
+    <text x="130" y="368" text-anchor="middle" font-size="10" fill="#1e40af">畳み込み層</text>
+    <rect x="45" y="383" width="170" height="26" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1"/>
+    <text x="130" y="401" text-anchor="middle" font-size="10" fill="#1e40af">プーリング層</text>
+    <rect x="45" y="416" width="170" height="26" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1"/>
+    <text x="130" y="434" text-anchor="middle" font-size="10" fill="#1e40af">ResNet / VGG</text>
+  </g>
+
+  <!-- RNN -->
+  <g filter="url(#shadow)">
+    <rect x="270" y="310" width="170" height="150" rx="14" fill="#e0e7ff" stroke="#6366f1" stroke-width="2"/>
+    <text x="355" y="335" text-anchor="middle" font-size="14" font-weight="bold" fill="#3730a3">RNN</text>
+    <rect x="285" y="350" width="140" height="26" rx="6" fill="#eef2ff" stroke="#a5b4fc" stroke-width="1"/>
+    <text x="355" y="368" text-anchor="middle" font-size="10" fill="#3730a3">LSTM</text>
+    <rect x="285" y="383" width="140" height="26" rx="6" fill="#eef2ff" stroke="#a5b4fc" stroke-width="1"/>
+    <text x="355" y="401" text-anchor="middle" font-size="10" fill="#3730a3">GRU</text>
+    <rect x="285" y="416" width="140" height="26" rx="6" fill="#eef2ff" stroke="#a5b4fc" stroke-width="1"/>
+    <text x="355" y="434" text-anchor="middle" font-size="10" fill="#3730a3">Seq2Seq</text>
+  </g>
+
+  <!-- Transformer -->
+  <g filter="url(#shadow)">
+    <rect x="30" y="500" width="410" height="100" rx="14" fill="#faf5ff" stroke="#a855f7" stroke-width="2"/>
+    <text x="235" y="525" text-anchor="middle" font-size="14" font-weight="bold" fill="#7e22ce">Transformer</text>
+    <rect x="45" y="540" width="115" height="26" rx="6" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1"/>
+    <text x="102" y="558" text-anchor="middle" font-size="10" fill="#7e22ce">Self-Attention</text>
+    <rect x="170" y="540" width="130" height="26" rx="6" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1"/>
+    <text x="235" y="558" text-anchor="middle" font-size="10" fill="#7e22ce">Multi-Head Attention</text>
+    <rect x="310" y="540" width="115" height="26" rx="6" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1"/>
+    <text x="367" y="558" text-anchor="middle" font-size="10" fill="#7e22ce">位置エンコーディング</text>
+  </g>
+
+  <!-- 汎化性能 -->
+  <g filter="url(#shadow)">
+    <rect x="690" y="310" width="240" height="90" rx="14" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/>
+    <text x="810" y="340" text-anchor="middle" font-size="14" font-weight="bold" fill="#065f46">汎化性能</text>
+    <rect x="705" y="355" width="105" height="26" rx="6" fill="#d1fae5" stroke="#6ee7b7" stroke-width="1"/>
+    <text x="757" y="373" text-anchor="middle" font-size="10" fill="#065f46">データ拡張</text>
+    <rect x="820" y="355" width="95" height="26" rx="6" fill="#d1fae5" stroke="#6ee7b7" stroke-width="1"/>
+    <text x="867" y="373" text-anchor="middle" font-size="10" fill="#065f46">転移学習</text>
+  </g>
+
+  <!-- フロー矢印 -->
+  <line x1="230" y1="165" x2="265" y2="165" stroke="#d97706" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="440" y1="165" x2="475" y2="155" stroke="#d97706" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="650" y1="155" x2="685" y2="155" stroke="#d97706" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="665" y="148" text-anchor="middle" font-size="9" fill="#64748b">最小化</text>
+
+  <!-- FFNN → CNN/RNN -->
+  <line x1="130" y1="240" x2="130" y2="305" stroke="#d97706" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="180" y1="240" x2="330" y2="305" stroke="#d97706" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="220" y="268" font-size="9" fill="#64748b">アーキテクチャ発展</text>
+
+  <!-- RNN → Transformer -->
+  <line x1="355" y1="460" x2="300" y2="498" stroke="#d97706" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="345" y="485" font-size="9" fill="#64748b">発展</text>
+
+  <!-- 最適化 → 汎化 -->
+  <line x1="810" y1="270" x2="810" y2="305" stroke="#d97706" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- 正則化 → 汎化 -->
+  <line x1="650" y1="340" x2="685" y2="345" stroke="#d97706" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arrow)"/>
+  <text x="668" y="335" font-size="9" fill="#64748b">汎化向上</text>
+</svg>
