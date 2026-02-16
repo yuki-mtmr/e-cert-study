@@ -78,7 +78,7 @@ export function MockExamScoreChart({
           <XAxis dataKey="label" />
           <YAxis domain={[0, 100]} />
           <Tooltip
-            formatter={(value: number, name: string) => {
+            formatter={(value, name) => {
               if (name === 'score') return [`${value}%`, 'スコア'];
               return [value, name];
             }}
