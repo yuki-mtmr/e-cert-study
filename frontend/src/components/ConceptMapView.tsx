@@ -1,7 +1,23 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { getConceptMap } from '@/data/glossary/concept-maps';
+import { SUBSECTIONS } from '@/data/glossary/sections';
+import { MATH_TERMS } from '@/data/glossary/terms-math';
+import { ML_TERMS } from '@/data/glossary/terms-ml';
+import { DL_BASIC_TERMS } from '@/data/glossary/terms-dl-basic';
+import { DL_APP_TERMS } from '@/data/glossary/terms-dl-app';
+import { DEVOPS_TERMS } from '@/data/glossary/terms-devops';
+import { SubsectionNav } from './concept-map/SubsectionNav';
+import { SubsectionMapView } from './concept-map/SubsectionMapView';
+
+const ALL_TERMS = [
+  ...MATH_TERMS,
+  ...ML_TERMS,
+  ...DL_BASIC_TERMS,
+  ...DL_APP_TERMS,
+  ...DEVOPS_TERMS,
+];
 
 interface ConceptMapViewProps {
   selectedSectionId?: string;
@@ -11,10 +27,17 @@ interface ConceptMapViewProps {
  * コンセプトマップ表示コンポーネント
  *
  * セクション選択に応じたSVGマップを表示し、クリックで拡大モーダルを開く
+ * サブセクション選択で用語関係マップにドリルダウン
  */
 export function ConceptMapView({ selectedSectionId }: ConceptMapViewProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedSubsectionId, setSelectedSubsectionId] = useState<string | null>(null);
   const map = getConceptMap(selectedSectionId);
+
+  // セクション変更時にサブセクション選択をリセット
+  useEffect(() => {
+    setSelectedSubsectionId(null);
+  }, [selectedSectionId]);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = useCallback(() => setIsModalOpen(false), []);
@@ -37,6 +60,50 @@ export function ConceptMapView({ selectedSectionId }: ConceptMapViewProps) {
     };
   }, [isModalOpen, closeModal]);
 
+  // セクション別サブセクション一覧
+  const sectionSubsections = useMemo(
+    () => selectedSectionId
+      ? SUBSECTIONS.filter((ss) => ss.sectionId === selectedSectionId)
+      : [],
+    [selectedSectionId],
+  );
+
+  // サブセクション別用語数
+  const termCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const ss of sectionSubsections) {
+      counts[ss.id] = ALL_TERMS.filter((t) => t.subsectionId === ss.id).length;
+    }
+    return counts;
+  }, [sectionSubsections]);
+
+  // ドリルダウン先のサブセクション情報
+  const selectedSubsection = useMemo(
+    () => selectedSubsectionId
+      ? SUBSECTIONS.find((ss) => ss.id === selectedSubsectionId)
+      : null,
+    [selectedSubsectionId],
+  );
+
+  const subsectionTerms = useMemo(
+    () => selectedSubsectionId
+      ? ALL_TERMS.filter((t) => t.subsectionId === selectedSubsectionId)
+      : [],
+    [selectedSubsectionId],
+  );
+
+  // サブセクション選択中はドリルダウンビュー
+  if (selectedSubsectionId && selectedSubsection) {
+    return (
+      <SubsectionMapView
+        subsectionId={selectedSubsectionId}
+        subsectionName={selectedSubsection.name}
+        terms={subsectionTerms}
+        onBack={() => setSelectedSubsectionId(null)}
+      />
+    );
+  }
+
   return (
     <div className="space-y-3">
       {/* タイトル・説明 */}
@@ -58,6 +125,20 @@ export function ConceptMapView({ selectedSectionId }: ConceptMapViewProps) {
           className="max-w-full h-auto rounded-lg cursor-zoom-in hover:opacity-90 transition-opacity mx-auto dark:invert dark:hue-rotate-180"
         />
       </div>
+
+      {/* サブセクションカード一覧（セクション選択時のみ） */}
+      {selectedSectionId && sectionSubsections.length > 0 && (
+        <div className="mt-4">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            サブセクション用語関係マップ
+          </h3>
+          <SubsectionNav
+            subsections={sectionSubsections}
+            termCounts={termCounts}
+            onSelect={setSelectedSubsectionId}
+          />
+        </div>
+      )}
 
       {/* 拡大モーダル */}
       {isModalOpen && (

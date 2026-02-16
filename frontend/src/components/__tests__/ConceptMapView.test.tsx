@@ -69,4 +69,54 @@ describe('ConceptMapView', () => {
     rerender(<ConceptMapView selectedSectionId="devops" />);
     expect(screen.getByRole('img')).toHaveAttribute('src', '/concept-maps/devops.svg');
   });
+
+  it('セクション選択時にサブセクションカード一覧が表示される', () => {
+    render(<ConceptMapView selectedSectionId="math" />);
+    expect(screen.getByText('確率・統計')).toBeInTheDocument();
+    expect(screen.getByText('情報理論')).toBeInTheDocument();
+    expect(screen.getByText('線形代数')).toBeInTheDocument();
+  });
+
+  it('セクション未選択時はサブセクションカードが表示されない', () => {
+    render(<ConceptMapView />);
+    expect(screen.queryByText('確率・統計')).not.toBeInTheDocument();
+  });
+
+  it('サブセクションカードクリックで用語関係マップに遷移する', async () => {
+    const user = userEvent.setup();
+    render(<ConceptMapView selectedSectionId="math" />);
+
+    await user.click(screen.getByText('確率・統計'));
+
+    // ドリルダウン後: 戻るボタンとSVGマップが表示される
+    expect(screen.getByRole('button', { name: /戻る/ })).toBeInTheDocument();
+    expect(screen.getByText('確率・統計')).toBeInTheDocument();
+    // セクションSVG画像は非表示
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+  });
+
+  it('戻るボタンでセクションビューに戻る', async () => {
+    const user = userEvent.setup();
+    render(<ConceptMapView selectedSectionId="math" />);
+
+    await user.click(screen.getByText('確率・統計'));
+    expect(screen.getByRole('button', { name: /戻る/ })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /戻る/ }));
+    // セクションSVG画像が再表示
+    expect(screen.getByRole('img')).toBeInTheDocument();
+  });
+
+  it('セクションフィルタ変更時にサブセクション選択がリセットされる', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<ConceptMapView selectedSectionId="math" />);
+
+    await user.click(screen.getByText('確率・統計'));
+    expect(screen.getByRole('button', { name: /戻る/ })).toBeInTheDocument();
+
+    rerender(<ConceptMapView selectedSectionId="ml" />);
+    // ドリルダウンがリセットされ、セクションビューに戻る
+    expect(screen.queryByRole('button', { name: /戻る/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('img')).toBeInTheDocument();
+  });
 });
