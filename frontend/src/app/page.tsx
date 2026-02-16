@@ -145,6 +145,22 @@ export default function Home() {
           </Link>
 
           <Link
+            href="/glossary"
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/20 p-6 hover:shadow-lg transition-shadow group"
+          >
+            <div className="flex items-center mb-4">
+              <span className="text-4xl mr-4">📖</span>
+              <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 group-hover:text-blue-600">
+                用語集
+              </h2>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400">
+              E資格の全用語を章・セクション別に整理。
+              検索・フィルタで効率的に学習できます。
+            </p>
+          </Link>
+
+          <Link
             href="/mock-exam"
             className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/20 p-6 hover:shadow-lg transition-shadow group border-2 border-orange-200 dark:border-gray-700"
           >

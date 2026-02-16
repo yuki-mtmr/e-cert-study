@@ -64,4 +64,17 @@ describe('Home - ナビゲーション', () => {
     expect(historyLink).toBeInTheDocument();
     expect(historyLink.closest('a')).toHaveAttribute('href', '/mock-exam/history');
   });
+
+  it('用語集カードが /glossary へリンクしている', async () => {
+    await act(async () => {
+      render(<Home />);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('用語集')).toBeInTheDocument();
+    });
+
+    const glossaryLink = screen.getByText('用語集').closest('a');
+    expect(glossaryLink).toHaveAttribute('href', '/glossary');
+  });
 });
