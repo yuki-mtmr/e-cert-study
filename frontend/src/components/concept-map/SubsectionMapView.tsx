@@ -1,8 +1,9 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { GlossaryTerm } from '@/types/glossary';
+import type { GlossaryTerm, TermExamPoints } from '@/types/glossary';
 import { getRelationsForSubsection } from '@/data/glossary/term-relations';
+import { getExamPoints } from '@/data/glossary/exam-points';
 import { computeLayout } from '@/lib/concept-map-layout';
 import { SubsectionMap } from './SubsectionMap';
 
@@ -32,6 +33,13 @@ export function SubsectionMapView({
     const termIds = terms.map((t) => t.id);
     return computeLayout(termIds, relData?.relations ?? []);
   }, [subsectionId, terms]);
+
+  const examPoints: TermExamPoints[] = useMemo(
+    () => terms
+      .map((t) => getExamPoints(t.id))
+      .filter((ep): ep is TermExamPoints => ep !== undefined),
+    [terms],
+  );
 
   return (
     <div className="space-y-3">
@@ -66,7 +74,7 @@ export function SubsectionMapView({
 
       {/* マップ */}
       <div className="overflow-x-auto">
-        <SubsectionMap layout={layout} terms={terms} />
+        <SubsectionMap layout={layout} terms={terms} examPoints={examPoints} />
       </div>
     </div>
   );

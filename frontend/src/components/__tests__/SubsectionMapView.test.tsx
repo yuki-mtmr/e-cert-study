@@ -13,6 +13,13 @@ vi.mock('@/data/glossary/term-relations', () => ({
   })),
 }));
 
+vi.mock('@/data/glossary/exam-points', () => ({
+  getExamPoints: vi.fn((termId: string) => ({
+    termId,
+    points: [`${termId}の試験ポイント`],
+  })),
+}));
+
 vi.mock('@/lib/concept-map-layout', () => ({
   computeLayout: vi.fn(() => ({
     nodes: [

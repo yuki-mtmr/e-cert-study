@@ -26,6 +26,13 @@ export interface GlossaryTerm {
   subsectionId: string;
 }
 
+/** 用語の試験ポイント */
+export interface TermExamPoints {
+  termId: string;
+  points: string[];
+  formula?: string;
+}
+
 /** セクション別グループ化結果 */
 export interface GroupedTerms {
   section: GlossarySection;
