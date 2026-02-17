@@ -61,4 +61,23 @@ describe('ResidualPlot', () => {
     const lines = container.querySelectorAll('line.residual-line');
     expect(lines.length).toBeGreaterThanOrEqual(1);
   });
+
+  it('MSEモードで正方形（rect）要素を描画する', () => {
+    const { container } = render(<ResidualPlot />);
+    // MSEモードに切替
+    fireEvent.click(screen.getByRole('button', { name: 'MSE' }));
+
+    const rects = container.querySelectorAll('rect.residual-square');
+    expect(rects.length).toBeGreaterThanOrEqual(1);
+    // 正方形なので width === height
+    const firstRect = rects[0];
+    expect(firstRect.getAttribute('width')).toBe(firstRect.getAttribute('height'));
+  });
+
+  it('MAEモードではrect要素を描画しない', () => {
+    const { container } = render(<ResidualPlot />);
+    // デフォルトはMAEモード
+    const rects = container.querySelectorAll('rect.residual-square');
+    expect(rects.length).toBe(0);
+  });
 });

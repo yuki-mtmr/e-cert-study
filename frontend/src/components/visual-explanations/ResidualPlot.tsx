@@ -42,15 +42,6 @@ export function ResidualPlot() {
   const line = useMemo(() => computeRegressionLine(points), [points]);
   const metrics = useMemo(() => computeAllMetrics(points, line), [points, line]);
 
-  // 残差の最大絶対値（MSEモードの線太さ正規化用）
-  const maxResidual = useMemo(() => {
-    let max = 0;
-    for (const p of points) {
-      max = Math.max(max, Math.abs(p.y - predictY(p.x, line)));
-    }
-    return max || 1;
-  }, [points, line]);
-
   // 回帰直線の両端
   const lineX1 = X_MIN;
   const lineX2 = X_MAX;
@@ -99,25 +90,42 @@ export function ResidualPlot() {
         {points.map((p, i) => {
           const predicted = predictY(p.x, line);
           const residual = Math.abs(p.y - predicted);
-          const strokeWidth =
-            displayMode === 'mse'
-              ? 1 + (residual / maxResidual) * 4
-              : 2;
           const color = displayMode === 'mse' ? '#EF4444' : '#F97316';
+
+          // SVGスケールでの残差の長さ（ピクセル）
+          const residualPx = Math.abs(toSvgY(p.y) - toSvgY(predicted));
+          // 正方形の一辺 = 残差のSVG長さ（上限あり）
+          const side = Math.min(residualPx, PLOT_W * 0.3);
 
           return (
             <g key={i}>
-              {/* 残差線（縦線） */}
-              <line
-                className="residual-line"
-                x1={toSvgX(p.x)}
-                y1={toSvgY(p.y)}
-                x2={toSvgX(p.x)}
-                y2={toSvgY(predicted)}
-                stroke={color}
-                strokeWidth={strokeWidth}
-                strokeOpacity={0.6}
-              />
+              {displayMode === 'mae' ? (
+                /* MAEモード: 縦線で「絶対値 = 長さ」を表現 */
+                <line
+                  className="residual-line"
+                  x1={toSvgX(p.x)}
+                  y1={toSvgY(p.y)}
+                  x2={toSvgX(p.x)}
+                  y2={toSvgY(predicted)}
+                  stroke={color}
+                  strokeWidth={2}
+                  strokeOpacity={0.6}
+                />
+              ) : (
+                /* MSEモード: 正方形で「二乗 = 面積」を表現 */
+                <rect
+                  className="residual-square"
+                  x={toSvgX(p.x)}
+                  y={Math.min(toSvgY(p.y), toSvgY(predicted))}
+                  width={side}
+                  height={side}
+                  fill={color}
+                  fillOpacity={0.2}
+                  stroke={color}
+                  strokeWidth={1}
+                  strokeOpacity={0.6}
+                />
+              )}
               {/* データ点 */}
               <circle
                 cx={toSvgX(p.x)}
