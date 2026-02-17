@@ -6,6 +6,8 @@ import {
   tanhDerivative,
   relu,
   reluDerivative,
+  leakyRelu,
+  leakyReluDerivative,
   getActivationInfos,
 } from '@/lib/visual-explanations/activation-functions';
 import type { ActivationId } from '@/lib/visual-explanations/activation-functions';
@@ -86,10 +88,34 @@ describe('activation-functions', () => {
     });
   });
 
+  describe('leakyRelu', () => {
+    it('正の入力はそのまま返す', () => {
+      expect(leakyRelu(3)).toBe(3);
+    });
+
+    it('負の入力は0.01倍を返す', () => {
+      expect(leakyRelu(-3)).toBeCloseTo(-0.03);
+    });
+
+    it('0は0を返す', () => {
+      expect(leakyRelu(0)).toBe(0);
+    });
+  });
+
+  describe('leakyReluDerivative', () => {
+    it('正の入力で1を返す', () => {
+      expect(leakyReluDerivative(3)).toBe(1);
+    });
+
+    it('負の入力で0.01を返す', () => {
+      expect(leakyReluDerivative(-3)).toBe(0.01);
+    });
+  });
+
   describe('getActivationInfos', () => {
-    it('3つの活性化関数情報を返す', () => {
+    it('4つの活性化関数情報を返す', () => {
       const infos = getActivationInfos();
-      expect(infos).toHaveLength(3);
+      expect(infos).toHaveLength(4);
     });
 
     it('各情報に必要なフィールドが含まれる', () => {
@@ -106,10 +132,10 @@ describe('activation-functions', () => {
       }
     });
 
-    it('IDがsigmoid, tanh, reluの順', () => {
+    it('IDがsigmoid, tanh, relu, leakyReluの順', () => {
       const infos = getActivationInfos();
       const ids = infos.map((i) => i.id);
-      expect(ids).toEqual(['sigmoid', 'tanh', 'relu']);
+      expect(ids).toEqual(['sigmoid', 'tanh', 'relu', 'leakyRelu']);
     });
 
     it('fn/derivativeが対応する関数と一致する', () => {
@@ -123,7 +149,7 @@ describe('activation-functions', () => {
   describe('ActivationId 型', () => {
     it('有効な型として使える', () => {
       const id: ActivationId = 'sigmoid';
-      expect(['sigmoid', 'tanh', 'relu']).toContain(id);
+      expect(['sigmoid', 'tanh', 'relu', 'leakyRelu']).toContain(id);
     });
   });
 });

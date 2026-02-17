@@ -9,11 +9,12 @@ describe('ActivationFunctionExplorer', () => {
     expect(svg).toBeInTheDocument();
   });
 
-  it('sigmoid/tanh/ReLU切替ボタンを表示する', () => {
+  it('sigmoid/tanh/ReLU/Leaky ReLU切替ボタンを表示する', () => {
     render(<ActivationFunctionExplorer />);
     expect(screen.getByRole('button', { name: 'Sigmoid' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'tanh' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'ReLU' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Leaky ReLU' })).toBeInTheDocument();
   });
 
   it('デフォルトでsigmoidが選択状態', () => {
@@ -85,5 +86,16 @@ describe('ActivationFunctionExplorer', () => {
   it('数式カードにE資格ポイントを表示する', () => {
     render(<ActivationFunctionExplorer />);
     expect(screen.getByTestId('key-point')).toBeInTheDocument();
+  });
+
+  it('Leaky ReLU切替でaria-pressedが切り替わる', () => {
+    render(<ActivationFunctionExplorer />);
+    const leakyBtn = screen.getByRole('button', { name: 'Leaky ReLU' });
+    fireEvent.click(leakyBtn);
+    expect(leakyBtn).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Sigmoid' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
   });
 });

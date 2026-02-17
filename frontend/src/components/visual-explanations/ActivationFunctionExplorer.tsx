@@ -27,6 +27,7 @@ const Y_RANGES: Record<ActivationId, { min: number; max: number }> = {
   sigmoid: { min: -0.2, max: 1.2 },
   tanh: { min: -1.5, max: 1.5 },
   relu: { min: -1, max: 7 },
+  leakyRelu: { min: -1, max: 7 },
 };
 
 const Z_MIN = -6;
@@ -50,6 +51,12 @@ function getGradientStatus(derivativeValue: number, activeId: ActivationId): {
   label: string;
   color: string;
 } {
+  // Leaky ReLU: 1 or α
+  if (activeId === 'leakyRelu') {
+    return derivativeValue > 0.01
+      ? { label: '健全（勾配=1）', color: 'text-green-600 dark:text-green-400' }
+      : { label: '微弱（勾配=α）', color: 'text-yellow-600 dark:text-yellow-400' };
+  }
   // ReLUは特殊: 0 or 1
   if (activeId === 'relu') {
     return derivativeValue > 0
@@ -166,7 +173,7 @@ export function ActivationFunctionExplorer() {
         </defs>
 
         {/* 勾配ゾーン背景（sigmoid/tanhのみ） */}
-        {activeId !== 'relu' &&
+        {activeId !== 'relu' && activeId !== 'leakyRelu' &&
           vanishZones.map((zone, i) => (
             <rect
               key={i}
