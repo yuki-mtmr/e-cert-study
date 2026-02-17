@@ -1,17 +1,36 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+
+// KaTeXをモック
+vi.mock('katex', () => ({
+  default: {
+    renderToString: (formula: string) =>
+      `<span class="katex">${formula}</span>`,
+  },
+}));
+
 import { RegressionFormulaCard } from '../visual-explanations/RegressionFormulaCard';
 import { getRegressionMetrics } from '@/lib/visual-explanations/regression-metrics';
 
 const metrics = getRegressionMetrics();
 
 describe('RegressionFormulaCard', () => {
-  it('数式テキストを常に表示する', () => {
+  it('KaTeX出力（.katex要素）を描画する', () => {
     const metric = metrics[0]; // MAE
-    render(
+    const { container } = render(
       <RegressionFormulaCard metric={metric} isRevealed={false} onToggle={vi.fn()} />,
     );
-    expect(screen.getByText(/\|y/)).toBeInTheDocument();
+    const katexEl = container.querySelector('.katex');
+    expect(katexEl).toBeInTheDocument();
+  });
+
+  it('KaTeX出力にLaTeX文字列が含まれる', () => {
+    const metric = metrics[0]; // MAE
+    const { container } = render(
+      <RegressionFormulaCard metric={metric} isRevealed={false} onToggle={vi.fn()} />,
+    );
+    const katexEl = container.querySelector('.katex');
+    expect(katexEl?.textContent).toContain('\\frac');
   });
 
   it('非公開時は指標名を表示しない', () => {
@@ -45,19 +64,22 @@ describe('RegressionFormulaCard', () => {
 
   it('4つの指標すべてでレンダリングできる', () => {
     for (const metric of metrics) {
-      const { unmount } = render(
+      const { unmount, container } = render(
         <RegressionFormulaCard metric={metric} isRevealed={true} onToggle={vi.fn()} />,
       );
       expect(screen.getByText(metric.name)).toBeInTheDocument();
+      expect(container.querySelector('.katex')).toBeInTheDocument();
       unmount();
     }
   });
 
-  it('R²カードでspecialForm表示ができる', () => {
+  it('R²カードでもKaTeX出力が描画される', () => {
     const r2 = metrics.find((m) => m.id === 'r-squared')!;
-    render(
+    const { container } = render(
       <RegressionFormulaCard metric={r2} isRevealed={false} onToggle={vi.fn()} />,
     );
-    expect(screen.getByText(/SS_res/)).toBeInTheDocument();
+    const katexEl = container.querySelector('.katex');
+    expect(katexEl).toBeInTheDocument();
+    expect(katexEl?.textContent).toContain('SS_{res}');
   });
 });

@@ -1,12 +1,17 @@
 'use client';
 
 import { useState } from 'react';
+import katex from 'katex';
 
 type StepId = 'start' | 'check-bias' | 'result-noise' | 'result-bias' | 'result-variance';
 
 interface FlowStep {
   id: StepId;
   question?: string;
+  /** 質問内の数式部分（KaTeX inline描画） */
+  latexPart?: string;
+  /** latexPartの後に続くテキスト */
+  textAfterLatex?: string;
   yesTarget?: StepId;
   noTarget?: StepId;
   result?: string;
@@ -17,12 +22,16 @@ const STEPS: FlowStep[] = [
   {
     id: 'start',
     question: '∬（二重積分）がある？',
+    latexPart: '\\iint',
+    textAfterLatex: '（二重積分）がある？',
     yesTarget: 'result-noise',
     noTarget: 'check-bias',
   },
   {
     id: 'check-bias',
     question: 'E_D[y] − h(x) がある？',
+    latexPart: 'E_D[y] - h(x)',
+    textAfterLatex: ' がある？',
     yesTarget: 'result-bias',
     noTarget: 'result-variance',
   },
@@ -67,7 +76,21 @@ export function IdentificationFlowchart() {
         ) : (
           <div className="space-y-3">
             <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-              {step.question}
+              {step.latexPart ? (
+                <>
+                  <span
+                    dangerouslySetInnerHTML={{
+                      __html: katex.renderToString(step.latexPart, {
+                        throwOnError: false,
+                        displayMode: false,
+                      }),
+                    }}
+                  />
+                  {step.textAfterLatex}
+                </>
+              ) : (
+                step.question
+              )}
             </div>
             <div className="flex gap-3 justify-center">
               <button

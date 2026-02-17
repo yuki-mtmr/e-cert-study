@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import katex from 'katex';
 import {
   getMetricNodes,
   getMetricEdges,
@@ -139,8 +140,19 @@ export function MetricRelationshipMap() {
             <span className="text-xs text-gray-500">({selectedNode.enLabel})</span>
           </div>
           {selectedNode.formula && (
-            <div className="font-mono text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900/50 px-2 py-1 rounded">
-              {selectedNode.formula}
+            <div className="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900/50 px-2 py-1 rounded overflow-x-auto">
+              {selectedNode.latexFormula ? (
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: katex.renderToString(selectedNode.latexFormula, {
+                      throwOnError: false,
+                      displayMode: false,
+                    }),
+                  }}
+                />
+              ) : (
+                <span className="font-mono">{selectedNode.formula}</span>
+              )}
             </div>
           )}
           <div className="text-sm text-gray-600 dark:text-gray-400">

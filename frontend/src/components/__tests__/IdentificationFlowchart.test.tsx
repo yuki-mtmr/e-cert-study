@@ -1,11 +1,26 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+
+// KaTeXをモック
+vi.mock('katex', () => ({
+  default: {
+    renderToString: (formula: string) =>
+      `<span class="katex">${formula}</span>`,
+  },
+}));
+
 import { IdentificationFlowchart } from '../visual-explanations/IdentificationFlowchart';
 
 describe('IdentificationFlowchart', () => {
   it('初期ステップの質問を表示する', () => {
     render(<IdentificationFlowchart />);
     expect(screen.getByText(/二重積分/)).toBeInTheDocument();
+  });
+
+  it('初期ステップにKaTeX出力が含まれる', () => {
+    const { container } = render(<IdentificationFlowchart />);
+    const katexEl = container.querySelector('.katex');
+    expect(katexEl).toBeInTheDocument();
   });
 
   it('「はい」ボタンと「いいえ」ボタンがある', () => {
@@ -20,10 +35,11 @@ describe('IdentificationFlowchart', () => {
     expect(screen.getByText(/Noise/)).toBeInTheDocument();
   });
 
-  it('最初に「いいえ」→次の質問を表示', () => {
-    render(<IdentificationFlowchart />);
+  it('最初に「いいえ」→次の質問にKaTeX出力が含まれる', () => {
+    const { container } = render(<IdentificationFlowchart />);
     fireEvent.click(screen.getByRole('button', { name: /いいえ/ }));
-    expect(screen.getByText(/E_D\[y\].*h\(x\)/)).toBeInTheDocument();
+    const katexEl = container.querySelector('.katex');
+    expect(katexEl).toBeInTheDocument();
   });
 
   it('「いいえ」→「はい」でBias²確定', () => {

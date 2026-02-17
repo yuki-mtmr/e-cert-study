@@ -56,6 +56,24 @@ describe('getRegressionMetrics', () => {
     const r2 = getRegressionMetrics().find((m) => m.id === 'r-squared');
     expect(r2?.formula.specialForm).toBe('r-squared');
   });
+
+  it('各指標のformulaにlatexフィールドが存在する', () => {
+    const metrics = getRegressionMetrics();
+    for (const m of metrics) {
+      expect(m.formula.latex).toBeTruthy();
+    }
+  });
+
+  it('MAEのlatexに\\frac と |y_i が含まれる', () => {
+    const mae = getRegressionMetrics().find((m) => m.id === 'mae');
+    expect(mae?.formula.latex).toContain('\\frac');
+    expect(mae?.formula.latex).toContain('|y_i');
+  });
+
+  it('R²のlatexにSS_{res}が含まれる', () => {
+    const r2 = getRegressionMetrics().find((m) => m.id === 'r-squared');
+    expect(r2?.formula.latex).toContain('SS_{res}');
+  });
 });
 
 describe('getDefaultDataPoints', () => {

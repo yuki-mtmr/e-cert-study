@@ -3,6 +3,7 @@ export type RegressionMetricId = 'mae' | 'mse' | 'rmse' | 'r-squared';
 export interface RegressionFormula {
   prefix: string;
   summationBody: string;
+  latex: string;
   hasSquareRoot?: boolean;
   specialForm?: 'r-squared';
 }
@@ -62,6 +63,7 @@ export function getRegressionMetrics(): RegressionMetricDef[] {
       formula: {
         prefix: '(1/N)',
         summationBody: '|y\u1D62 \u2212 \u0177\u1D62|',
+        latex: '\\frac{1}{N}\\sum_{i=1}^{N}|y_i - \\hat{y}_i|',
       },
       description: '予測値と実測値の差の絶対値の平均。外れ値の影響が線形的。',
       tip: '絶対値で囲む \u2192 外れ値に強い',
@@ -73,6 +75,7 @@ export function getRegressionMetrics(): RegressionMetricDef[] {
       formula: {
         prefix: '(1/N)',
         summationBody: '(y\u1D62 \u2212 \u0177\u1D62)\u00B2',
+        latex: '\\frac{1}{N}\\sum_{i=1}^{N}(y_i - \\hat{y}_i)^2',
       },
       description: '予測値と実測値の差の二乗の平均。大きな誤差を強く罰する。',
       tip: '二乗 \u2192 大きな誤差を強調',
@@ -84,6 +87,7 @@ export function getRegressionMetrics(): RegressionMetricDef[] {
       formula: {
         prefix: '\u221A{(1/N)',
         summationBody: '(y\u1D62 \u2212 \u0177\u1D62)\u00B2}',
+        latex: '\\sqrt{\\frac{1}{N}\\sum_{i=1}^{N}(y_i - \\hat{y}_i)^2}',
         hasSquareRoot: true,
       },
       description: 'MSEの平方根。元データと同じ単位で誤差を表現できる。',
@@ -96,6 +100,7 @@ export function getRegressionMetrics(): RegressionMetricDef[] {
       formula: {
         prefix: '1 \u2212',
         summationBody: 'SS_res / SS_tot',
+        latex: 'R^2 = 1 - \\frac{SS_{res}}{SS_{tot}}',
         specialForm: 'r-squared',
       },
       description: 'モデルが全変動のうちどれだけ説明できたかの割合。1に近いほど良い。',

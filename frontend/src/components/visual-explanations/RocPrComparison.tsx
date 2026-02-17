@@ -42,12 +42,25 @@ export function RocPrComparison() {
     () => rocCurve.map((p) => `${toSvgX(p.fpr)},${toSvgY(p.tpr)}`).join(' '),
     [rocCurve],
   );
-  const prPoints = useMemo(() => {
-    const sorted = [...prCurve].sort((a, b) => a.recall - b.recall);
-    return sorted
+  const prSorted = useMemo(
+    () => [...prCurve].sort((a, b) => a.recall - b.recall),
+    [prCurve],
+  );
+  const prPoints = useMemo(
+    () => prSorted.map((p) => `${toSvgX(p.recall)},${toSvgY(p.precision)}`).join(' '),
+    [prSorted],
+  );
+
+  // AP領域の塗りつぶし用ポリゴンポイント
+  const prFillPoints = useMemo(() => {
+    if (prSorted.length === 0) return '';
+    const curveStr = prSorted
       .map((p) => `${toSvgX(p.recall)},${toSvgY(p.precision)}`)
       .join(' ');
-  }, [prCurve]);
+    const lastRecall = prSorted[prSorted.length - 1].recall;
+    const firstRecall = prSorted[0].recall;
+    return `${curveStr} ${toSvgX(lastRecall)},${toSvgY(0)} ${toSvgX(firstRecall)},${toSvgY(0)}`;
+  }, [prSorted]);
 
   return (
     <section className="space-y-4">
@@ -130,10 +143,29 @@ export function RocPrComparison() {
               x2={PADDING.left} y2={PADDING.top + PLOT_H}
               stroke="currentColor" strokeOpacity={0.3}
             />
+            {/* AP領域の塗りつぶし */}
+            <polygon
+              data-testid="pr-fill"
+              points={prFillPoints}
+              fill="#10B981"
+              fillOpacity={0.15}
+              stroke="none"
+            />
             <polyline
               points={prPoints}
               fill="none" stroke="#10B981" strokeWidth={2}
             />
+            {/* APラベル */}
+            <text
+              data-testid="pr-ap-label"
+              x={PADDING.left + PLOT_W * 0.5}
+              y={PADDING.top + PLOT_H * 0.6}
+              textAnchor="middle"
+              className="text-[10px] fill-emerald-600"
+              fontWeight="bold"
+            >
+              AP = {ap.toFixed(2)}
+            </text>
             <text
               x={PADDING.left + PLOT_W / 2}
               y={HEIGHT - 4}

@@ -1,5 +1,6 @@
 'use client';
 
+import katex from 'katex';
 import type { RegressionMetricDef } from '@/lib/visual-explanations/regression-metrics';
 
 interface RegressionFormulaCardProps {
@@ -14,6 +15,11 @@ export function RegressionFormulaCard({
   isRevealed,
   onToggle,
 }: RegressionFormulaCardProps) {
+  const formulaHtml = katex.renderToString(metric.formula.latex, {
+    throwOnError: false,
+    displayMode: true,
+  });
+
   return (
     <button
       type="button"
@@ -25,17 +31,10 @@ export function RegressionFormulaCard({
       }`}
     >
       {/* 数式（常に表示） */}
-      <div className="text-lg font-mono text-center mb-2">
-        {metric.formula.specialForm === 'r-squared' ? (
-          <span>
-            {metric.formula.prefix} {metric.formula.summationBody}
-          </span>
-        ) : (
-          <span>
-            {metric.formula.prefix} {'\u03A3'} {metric.formula.summationBody}
-          </span>
-        )}
-      </div>
+      <div
+        className="text-lg text-center mb-2 overflow-x-auto"
+        dangerouslySetInnerHTML={{ __html: formulaHtml }}
+      />
 
       {isRevealed ? (
         <div className="space-y-1 mt-3 border-t border-blue-200 dark:border-blue-700 pt-3">

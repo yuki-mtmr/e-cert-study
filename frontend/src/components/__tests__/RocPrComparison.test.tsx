@@ -46,4 +46,20 @@ describe('RocPrComparison', () => {
     render(<RocPrComparison />);
     expect(screen.getByText('PR曲線')).toBeInTheDocument();
   });
+
+  it('PR曲線SVGにAP領域の塗りつぶしpolygonが存在する', () => {
+    const { container } = render(<RocPrComparison />);
+    const prSvg = screen.getByRole('img', { name: 'PR曲線比較' });
+    const polygon = prSvg.querySelector('polygon[data-testid="pr-fill"]');
+    expect(polygon).toBeInTheDocument();
+    expect(polygon?.getAttribute('fill')).toBe('#10B981');
+  });
+
+  it('PR曲線SVG内にAPラベルが表示される', () => {
+    const { container } = render(<RocPrComparison />);
+    const prSvg = screen.getByRole('img', { name: 'PR曲線比較' });
+    const apLabel = prSvg.querySelector('[data-testid="pr-ap-label"]');
+    expect(apLabel).toBeInTheDocument();
+    expect(apLabel?.textContent).toMatch(/AP\s*=\s*\d/);
+  });
 });
