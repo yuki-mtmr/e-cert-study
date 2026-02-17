@@ -1,29 +1,27 @@
 """模試AI分析サービス
 
-Claude CLIを使用して模試結果の詳細分析を生成する
+Anthropic APIを使用して模試結果の詳細分析を生成する
 """
-import asyncio
 import logging
 from typing import Any, Optional
 
+from anthropic import AsyncAnthropic
+
+from app.core.config import settings
+
 logger = logging.getLogger(__name__)
 
+client = AsyncAnthropic(api_key=settings.anthropic_api_key)
 
-async def call_claude_cli(prompt: str) -> str:
-    """Claude Code CLIをsubprocessで呼び出してレスポンスを取得"""
-    process = await asyncio.create_subprocess_exec(
-        "claude", "-p", prompt,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
+
+async def call_anthropic_api(prompt: str) -> str:
+    """Anthropic APIを呼び出してレスポンスを取得"""
+    response = await client.messages.create(
+        model="claude-sonnet-4-5-20250929",
+        max_tokens=2048,
+        messages=[{"role": "user", "content": prompt}],
     )
-    stdout, stderr = await process.communicate()
-    stdout_text = stdout.decode()
-    stderr_text = stderr.decode()
-
-    if process.returncode != 0:
-        raise Exception(f"Claude CLI failed: {stderr_text}")
-
-    return stdout_text.strip()
+    return response.content[0].text
 
 
 async def generate_ai_analysis(
@@ -32,8 +30,9 @@ async def generate_ai_analysis(
     total: int,
     passed: bool,
     category_scores: dict[str, dict[str, Any]],
+    topic_scores: Optional[dict[str, dict[str, Any]]] = None,
 ) -> Optional[str]:
-    """Claude CLIを使用してAI分析を生成
+    """Anthropic APIを使用してAI分析を生成
 
     Args:
         score: 正答率
@@ -56,6 +55,15 @@ async def generate_ai_analysis(
 
     pass_status = "合格" if passed else "不合格"
 
+    # トピック別スコアのテキスト化
+    topic_text = ""
+    if topic_scores:
+        for topic, detail in topic_scores.items():
+            topic_text += (
+                f"- {topic}: {detail.get('accuracy', 0)}% "
+                f"({detail.get('correct', 0)}/{detail.get('total', 0)})\n"
+            )
+
     prompt = f"""あなたはE資格試験の厳格な採点官です。以下の模擬試験結果について、辛口かつ建設的なフィードバックをMarkdown形式で提供してください。
 
 ## 試験結果
@@ -64,8 +72,13 @@ async def generate_ai_analysis(
 
 ## カテゴリ別成績
 {category_text}
+"""
+    if topic_text:
+        prompt += f"""## トピック別成績
+{topic_text}
+"""
 
-以下の観点で分析してください:
+    prompt += """以下の観点で分析してください:
 1. **総合評価**: 率直な実力判定（甘い言葉は不要）
 2. **弱点分析**: 特にスコアの低い分野の具体的な問題点
 3. **学習優先度**: どの分野をどの順番で強化すべきか
@@ -75,7 +88,7 @@ async def generate_ai_analysis(
 厳しく、しかし的確に。受験者の成長のために遠慮は不要です。"""
 
     try:
-        return await call_claude_cli(prompt)
+        return await call_anthropic_api(prompt)
     except Exception as e:
         logger.error(f"AI分析の生成に失敗: {e}")
         return None

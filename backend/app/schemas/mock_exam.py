@@ -17,6 +17,7 @@ class MockExamQuestionResponse(BaseModel):
     choices: list[str]
     content_type: str
     exam_area: str
+    topic: Optional[str] = None
     images: list[dict] = []
 
 

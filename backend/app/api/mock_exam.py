@@ -77,6 +77,7 @@ async def start_mock_exam(
             question_index=i,
             category_name=item["category_name"],
             exam_area=item["exam_area"],
+            topic=q.topic,
         )
         db.add(answer)
 
@@ -101,6 +102,7 @@ async def start_mock_exam(
                 choices=q.choices,
                 content_type=q.content_type or "plain",
                 exam_area=item["exam_area"],
+                topic=q.topic,
                 images=images,
             )
         )
@@ -188,6 +190,7 @@ async def finish_mock_exam(
         answers_data.append({
             "is_correct": a.is_correct,
             "exam_area": a.exam_area,
+            "topic": a.topic,
         })
 
     # スコア計算
@@ -354,6 +357,30 @@ async def request_ai_analysis(
     if exam.status != "finished":
         raise HTTPException(status_code=400, detail="模試が終了していません")
 
+    # トピック別集計を構築
+    answers_result = await db.execute(
+        select(MockExamAnswer).where(MockExamAnswer.mock_exam_id == exam_id)
+    )
+    exam_answers = list(answers_result.scalars().all())
+    topic_stats: dict[str, dict[str, int]] = {}
+    for a in exam_answers:
+        if not a.topic:
+            continue
+        if a.topic not in topic_stats:
+            topic_stats[a.topic] = {"total": 0, "correct": 0}
+        topic_stats[a.topic]["total"] += 1
+        if a.is_correct is True:
+            topic_stats[a.topic]["correct"] += 1
+
+    topic_scores: dict[str, dict[str, Any]] = {}
+    for topic, stats in topic_stats.items():
+        accuracy = (stats["correct"] / stats["total"]) * 100.0 if stats["total"] > 0 else 0.0
+        topic_scores[topic] = {
+            "total": stats["total"],
+            "correct": stats["correct"],
+            "accuracy": round(accuracy, 1),
+        }
+
     # AI分析を生成
     ai_analysis = await generate_ai_analysis(
         score=exam.score,
@@ -361,13 +388,19 @@ async def request_ai_analysis(
         total=exam.total_questions,
         passed=exam.passed or False,
         category_scores=exam.category_scores or {},
+        topic_scores=topic_scores if topic_scores else None,
     )
 
-    if ai_analysis:
-        exam.ai_analysis = ai_analysis
-        await db.commit()
+    if not ai_analysis:
+        raise HTTPException(
+            status_code=503,
+            detail="AI分析の生成に失敗しました。後でもう一度お試しください。",
+        )
+
+    exam.ai_analysis = ai_analysis
+    await db.commit()
 
     return AIAnalysisResponse(
         exam_id=exam.id,
-        ai_analysis=ai_analysis or "AI分析の生成に失敗しました。後でもう一度お試しください。",
+        ai_analysis=ai_analysis,
     )

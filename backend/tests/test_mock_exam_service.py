@@ -115,6 +115,57 @@ class TestCalculateScores:
         assert result["score"] == 0.0
         assert result["passed"] is False
 
+    def test_topic_scores_basic(self) -> None:
+        """topic付きanswersでtopic_scoresが正しく集計されること"""
+        answers = [
+            {"is_correct": True, "exam_area": "応用数学", "topic": "ベイズ則"},
+            {"is_correct": False, "exam_area": "応用数学", "topic": "ベイズ則"},
+            {"is_correct": True, "exam_area": "応用数学", "topic": "線形代数"},
+            {"is_correct": True, "exam_area": "機械学習", "topic": "SVM"},
+        ]
+        result = calculate_scores(answers)
+        topic_scores = result["topic_scores"]
+
+        assert "ベイズ則" in topic_scores
+        assert topic_scores["ベイズ則"]["total"] == 2
+        assert topic_scores["ベイズ則"]["correct"] == 1
+        assert topic_scores["ベイズ則"]["accuracy"] == 50.0
+
+        assert "線形代数" in topic_scores
+        assert topic_scores["線形代数"]["total"] == 1
+        assert topic_scores["線形代数"]["correct"] == 1
+        assert topic_scores["線形代数"]["accuracy"] == 100.0
+
+        assert "SVM" in topic_scores
+        assert topic_scores["SVM"]["total"] == 1
+        assert topic_scores["SVM"]["correct"] == 1
+
+    def test_topic_scores_none_topic_excluded(self) -> None:
+        """topicがNoneの回答はtopic_scoresに含まれないこと"""
+        answers = [
+            {"is_correct": True, "exam_area": "応用数学", "topic": "ベイズ則"},
+            {"is_correct": True, "exam_area": "応用数学", "topic": None},
+            {"is_correct": True, "exam_area": "応用数学"},
+        ]
+        result = calculate_scores(answers)
+        topic_scores = result["topic_scores"]
+
+        assert "ベイズ則" in topic_scores
+        assert len(topic_scores) == 1
+
+    def test_topic_scores_empty_when_no_topics(self) -> None:
+        """topic未設定の場合、topic_scoresは空辞書"""
+        answers = [
+            {"is_correct": True, "exam_area": "応用数学"},
+        ]
+        result = calculate_scores(answers)
+        assert result["topic_scores"] == {}
+
+    def test_topic_scores_empty_answers(self) -> None:
+        """空の回答リストの場合、topic_scoresは空辞書"""
+        result = calculate_scores([])
+        assert result["topic_scores"] == {}
+
 
 class TestGenerateRuleBasedAnalysis:
     """ルールベース辛口分析テスト"""
@@ -186,6 +237,7 @@ def _make_mock_question(q_id: uuid.UUID, category_id: uuid.UUID) -> MagicMock:
     q.category_id = category_id
     q.images = []
     q.framework = None
+    q.topic = None
     return q
 
 

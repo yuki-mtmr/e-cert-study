@@ -50,6 +50,7 @@ class QuestionResponse(BaseModel):
     difficulty: int
     source: str
     content_type: str = "plain"
+    topic: Optional[str] = None
     images: list[QuestionImageResponse] = []
 
     model_config = {"from_attributes": True}

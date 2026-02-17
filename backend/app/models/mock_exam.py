@@ -68,6 +68,7 @@ class MockExamAnswer(Base):
     answered_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     category_name: Mapped[str] = mapped_column(String(255), nullable=False)
     exam_area: Mapped[str] = mapped_column(String(255), nullable=False)
+    topic: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
     # リレーションシップ
     mock_exam: Mapped["MockExam"] = relationship(

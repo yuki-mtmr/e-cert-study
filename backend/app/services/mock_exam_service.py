@@ -108,6 +108,7 @@ def calculate_scores(answers: list[dict[str, Any]]) -> dict[str, Any]:
             "score": 0.0,
             "passed": False,
             "category_scores": {},
+            "topic_scores": {},
         }
 
     total = len(answers)
@@ -135,11 +136,33 @@ def calculate_scores(answers: list[dict[str, Any]]) -> dict[str, Any]:
             "grade": get_grade(accuracy),
         }
 
+    # トピック別スコア集計
+    topic_stats: dict[str, dict[str, int]] = {}
+    for a in answers:
+        topic = a.get("topic")
+        if not topic:
+            continue
+        if topic not in topic_stats:
+            topic_stats[topic] = {"total": 0, "correct": 0}
+        topic_stats[topic]["total"] += 1
+        if a.get("is_correct") is True:
+            topic_stats[topic]["correct"] += 1
+
+    topic_scores: dict[str, dict[str, Any]] = {}
+    for topic, stats in topic_stats.items():
+        accuracy = (stats["correct"] / stats["total"]) * 100.0 if stats["total"] > 0 else 0.0
+        topic_scores[topic] = {
+            "total": stats["total"],
+            "correct": stats["correct"],
+            "accuracy": round(accuracy, 1),
+        }
+
     return {
         "correct_count": correct_count,
         "score": round(score, 1),
         "passed": passed,
         "category_scores": category_scores,
+        "topic_scores": topic_scores,
     }
 
 

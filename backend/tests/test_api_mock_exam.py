@@ -34,6 +34,7 @@ class MockQuestion:
         self.source = "test"
         self.content_type = "plain"
         self.images = []
+        self.topic = None
 
 
 class MockDBSession:
@@ -359,6 +360,53 @@ async def test_ai_analysis_endpoint() -> None:
         assert response.status_code == 200
         data = response.json()
         assert data["ai_analysis"] == "AI分析結果テスト"
+    finally:
+        app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_ai_analysis_failure_returns_503() -> None:
+    """AI分析生成失敗時に503が返ること"""
+    mock_db = MockDBSession()
+    exam_id = uuid.uuid4()
+
+    mock_exam = _make_mock_exam(
+        exam_id=exam_id,
+        status="finished",
+        score=72.0,
+        correct_count=72,
+        passed=True,
+        category_scores={
+            "応用数学": {"total": 10, "correct": 7, "accuracy": 70.0, "grade": "B"},
+        },
+    )
+
+    exam_result = MagicMock()
+    exam_result.scalar_one_or_none.return_value = mock_exam
+
+    mock_db.set_execute_results([exam_result])
+
+    async def override_get_db() -> AsyncGenerator[MockDBSession, None]:
+        yield mock_db
+
+    app.dependency_overrides[get_db] = override_get_db
+    try:
+        with patch(
+            "app.api.mock_exam.generate_ai_analysis",
+            new_callable=AsyncMock,
+            return_value=None,
+        ):
+            async with AsyncClient(
+                transport=ASGITransport(app=app),
+                base_url="http://test",
+            ) as client:
+                response = await client.post(
+                    f"/api/mock-exam/{exam_id}/ai-analysis",
+                    json={"user_id": "test-user"},
+                )
+        assert response.status_code == 503
+        data = response.json()
+        assert "AI分析の生成に失敗しました" in data["detail"]
     finally:
         app.dependency_overrides.clear()
 

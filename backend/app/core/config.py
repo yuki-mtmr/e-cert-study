@@ -48,6 +48,7 @@ class Settings(BaseSettings):
 
     # API Keys
     google_api_key: str = ""
+    anthropic_api_key: str = ""
 
     # アプリ設定
     debug: bool = False

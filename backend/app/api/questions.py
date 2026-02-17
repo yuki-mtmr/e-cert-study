@@ -784,6 +784,7 @@ async def import_questions_from_pdf(
                         content_type=q.get("content_type", "plain"),
                         content_hash=content_hash,
                         framework=framework,
+                        topic=q.get("topic"),
                     )
                     db.add(question)
 

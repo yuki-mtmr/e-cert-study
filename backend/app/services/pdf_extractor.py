@@ -39,7 +39,8 @@ EXTRACTION_PROMPT = """
         "difficulty": 3,
         "content_type": "plain",
         "image_refs": [],
-        "category": "カテゴリ名"
+        "category": "カテゴリ名",
+        "topic": "具体的トピック名"
     }}
 ]
 
@@ -59,6 +60,8 @@ EXTRACTION_PROMPT = """
   - 関連画像がない場合は空配列
 - category: この問題が属するE資格カテゴリ名（以下から1つ選択: 線形代数, 確率・統計, 情報理論, 教師あり学習, 教師なし学習, 評価指標, 順伝播型ニューラルネットワーク, CNN, RNN, Transformer, 生成モデル, 強化学習, ミドルウェア, フレームワーク, 計算リソース, データ収集・加工, MLOps）
   - PDFの目次・章構造を参考にしてカテゴリを判断してください
+- topic: この問題の具体的なトピック名（例: ベイズ則, バッチ正規化, Adam, 固有値分解, LSTM, Attention, GAN, Docker等）
+  - categoryより具体的で、問題の核心となるテーマを簡潔に記述してください
 
 【解説の記述ガイドライン】
 
