@@ -1,11 +1,15 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { GlossaryTerm, TermExamPoints } from '@/types/glossary';
 import { getRelationsForSubsection } from '@/data/glossary/term-relations';
 import { getExamPoints } from '@/data/glossary/exam-points';
 import { computeLayout } from '@/lib/concept-map-layout';
 import { SubsectionMap } from './SubsectionMap';
+import { getVisualizations } from '@/lib/visual-explanations/registry';
+import { SubsectionTabs } from '@/components/visual-explanations/SubsectionTabs';
+import type { TabType } from '@/components/visual-explanations/SubsectionTabs';
+import { VisualizationContainer } from '@/components/visual-explanations/VisualizationContainer';
 
 interface SubsectionMapViewProps {
   subsectionId: string;
@@ -28,6 +32,12 @@ export function SubsectionMapView({
   terms,
   onBack,
 }: SubsectionMapViewProps) {
+  const [activeTab, setActiveTab] = useState<TabType>('map');
+  const visualizations = useMemo(() => getVisualizations(subsectionId), [subsectionId]);
+
+  // サブセクション変更時にタブをリセット
+  useEffect(() => { setActiveTab('map'); }, [subsectionId]);
+
   const layout = useMemo(() => {
     const relData = getRelationsForSubsection(subsectionId);
     const termIds = terms.map((t) => t.id);
@@ -40,6 +50,8 @@ export function SubsectionMapView({
       .filter((ep): ep is TermExamPoints => ep !== undefined),
     [terms],
   );
+
+  const showMap = activeTab === 'map' || visualizations.length === 0;
 
   return (
     <div className="space-y-3">
@@ -57,25 +69,36 @@ export function SubsectionMapView({
         </h3>
       </div>
 
-      {/* 凡例 */}
-      <div className="flex flex-wrap gap-4 text-xs">
-        {LEGEND_ITEMS.map((item) => (
-          <div key={item.type} className="flex items-center gap-1.5">
-            <div
-              className="w-4 h-0.5"
-              style={{ backgroundColor: item.color }}
-            />
-            <span className="text-gray-600 dark:text-gray-400">
-              {item.label}
-            </span>
-          </div>
-        ))}
-      </div>
+      {/* タブ（ビジュアル解説がある場合のみ） */}
+      {visualizations.length > 0 && (
+        <SubsectionTabs activeTab={activeTab} onTabChange={setActiveTab} />
+      )}
 
-      {/* マップ */}
-      <div className="overflow-x-auto">
-        <SubsectionMap layout={layout} terms={terms} examPoints={examPoints} />
-      </div>
+      {showMap ? (
+        <>
+          {/* 凡例 */}
+          <div className="flex flex-wrap gap-4 text-xs">
+            {LEGEND_ITEMS.map((item) => (
+              <div key={item.type} className="flex items-center gap-1.5">
+                <div
+                  className="w-4 h-0.5"
+                  style={{ backgroundColor: item.color }}
+                />
+                <span className="text-gray-600 dark:text-gray-400">
+                  {item.label}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* マップ */}
+          <div className="overflow-x-auto">
+            <SubsectionMap layout={layout} terms={terms} examPoints={examPoints} />
+          </div>
+        </>
+      ) : (
+        <VisualizationContainer visualizations={visualizations} />
+      )}
     </div>
   );
 }

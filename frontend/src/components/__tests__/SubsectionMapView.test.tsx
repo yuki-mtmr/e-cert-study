@@ -86,4 +86,45 @@ describe('SubsectionMapView', () => {
     expect(screen.getByText('構成要素')).toBeInTheDocument();
     expect(screen.getByText('適用')).toBeInTheDocument();
   });
+
+  // --- タブ統合テスト ---
+
+  it('ビジュアル解説がないサブセクションではタブが表示されない', () => {
+    render(<SubsectionMapView {...defaultProps} subsectionId="math-prob" />);
+    expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
+  });
+
+  it('ビジュアル解説があるサブセクション(ml-issues)でタブが表示される', () => {
+    render(<SubsectionMapView {...defaultProps} subsectionId="ml-issues" />);
+    expect(screen.getByRole('tablist')).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: '用語マップ' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'ビジュアル解説' })).toBeInTheDocument();
+  });
+
+  it('デフォルトでは用語マップタブがアクティブ', () => {
+    render(<SubsectionMapView {...defaultProps} subsectionId="ml-issues" />);
+    expect(screen.getByRole('tab', { name: '用語マップ' })).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('ビジュアル解説タブに切り替えるとビジュアルが表示される', async () => {
+    const user = userEvent.setup();
+    render(<SubsectionMapView {...defaultProps} subsectionId="ml-issues" />);
+
+    await user.click(screen.getByRole('tab', { name: 'ビジュアル解説' }));
+    expect(screen.getByText('訓練誤差と汎化誤差の関係')).toBeInTheDocument();
+  });
+
+  it('ビジュアル解説タブから用語マップに戻れる', async () => {
+    const user = userEvent.setup();
+    const { container } = render(<SubsectionMapView {...defaultProps} subsectionId="ml-issues" />);
+
+    // ビジュアルタブへ
+    await user.click(screen.getByRole('tab', { name: 'ビジュアル解説' }));
+    expect(screen.getByText('訓練誤差と汎化誤差の関係')).toBeInTheDocument();
+
+    // 用語マップへ戻る
+    await user.click(screen.getByRole('tab', { name: '用語マップ' }));
+    expect(container.querySelector('svg')).toBeInTheDocument();
+    expect(screen.getByText('前提知識')).toBeInTheDocument();
+  });
 });
