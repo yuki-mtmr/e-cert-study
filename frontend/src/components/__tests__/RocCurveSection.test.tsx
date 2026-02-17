@@ -39,4 +39,14 @@ describe('RocCurveSection', () => {
     fireEvent.change(sliders[0], { target: { value: '1.5' } });
     expect(sliders[0]).toBeInTheDocument();
   });
+
+  it('分布図にタイトルを表示する', () => {
+    render(<RocCurveSection />);
+    expect(screen.getByText('陰性・陽性の分布とd\'')).toBeInTheDocument();
+  });
+
+  it('d\'の解説ボックスを表示する', () => {
+    render(<RocCurveSection />);
+    expect(screen.getByText(/ディープライム/)).toBeInTheDocument();
+  });
 });

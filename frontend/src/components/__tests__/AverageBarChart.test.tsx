@@ -23,4 +23,11 @@ describe('AverageBarChart', () => {
     expect(screen.getByText('マクロ')).toBeInTheDocument();
     expect(screen.getByText('マイクロ')).toBeInTheDocument();
   });
+
+  it('各バーの右端に数値ラベルを表示する', () => {
+    const { container } = render(<AverageBarChart macro={macro} micro={micro} />);
+    const valueLabels = container.querySelectorAll('[data-testid^="value-"]');
+    // 3指標 × 2平均 = 6つの数値ラベル
+    expect(valueLabels).toHaveLength(6);
+  });
 });

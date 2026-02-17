@@ -36,4 +36,14 @@ describe('RocPrComparison', () => {
     expect(screen.getAllByText(/AUC/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText(/AP/).length).toBeGreaterThanOrEqual(1);
   });
+
+  it('ROC曲線側にタイトルヘッダを表示する', () => {
+    render(<RocPrComparison />);
+    expect(screen.getByText('ROC曲線')).toBeInTheDocument();
+  });
+
+  it('PR曲線側にタイトルヘッダを表示する', () => {
+    render(<RocPrComparison />);
+    expect(screen.getByText('PR曲線')).toBeInTheDocument();
+  });
 });

@@ -58,6 +58,9 @@ export function RocPrComparison() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* ROC曲線 */}
         <div>
+          <div className="text-sm font-bold text-center text-gray-700 dark:text-gray-300 mb-1">
+            ROC曲線
+          </div>
           <svg
             viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
             className="w-full"
@@ -108,6 +111,9 @@ export function RocPrComparison() {
 
         {/* PR曲線 */}
         <div>
+          <div className="text-sm font-bold text-center text-gray-700 dark:text-gray-300 mb-1">
+            PR曲線
+          </div>
           <svg
             viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
             className="w-full"

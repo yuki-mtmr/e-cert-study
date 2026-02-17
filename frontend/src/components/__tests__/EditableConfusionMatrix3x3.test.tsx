@@ -45,13 +45,45 @@ describe('EditableConfusionMatrix3x3', () => {
     expect(onChange).toHaveBeenCalled();
   });
 
-  it('クラスラベルを表示する', () => {
+  it('クラスラベルに「犬」「猫」「鳥」を表示する', () => {
     render(
       <EditableConfusionMatrix3x3
         matrix={defaultMatrix}
         onChange={vi.fn()}
       />,
     );
-    expect(screen.getAllByText(/クラス/).length).toBeGreaterThanOrEqual(3);
+    expect(screen.getAllByText('犬').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('猫').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('鳥').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('混同行列の説明テキストを表示する', () => {
+    render(
+      <EditableConfusionMatrix3x3
+        matrix={defaultMatrix}
+        onChange={vi.fn()}
+      />,
+    );
+    expect(screen.getByText(/行が実際のクラス/)).toBeInTheDocument();
+  });
+
+  it('行合計・列合計を表示する', () => {
+    render(
+      <EditableConfusionMatrix3x3
+        matrix={defaultMatrix}
+        onChange={vi.fn()}
+      />,
+    );
+    expect(screen.getAllByText('合計').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('対角セルに「正解」ラベルを表示する', () => {
+    render(
+      <EditableConfusionMatrix3x3
+        matrix={defaultMatrix}
+        onChange={vi.fn()}
+      />,
+    );
+    expect(screen.getAllByText('正解').length).toBe(3);
   });
 });

@@ -2,7 +2,7 @@
 
 import type { ConfusionMatrix3x3 } from '@/lib/visual-explanations/micro-macro-average';
 
-const CLASS_LABELS = ['クラスA', 'クラスB', 'クラスC'];
+const CLASS_LABELS = ['犬', '猫', '鳥'];
 const DIAGONAL_BG = 'bg-green-50 dark:bg-green-900/20';
 const OFF_DIAGONAL_BG = 'bg-red-50 dark:bg-red-900/10';
 
@@ -23,8 +23,17 @@ export function EditableConfusionMatrix3x3({
     onChange(newMatrix);
   };
 
+  // 行合計・列合計を計算
+  const rowSums = matrix.map((row) => row.reduce((s, v) => s + v, 0));
+  const colSums = matrix[0].map((_, colIdx) =>
+    matrix.reduce((s, row) => s + row[colIdx], 0),
+  );
+
   return (
     <div className="space-y-2">
+      <p className="text-xs text-gray-500 dark:text-gray-400">
+        行が実際のクラス、列が予測したクラス。対角線（緑）が正解数。
+      </p>
       <table className="border-collapse text-center text-sm">
         <thead>
           <tr>
@@ -37,6 +46,7 @@ export function EditableConfusionMatrix3x3({
                 {label}
               </th>
             ))}
+            <th className="p-1 text-xs text-gray-500">合計</th>
           </tr>
         </thead>
         <tbody>
@@ -45,22 +55,41 @@ export function EditableConfusionMatrix3x3({
               <td className="p-1 text-xs text-gray-600 dark:text-gray-400 font-medium">
                 {CLASS_LABELS[rowIdx]}
               </td>
-              {row.map((val, colIdx) => (
-                <td
-                  key={colIdx}
-                  className={`p-1 ${rowIdx === colIdx ? DIAGONAL_BG : OFF_DIAGONAL_BG}`}
-                >
-                  <input
-                    type="number"
-                    min={0}
-                    value={val}
-                    onChange={(e) => handleChange(rowIdx, colIdx, e.target.value)}
-                    className="w-14 text-center p-1 rounded border border-gray-300 dark:border-gray-600 bg-transparent text-sm font-mono"
-                  />
-                </td>
-              ))}
+              {row.map((val, colIdx) => {
+                const isDiagonal = rowIdx === colIdx;
+                return (
+                  <td
+                    key={colIdx}
+                    className={`p-1 ${isDiagonal ? DIAGONAL_BG : OFF_DIAGONAL_BG}`}
+                  >
+                    <div className="flex flex-col items-center gap-0.5">
+                      <span className="text-[9px] text-gray-400">
+                        {isDiagonal ? '正解' : '誤分類'}
+                      </span>
+                      <input
+                        type="number"
+                        min={0}
+                        value={val}
+                        onChange={(e) => handleChange(rowIdx, colIdx, e.target.value)}
+                        className="w-14 text-center p-1 rounded border border-gray-300 dark:border-gray-600 bg-transparent text-sm font-mono"
+                      />
+                    </div>
+                  </td>
+                );
+              })}
+              <td className="p-1 text-xs font-mono text-gray-500">{rowSums[rowIdx]}</td>
             </tr>
           ))}
+          {/* 列合計行 */}
+          <tr>
+            <td className="p-1 text-xs text-gray-500">合計</td>
+            {colSums.map((sum, i) => (
+              <td key={i} className="p-1 text-xs font-mono text-gray-500">{sum}</td>
+            ))}
+            <td className="p-1 text-xs font-mono text-gray-400">
+              {rowSums.reduce((s, v) => s + v, 0)}
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>

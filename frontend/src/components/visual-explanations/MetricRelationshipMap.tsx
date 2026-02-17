@@ -11,8 +11,8 @@ import type { MetricNode, MetricCategory } from '@/lib/visual-explanations/metri
 const WIDTH = 700;
 const HEIGHT = 500;
 const PAD = 40;
-const NODE_RX = 35;
-const NODE_RY = 18;
+const NODE_RX = 45;
+const NODE_RY = 22;
 
 function toX(nx: number): number {
   return PAD + nx * (WIDTH - 2 * PAD);
@@ -48,8 +48,9 @@ export function MetricRelationshipMap() {
     if (!selectedNode) return new Set<string>();
     return new Set(
       edges
-        .filter((e) => e.from === selectedNode.id || e.to === selectedNode.id)
-        .map((_, i) => `edge-${i}`),
+        .map((e, i) => ({ edge: e, idx: i }))
+        .filter(({ edge: e }) => e.from === selectedNode.id || e.to === selectedNode.id)
+        .map(({ idx }) => `edge-${idx}`),
     );
   }, [selectedNode, edges]);
 
@@ -111,7 +112,7 @@ export function MetricRelationshipMap() {
                 y={cy + 1}
                 textAnchor="middle"
                 dominantBaseline="middle"
-                className="text-[10px] font-bold"
+                className="text-[11px] font-bold"
                 fill={isSelected ? 'white' : color}
               >
                 {node.label}

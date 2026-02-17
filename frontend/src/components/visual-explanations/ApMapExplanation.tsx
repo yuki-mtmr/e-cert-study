@@ -81,13 +81,17 @@ export function ApMapExplanation() {
 
       {/* スライダー */}
       <ErrorCurveSlider
-        label={`モデル精度: ${dPrimeScale.toFixed(1)}x`}
+        label={`分離度 (d'スケール): ${dPrimeScale.toFixed(1)}x`}
         value={dPrimeScale}
         onChange={setDPrimeScale}
         min={0.1}
         max={2.0}
         step={0.1}
       />
+
+      <p className="text-xs text-gray-500 dark:text-gray-400">
+        d&apos;を大きくすると陽性・陰性の分離が良くなるため、各クラスのAPが上昇し、結果としてmAPも向上する。
+      </p>
 
       <p className="text-xs text-gray-500 dark:text-gray-400">
         mAP は物体検出タスクで最も一般的な総合指標。各クラスのAPを平均する。

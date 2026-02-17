@@ -83,6 +83,9 @@ export function RocCurveSection() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* 正規分布図 */}
         <div>
+          <div className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">
+            陰性・陽性の分布とd&apos;
+          </div>
           <svg
             viewBox={`0 0 ${DIST_WIDTH} ${DIST_HEIGHT}`}
             className="w-full max-w-sm"
@@ -192,6 +195,11 @@ export function RocCurveSection() {
             </text>
           </svg>
         </div>
+      </div>
+
+      {/* d'解説ボックス */}
+      <div className="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-sm text-gray-700 dark:text-gray-300">
+        <strong>d&apos;（ディープライム）</strong> = 2つの分布間の距離。d&apos;が大きいほど陽性と陰性の分離が良く、分類性能が高い。d&apos;=0はランダム分類器に相当。
       </div>
 
       {/* スライダー群 */}

@@ -155,4 +155,30 @@ describe('getDefaultMatrix', () => {
     expect(matrix).toHaveLength(3);
     expect(matrix[0]).toHaveLength(3);
   });
+
+  it('不均衡データを返す（行合計が異なる）', () => {
+    const matrix = getDefaultMatrix();
+    const rowSums = matrix.map((row) => row.reduce((s, v) => s + v, 0));
+    // 各行の合計が異なること（不均衡）
+    const uniqueSums = new Set(rowSums);
+    expect(uniqueSums.size).toBeGreaterThan(1);
+  });
+
+  it('不均衡データでマクロとマイクロに0.05以上の差がある', () => {
+    const matrix = getDefaultMatrix();
+    const metrics = deriveClassMetrics(matrix);
+    const macro = computeMacroAverage(metrics);
+    const micro = computeMicroAverage(metrics);
+    expect(Math.abs(macro.f1 - micro.f1)).toBeGreaterThan(0.05);
+  });
+});
+
+describe('deriveClassMetrics - クラス名', () => {
+  it('クラス名が「犬」「猫」「鳥」である', () => {
+    const matrix = getDefaultMatrix();
+    const metrics = deriveClassMetrics(matrix);
+    expect(metrics[0].className).toBe('犬');
+    expect(metrics[1].className).toBe('猫');
+    expect(metrics[2].className).toBe('鳥');
+  });
 });

@@ -25,7 +25,7 @@ export interface QuizQuestion {
   explanation: string;
 }
 
-const CLASS_NAMES = ['クラスA', 'クラスB', 'クラスC'];
+const CLASS_NAMES = ['犬', '猫', '鳥'];
 
 /**
  * 3×3混同行列から各クラスの TP/FP/FN/Precision/Recall/F1 を導出
@@ -89,12 +89,12 @@ export function computeMicroAverage(metrics: ClassMetrics[]): AverageResult {
   return { precision, recall, f1 };
 }
 
-/** デフォルトの3×3混同行列 */
+/** デフォルトの3×3混同行列（不均衡データ: 犬=多数派、猫/鳥=少数派） */
 export function getDefaultMatrix(): ConfusionMatrix3x3 {
   return [
-    [50, 5, 5],
-    [5, 50, 5],
-    [5, 5, 50],
+    [80, 5, 5],   // 犬: 多数派（90件）高性能
+    [15, 20, 10],  // 猫: 少数派（45件）低性能
+    [10, 5, 15],   // 鳥: 少数派（30件）低性能
   ];
 }
 

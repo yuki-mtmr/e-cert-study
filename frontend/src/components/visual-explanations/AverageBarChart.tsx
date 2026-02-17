@@ -65,6 +65,15 @@ export function AverageBarChart({ macro, micro }: AverageBarChartProps) {
                 fill={MACRO_COLOR}
                 rx={2}
               />
+              <text
+                data-testid={`value-macro-${metric}`}
+                x={PAD.left + Math.max(0, macroVal * PLOT_W) + 4}
+                y={groupY + barHeight / 2}
+                dominantBaseline="middle"
+                className="text-[10px] fill-gray-600 dark:fill-gray-400 font-mono"
+              >
+                {macroVal.toFixed(2)}
+              </text>
               {/* マイクロバー */}
               <rect
                 data-testid={`bar-micro-${metric}`}
@@ -75,6 +84,15 @@ export function AverageBarChart({ macro, micro }: AverageBarChartProps) {
                 fill={MICRO_COLOR}
                 rx={2}
               />
+              <text
+                data-testid={`value-micro-${metric}`}
+                x={PAD.left + Math.max(0, microVal * PLOT_W) + 4}
+                y={groupY + barHeight + gap + barHeight / 2}
+                dominantBaseline="middle"
+                className="text-[10px] fill-gray-600 dark:fill-gray-400 font-mono"
+              >
+                {microVal.toFixed(2)}
+              </text>
             </g>
           );
         })}

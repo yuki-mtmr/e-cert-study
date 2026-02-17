@@ -25,4 +25,14 @@ describe('ApMapExplanation', () => {
     fireEvent.change(slider, { target: { value: '1.5' } });
     expect(slider).toBeInTheDocument();
   });
+
+  it('スライダーラベルに「分離度」を表示する', () => {
+    render(<ApMapExplanation />);
+    expect(screen.getByText(/分離度/)).toBeInTheDocument();
+  });
+
+  it('スライダー下にd\'とmAPの関係の解説を表示する', () => {
+    render(<ApMapExplanation />);
+    expect(screen.getByText(/d'を大きくすると/)).toBeInTheDocument();
+  });
 });

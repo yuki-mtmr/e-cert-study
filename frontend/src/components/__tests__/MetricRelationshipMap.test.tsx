@@ -40,4 +40,23 @@ describe('MetricRelationshipMap', () => {
     render(<MetricRelationshipMap />);
     expect(screen.getByText('混同行列要素')).toBeInTheDocument();
   });
+
+  it('precisionノードクリック時、接続エッジが正しくハイライトされる', () => {
+    const { container } = render(<MetricRelationshipMap />);
+    const node = screen.getByTestId('node-precision');
+    fireEvent.click(node);
+
+    // precision に接続するエッジの元インデックス:
+    // edge-0: tp→precision, edge-1: fp→precision, edge-8: precision→f1,
+    // edge-12: precision→pr, edge-17: precision→macro
+    // edge-8 (precision→f1) がハイライトされていること（バグ時はされない）
+    const edge8 = container.querySelector('[data-testid="edge-8"]');
+    expect(edge8?.getAttribute('stroke')).toBe('#F59E0B');
+    // edge-12 (precision→pr) もハイライト
+    const edge12 = container.querySelector('[data-testid="edge-12"]');
+    expect(edge12?.getAttribute('stroke')).toBe('#F59E0B');
+    // edge-2 (tp→recall) はprecisionに無関係なのでハイライトされない
+    const edge2 = container.querySelector('[data-testid="edge-2"]');
+    expect(edge2?.getAttribute('stroke')).not.toBe('#F59E0B');
+  });
 });
