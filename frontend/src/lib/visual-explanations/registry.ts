@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
 import { ErrorCurveGraph } from '@/components/visual-explanations/ErrorCurveGraph';
+import { BiasVarianceExplanation } from '@/components/visual-explanations/BiasVarianceExplanation';
 
 export interface VisualizationMeta {
   id: string;
@@ -17,6 +18,13 @@ const REGISTRY: Record<string, VisualizationMeta[]> = {
       description:
         'モデルの複雑さやデータ量を変化させたとき、訓練誤差と汎化誤差がどう変わるかを視覚的に確認できます。',
       component: ErrorCurveGraph,
+    },
+    {
+      id: 'bias-variance',
+      title: 'バイアス-バリアンス-ノイズ分解',
+      description:
+        '射撃アナロジーと数式分解で、バイアス・バリアンス・ノイズの3要素を直感的に理解できます。',
+      component: BiasVarianceExplanation,
     },
   ],
 };
