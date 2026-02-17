@@ -44,4 +44,17 @@ describe('getVisualizations', () => {
     expect(viz.description).toBeTruthy();
     expect(viz.component).toBeDefined();
   });
+
+  it('ml-metrics サブセクションで1件のビジュアルを返す', () => {
+    const result = getVisualizations('ml-metrics');
+    expect(result).toHaveLength(1);
+  });
+
+  it('ml-metrics のビジュアルに正しいメタデータが含まれる', () => {
+    const [viz] = getVisualizations('ml-metrics');
+    expect(viz.id).toBe('confusion-matrix');
+    expect(viz.title).toBeTruthy();
+    expect(viz.description).toBeTruthy();
+    expect(viz.component).toBeDefined();
+  });
 });

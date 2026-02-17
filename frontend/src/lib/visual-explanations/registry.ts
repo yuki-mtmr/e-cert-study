@@ -2,6 +2,7 @@ import type { ComponentType } from 'react';
 import { ErrorCurveGraph } from '@/components/visual-explanations/ErrorCurveGraph';
 import { BiasVarianceExplanation } from '@/components/visual-explanations/BiasVarianceExplanation';
 import { ValidationComparison } from '@/components/visual-explanations/ValidationComparison';
+import { ConfusionMatrix } from '@/components/visual-explanations/ConfusionMatrix';
 
 export interface VisualizationMeta {
   id: string;
@@ -35,6 +36,15 @@ const REGISTRY: Record<string, VisualizationMeta[]> = {
       description:
         'ホールドアウト法と k-分割交差検証の違いを一言サマリーと比較表で確認できます。',
       component: ValidationComparison,
+    },
+  ],
+  'ml-metrics': [
+    {
+      id: 'confusion-matrix',
+      title: '混同行列と評価指標',
+      description:
+        '混同行列の2x2マトリクスと、そこから導出される4つの評価指標（正解率・適合率・再現率・F1スコア）を確認できます。',
+      component: ConfusionMatrix,
     },
   ],
 };
