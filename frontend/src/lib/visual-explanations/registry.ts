@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react';
 import { ErrorCurveGraph } from '@/components/visual-explanations/ErrorCurveGraph';
 import { BiasVarianceExplanation } from '@/components/visual-explanations/BiasVarianceExplanation';
+import { ValidationComparison } from '@/components/visual-explanations/ValidationComparison';
 
 export interface VisualizationMeta {
   id: string;
@@ -25,6 +26,15 @@ const REGISTRY: Record<string, VisualizationMeta[]> = {
       description:
         '射撃アナロジーと数式分解で、バイアス・バリアンス・ノイズの3要素を直感的に理解できます。',
       component: BiasVarianceExplanation,
+    },
+  ],
+  'ml-validation': [
+    {
+      id: 'validation-comparison',
+      title: 'ホールドアウト vs k-分割交差検証',
+      description:
+        'ホールドアウト法と k-分割交差検証の違いを一言サマリーと比較表で確認できます。',
+      component: ValidationComparison,
     },
   ],
 };

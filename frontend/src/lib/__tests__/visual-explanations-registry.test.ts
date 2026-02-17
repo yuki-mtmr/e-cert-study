@@ -31,4 +31,17 @@ describe('getVisualizations', () => {
   it('別の登録済みでないサブセクションでも空配列を返す', () => {
     expect(getVisualizations('math-prob')).toEqual([]);
   });
+
+  it('ml-validation サブセクションで1件のビジュアルを返す', () => {
+    const result = getVisualizations('ml-validation');
+    expect(result).toHaveLength(1);
+  });
+
+  it('ml-validation のビジュアルに正しいメタデータが含まれる', () => {
+    const [viz] = getVisualizations('ml-validation');
+    expect(viz.id).toBe('validation-comparison');
+    expect(viz.title).toBeTruthy();
+    expect(viz.description).toBeTruthy();
+    expect(viz.component).toBeDefined();
+  });
 });
