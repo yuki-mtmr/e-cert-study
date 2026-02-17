@@ -7,6 +7,7 @@ import { RocPrExplanation } from '@/components/visual-explanations/RocPrExplanat
 import { MicroMacroExplanation } from '@/components/visual-explanations/MicroMacroExplanation';
 import { MetricRelationshipMap } from '@/components/visual-explanations/MetricRelationshipMap';
 import { RegressionMetrics } from '@/components/visual-explanations/RegressionMetrics';
+import { LossActivationGuide } from '@/components/visual-explanations/LossActivationGuide';
 
 export interface VisualizationMeta {
   id: string;
@@ -77,6 +78,15 @@ const REGISTRY: Record<string, VisualizationMeta[]> = {
       description:
         '数式クイズ・残差ビジュアライゼーション・使い分けガイドで、4つの回帰指標を直感的に理解できます。',
       component: RegressionMetrics,
+    },
+  ],
+  'dl-loss': [
+    {
+      id: 'loss-activation-guide',
+      title: '損失関数×活性化関数の組み合わせガイド',
+      description:
+        '2値分類・多クラス分類・マルチラベル分類・順序回帰の正しい組み合わせと、よくある誤解を整理します。',
+      component: LossActivationGuide,
     },
   ],
 };

@@ -85,4 +85,17 @@ describe('getVisualizations', () => {
     expect(vizList[4].description).toBeTruthy();
     expect(vizList[4].component).toBeDefined();
   });
+
+  it('dl-loss サブセクションで1件のビジュアルを返す', () => {
+    const result = getVisualizations('dl-loss');
+    expect(result).toHaveLength(1);
+  });
+
+  it('dl-loss の1番目: loss-activation-guide', () => {
+    const vizList = getVisualizations('dl-loss');
+    expect(vizList[0].id).toBe('loss-activation-guide');
+    expect(vizList[0].title).toBeTruthy();
+    expect(vizList[0].description).toBeTruthy();
+    expect(vizList[0].component).toBeDefined();
+  });
 });
