@@ -6,6 +6,7 @@ import { ConfusionMatrix } from '@/components/visual-explanations/ConfusionMatri
 import { RocPrExplanation } from '@/components/visual-explanations/RocPrExplanation';
 import { MicroMacroExplanation } from '@/components/visual-explanations/MicroMacroExplanation';
 import { MetricRelationshipMap } from '@/components/visual-explanations/MetricRelationshipMap';
+import { RegressionMetrics } from '@/components/visual-explanations/RegressionMetrics';
 
 export interface VisualizationMeta {
   id: string;
@@ -69,6 +70,13 @@ const REGISTRY: Record<string, VisualizationMeta[]> = {
       description:
         '混同行列からROC/PR曲線まで、評価指標の関係をインタラクティブに俯瞰できます。',
       component: MetricRelationshipMap,
+    },
+    {
+      id: 'regression-metrics',
+      title: '回帰指標（MAE/MSE/RMSE/R²）',
+      description:
+        '数式クイズ・残差ビジュアライゼーション・使い分けガイドで、4つの回帰指標を直感的に理解できます。',
+      component: RegressionMetrics,
     },
   ],
 };

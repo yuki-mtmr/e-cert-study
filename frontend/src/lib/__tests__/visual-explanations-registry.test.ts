@@ -45,9 +45,9 @@ describe('getVisualizations', () => {
     expect(viz.component).toBeDefined();
   });
 
-  it('ml-metrics サブセクションで4件のビジュアルを返す', () => {
+  it('ml-metrics サブセクションで5件のビジュアルを返す', () => {
     const result = getVisualizations('ml-metrics');
-    expect(result).toHaveLength(4);
+    expect(result).toHaveLength(5);
   });
 
   it('ml-metrics の1番目: confusion-matrix', () => {
@@ -76,5 +76,13 @@ describe('getVisualizations', () => {
     expect(vizList[3].id).toBe('metric-relationship-map');
     expect(vizList[3].title).toBeTruthy();
     expect(vizList[3].component).toBeDefined();
+  });
+
+  it('ml-metrics の5番目: regression-metrics', () => {
+    const vizList = getVisualizations('ml-metrics');
+    expect(vizList[4].id).toBe('regression-metrics');
+    expect(vizList[4].title).toBeTruthy();
+    expect(vizList[4].description).toBeTruthy();
+    expect(vizList[4].component).toBeDefined();
   });
 });
