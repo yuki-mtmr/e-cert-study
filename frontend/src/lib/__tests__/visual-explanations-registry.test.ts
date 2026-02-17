@@ -45,16 +45,36 @@ describe('getVisualizations', () => {
     expect(viz.component).toBeDefined();
   });
 
-  it('ml-metrics サブセクションで1件のビジュアルを返す', () => {
+  it('ml-metrics サブセクションで4件のビジュアルを返す', () => {
     const result = getVisualizations('ml-metrics');
-    expect(result).toHaveLength(1);
+    expect(result).toHaveLength(4);
   });
 
-  it('ml-metrics のビジュアルに正しいメタデータが含まれる', () => {
-    const [viz] = getVisualizations('ml-metrics');
-    expect(viz.id).toBe('confusion-matrix');
-    expect(viz.title).toBeTruthy();
-    expect(viz.description).toBeTruthy();
-    expect(viz.component).toBeDefined();
+  it('ml-metrics の1番目: confusion-matrix', () => {
+    const vizList = getVisualizations('ml-metrics');
+    expect(vizList[0].id).toBe('confusion-matrix');
+    expect(vizList[0].title).toBeTruthy();
+    expect(vizList[0].component).toBeDefined();
+  });
+
+  it('ml-metrics の2番目: roc-pr-curves', () => {
+    const vizList = getVisualizations('ml-metrics');
+    expect(vizList[1].id).toBe('roc-pr-curves');
+    expect(vizList[1].title).toBeTruthy();
+    expect(vizList[1].component).toBeDefined();
+  });
+
+  it('ml-metrics の3番目: micro-macro-average', () => {
+    const vizList = getVisualizations('ml-metrics');
+    expect(vizList[2].id).toBe('micro-macro-average');
+    expect(vizList[2].title).toBeTruthy();
+    expect(vizList[2].component).toBeDefined();
+  });
+
+  it('ml-metrics の4番目: metric-relationship-map', () => {
+    const vizList = getVisualizations('ml-metrics');
+    expect(vizList[3].id).toBe('metric-relationship-map');
+    expect(vizList[3].title).toBeTruthy();
+    expect(vizList[3].component).toBeDefined();
   });
 });

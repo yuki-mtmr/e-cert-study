@@ -42,4 +42,22 @@ describe('ErrorCurveSlider', () => {
     expect(slider.max).toBe('1');
     expect(slider.step).toBe('0.01');
   });
+
+  it('カスタム min/max/step を指定できる', () => {
+    render(
+      <ErrorCurveSlider {...defaultProps} min={-5} max={5} step={0.1} />,
+    );
+    const slider = screen.getByRole('slider') as HTMLInputElement;
+    expect(slider.min).toBe('-5');
+    expect(slider.max).toBe('5');
+    expect(slider.step).toBe('0.1');
+  });
+
+  it('min/max/step 省略時はデフォルト値（後方互換）', () => {
+    render(<ErrorCurveSlider {...defaultProps} />);
+    const slider = screen.getByRole('slider') as HTMLInputElement;
+    expect(slider.min).toBe('0');
+    expect(slider.max).toBe('1');
+    expect(slider.step).toBe('0.01');
+  });
 });

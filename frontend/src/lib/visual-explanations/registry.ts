@@ -3,6 +3,9 @@ import { ErrorCurveGraph } from '@/components/visual-explanations/ErrorCurveGrap
 import { BiasVarianceExplanation } from '@/components/visual-explanations/BiasVarianceExplanation';
 import { ValidationComparison } from '@/components/visual-explanations/ValidationComparison';
 import { ConfusionMatrix } from '@/components/visual-explanations/ConfusionMatrix';
+import { RocPrExplanation } from '@/components/visual-explanations/RocPrExplanation';
+import { MicroMacroExplanation } from '@/components/visual-explanations/MicroMacroExplanation';
+import { MetricRelationshipMap } from '@/components/visual-explanations/MetricRelationshipMap';
 
 export interface VisualizationMeta {
   id: string;
@@ -45,6 +48,27 @@ const REGISTRY: Record<string, VisualizationMeta[]> = {
       description:
         '混同行列の2x2マトリクスと6つの評価指標を色付き分数で確認。指標クリックでマトリクスが連動ハイライトします。',
       component: ConfusionMatrix,
+    },
+    {
+      id: 'roc-pr-curves',
+      title: 'ROC曲線・PR曲線とAUC/AP',
+      description:
+        'ROC曲線とPR曲線を操作して、AUC・APの意味と不均衡データでの違いを体感できます。',
+      component: RocPrExplanation,
+    },
+    {
+      id: 'micro-macro-average',
+      title: 'マイクロ平均・マクロ平均',
+      description:
+        '3クラス混同行列を編集し、マクロ/マイクロ平均の計算過程と使い分けを理解できます。',
+      component: MicroMacroExplanation,
+    },
+    {
+      id: 'metric-relationship-map',
+      title: '評価指標の関係マップ',
+      description:
+        '混同行列からROC/PR曲線まで、評価指標の関係をインタラクティブに俯瞰できます。',
+      component: MetricRelationshipMap,
     },
   ],
 };
