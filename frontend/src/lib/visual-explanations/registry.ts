@@ -43,7 +43,7 @@ const REGISTRY: Record<string, VisualizationMeta[]> = {
       id: 'confusion-matrix',
       title: '混同行列と評価指標',
       description:
-        '混同行列の2x2マトリクスと、そこから導出される4つの評価指標（正解率・適合率・再現率・F1スコア）を確認できます。',
+        '混同行列の2x2マトリクスと6つの評価指標を色付き分数で確認。指標クリックでマトリクスが連動ハイライトします。',
       component: ConfusionMatrix,
     },
   ],

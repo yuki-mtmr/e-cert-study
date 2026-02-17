@@ -2,11 +2,13 @@ import { describe, it, expect } from 'vitest';
 import {
   getConfusionMatrixSummary,
   getMatrixCells,
-  getMetricFormulas,
+  CELL_COLORS,
+  getMetricFormulasV2,
 } from '@/lib/visual-explanations/confusion-matrix';
 import type {
   MatrixCell,
-  MetricFormula,
+  MetricFormulaV2,
+  CellId,
 } from '@/lib/visual-explanations/confusion-matrix';
 
 describe('getConfusionMatrixSummary', () => {
@@ -67,37 +69,107 @@ describe('getMatrixCells', () => {
   });
 });
 
-describe('getMetricFormulas', () => {
-  it('4件の指標を返す', () => {
-    const formulas = getMetricFormulas();
-    expect(formulas).toHaveLength(4);
+describe('CELL_COLORS', () => {
+  it('tp, fp, fn, tn の4エントリを持つ', () => {
+    const keys = Object.keys(CELL_COLORS);
+    expect(keys).toHaveLength(4);
+    expect(keys).toContain('tp');
+    expect(keys).toContain('fp');
+    expect(keys).toContain('fn');
+    expect(keys).toContain('tn');
   });
 
-  it('各指標に name, enName, formula, cells プロパティがある', () => {
-    const formulas = getMetricFormulas();
-    formulas.forEach((f: MetricFormula) => {
+  it('各エントリが text クラス文字列を持つ', () => {
+    const cellIds: CellId[] = ['tp', 'fp', 'fn', 'tn'];
+    cellIds.forEach((id) => {
+      expect(CELL_COLORS[id]).toMatch(/text-/);
+    });
+  });
+});
+
+describe('getMetricFormulasV2', () => {
+  it('6件の指標を返す', () => {
+    const formulas = getMetricFormulasV2();
+    expect(formulas).toHaveLength(6);
+  });
+
+  it('各指標に必要なプロパティがある', () => {
+    const formulas = getMetricFormulasV2();
+    formulas.forEach((f: MetricFormulaV2) => {
+      expect(f.id).toBeTruthy();
       expect(f.name).toBeTruthy();
       expect(f.enName).toBeTruthy();
-      expect(f.formula).toBeTruthy();
+      expect(f.fraction).toBeDefined();
+      expect(f.fraction.numerator.length).toBeGreaterThan(0);
+      expect(f.fraction.denominator.length).toBeGreaterThan(0);
+      expect(f.tip).toBeTruthy();
+      expect(f.highlight).toBeDefined();
+      expect(f.highlight.numeratorCells.length).toBeGreaterThan(0);
       expect(f.cells.length).toBeGreaterThan(0);
     });
   });
 
-  it('正解率・適合率・再現率・F1スコアを含む', () => {
-    const formulas = getMetricFormulas();
-    const names = formulas.map((f: MetricFormula) => f.name);
+  it('正解率・適合率・再現率・F1スコア・偽陽性率・偽陰性率を含む', () => {
+    const formulas = getMetricFormulasV2();
+    const names = formulas.map((f) => f.name);
     expect(names).toContain('正解率');
     expect(names).toContain('適合率');
     expect(names).toContain('再現率');
     expect(names).toContain('F1スコア');
+    expect(names).toContain('偽陽性率');
+    expect(names).toContain('偽陰性率');
   });
 
-  it('Accuracy, Precision, Recall, F1 Score の英語名を含む', () => {
-    const formulas = getMetricFormulas();
-    const enNames = formulas.map((f: MetricFormula) => f.enName);
+  it('英語名を含む', () => {
+    const formulas = getMetricFormulasV2();
+    const enNames = formulas.map((f) => f.enName);
     expect(enNames).toContain('Accuracy');
     expect(enNames).toContain('Precision');
     expect(enNames).toContain('Recall');
     expect(enNames).toContain('F1 Score');
+    expect(enNames).toContain('FPR');
+    expect(enNames).toContain('FNR');
+  });
+
+  it('F1スコアの分子に coefficient=2 がある', () => {
+    const formulas = getMetricFormulasV2();
+    const f1 = formulas.find((f) => f.id === 'f1');
+    expect(f1).toBeDefined();
+    const tpTerm = f1!.fraction.numerator.find((t) => t.cellId === 'tp');
+    expect(tpTerm).toBeDefined();
+    expect(tpTerm!.coefficient).toBe(2);
+  });
+
+  it('F1スコアの分母に coefficient=2 の TP がある', () => {
+    const formulas = getMetricFormulasV2();
+    const f1 = formulas.find((f) => f.id === 'f1');
+    expect(f1).toBeDefined();
+    const denomTp = f1!.fraction.denominator.find((t) => t.cellId === 'tp');
+    expect(denomTp).toBeDefined();
+    expect(denomTp!.coefficient).toBe(2);
+  });
+
+  it('適合率の highlight が正しい', () => {
+    const formulas = getMetricFormulasV2();
+    const precision = formulas.find((f) => f.id === 'precision');
+    expect(precision).toBeDefined();
+    expect(precision!.highlight.numeratorCells).toEqual(['tp']);
+    expect(precision!.highlight.denominatorOnlyCells).toEqual(['fp']);
+  });
+
+  it('正解率の highlight が正しい', () => {
+    const formulas = getMetricFormulasV2();
+    const accuracy = formulas.find((f) => f.id === 'accuracy');
+    expect(accuracy).toBeDefined();
+    expect(accuracy!.highlight.numeratorCells).toEqual(['tp', 'tn']);
+    expect(accuracy!.highlight.denominatorOnlyCells).toEqual(['fp', 'fn']);
+  });
+
+  it('偽陽性率の highlight が正しい', () => {
+    const formulas = getMetricFormulasV2();
+    const fpr = formulas.find((f) => f.id === 'fpr');
+    expect(fpr).toBeDefined();
+    expect(fpr!.highlight.numeratorCells).toEqual(['fp']);
+    expect(fpr!.highlight.denominatorOnlyCells).toEqual(['tn']);
   });
 });
