@@ -86,16 +86,27 @@ export function ResidualPlot() {
           strokeWidth={2}
         />
 
+        {/* プロット領域クリッピング */}
+        <defs>
+          <clipPath id="plot-area-clip">
+            <rect
+              x={PADDING.left}
+              y={PADDING.top}
+              width={PLOT_W}
+              height={PLOT_H}
+            />
+          </clipPath>
+        </defs>
+
         {/* 残差線 + データ点 */}
         {points.map((p, i) => {
           const predicted = predictY(p.x, line);
-          const residual = Math.abs(p.y - predicted);
           const color = displayMode === 'mse' ? '#EF4444' : '#F97316';
 
           // SVGスケールでの残差の長さ（ピクセル）
           const residualPx = Math.abs(toSvgY(p.y) - toSvgY(predicted));
           // 正方形の一辺 = 残差のSVG長さ（上限あり）
-          const side = Math.min(residualPx, PLOT_W * 0.3);
+          const side = Math.min(residualPx, PLOT_W * 0.15);
 
           return (
             <g key={i}>
@@ -112,19 +123,21 @@ export function ResidualPlot() {
                   strokeOpacity={0.6}
                 />
               ) : (
-                /* MSEモード: 正方形で「二乗 = 面積」を表現 */
-                <rect
-                  className="residual-square"
-                  x={toSvgX(p.x)}
-                  y={Math.min(toSvgY(p.y), toSvgY(predicted))}
-                  width={side}
-                  height={side}
-                  fill={color}
-                  fillOpacity={0.2}
-                  stroke={color}
-                  strokeWidth={1}
-                  strokeOpacity={0.6}
-                />
+                /* MSEモード: 正方形で「二乗 = 面積」を表現（中央揃え・クリップ付き） */
+                <g clipPath="url(#plot-area-clip)">
+                  <rect
+                    className="residual-square"
+                    x={toSvgX(p.x) - side / 2}
+                    y={Math.min(toSvgY(p.y), toSvgY(predicted))}
+                    width={side}
+                    height={side}
+                    fill={color}
+                    fillOpacity={0.2}
+                    stroke={color}
+                    strokeWidth={1}
+                    strokeOpacity={0.6}
+                  />
+                </g>
               )}
               {/* データ点 */}
               <circle

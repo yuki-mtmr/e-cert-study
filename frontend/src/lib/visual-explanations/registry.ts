@@ -8,6 +8,7 @@ import { MicroMacroExplanation } from '@/components/visual-explanations/MicroMac
 import { MetricRelationshipMap } from '@/components/visual-explanations/MetricRelationshipMap';
 import { RegressionMetrics } from '@/components/visual-explanations/RegressionMetrics';
 import { LossActivationGuide } from '@/components/visual-explanations/LossActivationGuide';
+import { ActivationFunctionExplorer } from '@/components/visual-explanations/ActivationFunctionExplorer';
 
 export interface VisualizationMeta {
   id: string;
@@ -87,6 +88,15 @@ const REGISTRY: Record<string, VisualizationMeta[]> = {
       description:
         '2値分類・多クラス分類・マルチラベル分類・順序回帰の正しい組み合わせと、よくある誤解を整理します。',
       component: LossActivationGuide,
+    },
+  ],
+  'dl-activation': [
+    {
+      id: 'activation-function-explorer',
+      title: '活性化関数エクスプローラー',
+      description:
+        'sigmoid・tanh・ReLUの曲線と導関数を切替表示し、勾配消失の仕組みを接線・ゾーン色分けで体感できます。',
+      component: ActivationFunctionExplorer,
     },
   ],
 };

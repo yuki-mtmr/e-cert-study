@@ -80,4 +80,54 @@ describe('ResidualPlot', () => {
     const rects = container.querySelectorAll('rect.residual-square');
     expect(rects.length).toBe(0);
   });
+
+  it('MSEモードの正方形がデータ点を中心に配置される', () => {
+    const { container } = render(<ResidualPlot />);
+    fireEvent.click(screen.getByRole('button', { name: 'MSE' }));
+
+    const rects = container.querySelectorAll('rect.residual-square');
+    const circles = container.querySelectorAll('circle');
+    expect(rects.length).toBeGreaterThanOrEqual(1);
+
+    // 各正方形の中心X ≈ 対応するcircleのcx（±1px許容）
+    rects.forEach((rect, i) => {
+      const rectX = Number(rect.getAttribute('x'));
+      const rectW = Number(rect.getAttribute('width'));
+      const circleCx = Number(circles[i].getAttribute('cx'));
+      const rectCenterX = rectX + rectW / 2;
+      expect(Math.abs(rectCenterX - circleCx)).toBeLessThanOrEqual(1);
+    });
+  });
+
+  it('MSEモードの正方形の一辺がPLOT_W*0.15以下に制限される', () => {
+    const { container } = render(<ResidualPlot />);
+    // 外れ値を最大にして大きな残差を発生させる
+    const sliders = screen.getAllByRole('slider');
+    fireEvent.change(sliders[0], { target: { value: '1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'MSE' }));
+
+    const PLOT_W = 400 - 50 - 20; // WIDTH - left - right = 330
+    const maxSide = PLOT_W * 0.15;
+    const rects = container.querySelectorAll('rect.residual-square');
+    rects.forEach((rect) => {
+      const side = Number(rect.getAttribute('width'));
+      expect(side).toBeLessThanOrEqual(maxSide + 0.01);
+    });
+  });
+
+  it('MSEモードの正方形がclipPathでプロット領域にクリップされる', () => {
+    const { container } = render(<ResidualPlot />);
+    fireEvent.click(screen.getByRole('button', { name: 'MSE' }));
+
+    // clipPath定義が存在する
+    const clipPath = container.querySelector('clipPath#plot-area-clip');
+    expect(clipPath).not.toBeNull();
+
+    // rect要素がclip-pathを参照している
+    const rects = container.querySelectorAll('rect.residual-square');
+    rects.forEach((rect) => {
+      const g = rect.closest('g[clip-path]');
+      expect(g?.getAttribute('clip-path')).toBe('url(#plot-area-clip)');
+    });
+  });
 });

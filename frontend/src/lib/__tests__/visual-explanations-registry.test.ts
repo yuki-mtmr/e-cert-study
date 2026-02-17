@@ -98,4 +98,17 @@ describe('getVisualizations', () => {
     expect(vizList[0].description).toBeTruthy();
     expect(vizList[0].component).toBeDefined();
   });
+
+  it('dl-activation サブセクションで1件のビジュアルを返す', () => {
+    const result = getVisualizations('dl-activation');
+    expect(result).toHaveLength(1);
+  });
+
+  it('dl-activation の1番目: activation-function-explorer', () => {
+    const vizList = getVisualizations('dl-activation');
+    expect(vizList[0].id).toBe('activation-function-explorer');
+    expect(vizList[0].title).toBeTruthy();
+    expect(vizList[0].description).toBeTruthy();
+    expect(vizList[0].component).toBeDefined();
+  });
 });
