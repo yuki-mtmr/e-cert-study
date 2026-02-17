@@ -6,10 +6,7 @@ import type { TermExamPoints } from '@/types/glossary';
 describe('TermTooltip', () => {
   const examPoints: TermExamPoints = {
     termId: 'bayes-theorem',
-    points: [
-      '事後確率の公式を正確に書けるようにする。',
-      'ナイーブベイズ分類器の理論的基盤。',
-    ],
+    points: ['事後∝尤度×事前、分母P(D)は正規化定数でθに依存しない'],
     formula: 'P(θ|D) = P(D|θ)P(θ) / P(D)',
   };
 
@@ -22,8 +19,7 @@ describe('TermTooltip', () => {
 
   it('試験ポイントの各項目を表示する', () => {
     render(<TermTooltip {...defaultProps} />);
-    expect(screen.getByText('事後確率の公式を正確に書けるようにする。')).toBeInTheDocument();
-    expect(screen.getByText('ナイーブベイズ分類器の理論的基盤。')).toBeInTheDocument();
+    expect(screen.getByText('事後∝尤度×事前、分母P(D)は正規化定数でθに依存しない')).toBeInTheDocument();
   });
 
   it('公式を表示する', () => {
