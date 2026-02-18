@@ -14,15 +14,12 @@ import { BackwardGradientChart } from './BackwardGradientChart';
 
 const QUESTIONS = getQuestions();
 
-/** パイプラインのステージ定義 */
+/** パイプラインのステージ定義（4ボックス、全てクリック可能） */
 const PIPELINE_STAGES = [
-  { key: 'input', label: 'x', color: PIPELINE_COLORS.input, question: null },
-  { key: 'softmax', label: 'softmax', color: PIPELINE_COLORS.softmax, question: 'q1-axis-keepdims' as QuestionId },
-  { key: 'y', label: 'y', color: PIPELINE_COLORS.softmax, question: null },
-  { key: 'ce', label: 'CE(y,t)', color: PIPELINE_COLORS.loss, question: 'q2-ce-return' as QuestionId },
-  { key: 'loss', label: 'loss', color: PIPELINE_COLORS.loss, question: null },
-  { key: 'backward', label: 'backward', color: PIPELINE_COLORS.gradient, question: 'q4-backward-grad' as QuestionId },
-  { key: 'dx', label: 'dx', color: PIPELINE_COLORS.gradient, question: null },
+  { key: 'softmax', label: 'Q1 softmax', color: PIPELINE_COLORS.softmax, question: 'q1-axis-keepdims' as QuestionId },
+  { key: 'ce', label: 'Q2 CE', color: PIPELINE_COLORS.loss, question: 'q2-ce-return' as QuestionId },
+  { key: 'forward', label: 'Q3 forward', color: PIPELINE_COLORS.teacher, question: 'q3-forward-args' as QuestionId },
+  { key: 'backward', label: 'Q4 backward', color: PIPELINE_COLORS.gradient, question: 'q4-backward-grad' as QuestionId },
 ] as const;
 
 /** Q2: 交差エントロピーのインライン解説 */
@@ -118,40 +115,25 @@ export function SoftmaxCrossEntropyCodeProblem() {
             )}
             <div
               data-testid={`pipeline-box-${stage.key}`}
-              onClick={() => {
-                if (stage.question) setActiveQuestion(stage.question);
-              }}
-              className={`px-2 py-1 rounded text-xs font-mono font-medium transition-colors ${
-                stage.question ? 'cursor-pointer hover:opacity-80' : ''
-              }`}
+              data-active={stage.question === activeQuestion}
+              onClick={() => setActiveQuestion(stage.question)}
+              className="px-2 py-1 rounded text-xs font-mono font-medium transition-colors cursor-pointer hover:opacity-80"
               style={{
-                backgroundColor: `${stage.color.hex}20`,
+                backgroundColor: stage.question === activeQuestion
+                  ? `${stage.color.hex}40`
+                  : `${stage.color.hex}20`,
                 color: stage.color.hex,
-                borderWidth: 1,
+                borderWidth: stage.question === activeQuestion ? 2 : 1,
                 borderColor: `${stage.color.hex}40`,
+                boxShadow: stage.question === activeQuestion
+                  ? `0 0 8px ${stage.color.hex}30`
+                  : 'none',
               }}
             >
               {stage.label}
             </div>
           </div>
         ))}
-        {/* 教師ラベル t（CE入力への矢印） */}
-        <div className="ml-2 flex items-center gap-1">
-          <span className="text-xs text-gray-400">↑</span>
-          <div
-            data-testid="pipeline-box-teacher"
-            onClick={() => setActiveQuestion('q3-forward-args')}
-            className="px-2 py-1 rounded text-xs font-mono font-medium cursor-pointer hover:opacity-80"
-            style={{
-              backgroundColor: `${PIPELINE_COLORS.teacher.hex}20`,
-              color: PIPELINE_COLORS.teacher.hex,
-              borderWidth: 1,
-              borderColor: `${PIPELINE_COLORS.teacher.hex}40`,
-            }}
-          >
-            t
-          </div>
-        </div>
       </div>
 
       {/* Q1-Q4 タブボタン */}

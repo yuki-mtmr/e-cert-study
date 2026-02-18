@@ -70,6 +70,60 @@ describe('SoftmaxCrossEntropyCodeProblem', () => {
     const tabs = screen.getAllByRole('tab');
     expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
   });
+
+  it('パイプラインが4ボックスのみ表示される', () => {
+    render(<SoftmaxCrossEntropyCodeProblem />);
+    const overview = screen.getByTestId('pipeline-overview');
+    const boxes = overview.querySelectorAll('[data-testid^="pipeline-box-"]');
+    expect(boxes).toHaveLength(4);
+  });
+
+  it('旧パイプラインの不要ボックス（input/y/loss/dx/teacher）が存在しない', () => {
+    render(<SoftmaxCrossEntropyCodeProblem />);
+    expect(screen.queryByTestId('pipeline-box-input')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('pipeline-box-y')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('pipeline-box-loss')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('pipeline-box-dx')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('pipeline-box-teacher')).not.toBeInTheDocument();
+  });
+
+  it('forwardボックスが存在する', () => {
+    render(<SoftmaxCrossEntropyCodeProblem />);
+    expect(screen.getByTestId('pipeline-box-forward')).toBeInTheDocument();
+  });
+
+  it('全パイプラインボックスクリックで対応タブに切替わる', () => {
+    render(<SoftmaxCrossEntropyCodeProblem />);
+    const tabs = screen.getAllByRole('tab');
+
+    // softmax → Q1
+    fireEvent.click(screen.getByTestId('pipeline-box-softmax'));
+    expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
+
+    // ce → Q2
+    fireEvent.click(screen.getByTestId('pipeline-box-ce'));
+    expect(tabs[1]).toHaveAttribute('aria-selected', 'true');
+
+    // forward → Q3
+    fireEvent.click(screen.getByTestId('pipeline-box-forward'));
+    expect(tabs[2]).toHaveAttribute('aria-selected', 'true');
+
+    // backward → Q4
+    fireEvent.click(screen.getByTestId('pipeline-box-backward'));
+    expect(tabs[3]).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('アクティブなパイプラインボックスにdata-active="true"が付く', () => {
+    render(<SoftmaxCrossEntropyCodeProblem />);
+    // デフォルトQ1 → softmaxがアクティブ
+    expect(screen.getByTestId('pipeline-box-softmax')).toHaveAttribute('data-active', 'true');
+    expect(screen.getByTestId('pipeline-box-ce')).toHaveAttribute('data-active', 'false');
+
+    // Q2に切替
+    fireEvent.click(screen.getByTestId('pipeline-box-ce'));
+    expect(screen.getByTestId('pipeline-box-ce')).toHaveAttribute('data-active', 'true');
+    expect(screen.getByTestId('pipeline-box-softmax')).toHaveAttribute('data-active', 'false');
+  });
 });
 
 describe('AxisKeepdimsDemo', () => {
