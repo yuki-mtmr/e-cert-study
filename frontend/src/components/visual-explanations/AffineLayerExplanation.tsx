@@ -41,6 +41,17 @@ function BackwardShapes() {
     <section className="space-y-4">
       <h3 className="text-base font-bold">2. 行列形状ブロック図 — Backward</h3>
 
+      {/* doutの説明 */}
+      <div className="p-2.5 rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-xs space-y-1">
+        <div className="font-bold text-amber-800 dark:text-amber-200">
+          dout = ∂L/∂out（後ろの層から伝わってくる勾配）
+        </div>
+        <div className="text-amber-700 dark:text-amber-300">
+          Forwardで出力した out (N,M) に対して「lossをどれだけ変化させるか」を表す行列。
+          backwardでは、この dout を使って x, W, b それぞれの勾配を求める。
+        </div>
+      </div>
+
       {/* dx */}
       <div className="space-y-1">
         <div className="text-xs font-semibold text-gray-500">

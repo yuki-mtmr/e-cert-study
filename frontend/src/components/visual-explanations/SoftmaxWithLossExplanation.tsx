@@ -114,48 +114,92 @@ function CrossEntropySteps() {
   );
 
   return (
-    <section className="space-y-3">
+    <section className="space-y-4">
       <h3 className="text-base font-bold">2. クロスエントロピー計算ステップ</h3>
 
-      {/* softmax出力テーブル */}
-      <div className="overflow-x-auto">
-        <table className="text-sm border-collapse">
-          <thead>
-            <tr>
-              <th className="px-2 py-1 text-left text-xs text-gray-500">sample</th>
-              {[0, 1, 2].map((c) => (
-                <th key={c} className="px-2 py-1 text-xs text-gray-500">class {c}</th>
-              ))}
-              <th className="px-2 py-1 text-xs text-gray-500">-log(p)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {softmaxRows.map((row, i) => (
-              <tr key={i}>
-                <td className="px-2 py-1 font-mono text-xs">t={TEACHER_LABELS[i]}</td>
-                {row.map((v, c) => (
-                  <td
+      {/* ステップ1: softmax出力グリッド + ファンシーインデックス */}
+      <div className="space-y-2">
+        <div className="text-xs font-semibold text-gray-500">
+          Step 1: softmax出力 y — 正解クラスをピックアップ
+        </div>
+
+        {/* 教師ラベル表示 */}
+        <div className="flex items-center gap-2 text-xs">
+          <span className="text-gray-500">教師ラベル t =</span>
+          <div className="flex gap-1">
+            {TEACHER_LABELS.map((t, i) => (
+              <span
+                key={i}
+                className="w-7 h-7 flex items-center justify-center rounded-full bg-emerald-500 text-white font-bold text-xs"
+              >
+                {t}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* softmax出力グリッド（ファンシーインデックスのハイライト） */}
+        <div className="space-y-1">
+          {softmaxRows.map((row, i) => (
+            <div key={i} className="flex items-center gap-1">
+              <span className="w-14 text-xs text-gray-400 font-mono shrink-0">
+                y[{i}]
+              </span>
+              {row.map((v, c) => {
+                const isTarget = c === TEACHER_LABELS[i];
+                return (
+                  <div
                     key={c}
-                    className={`px-2 py-1 font-mono text-xs ${
-                      c === TEACHER_LABELS[i]
-                        ? 'bg-emerald-100 dark:bg-emerald-900/30 font-bold'
-                        : ''
-                    }`}
+                    className={`w-16 h-9 flex items-center justify-center rounded font-mono text-xs
+                      ${isTarget
+                        ? 'bg-emerald-500/20 border-2 border-emerald-500 font-bold text-emerald-700 dark:text-emerald-300'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
+                      }`}
                   >
                     {v.toFixed(3)}
-                  </td>
-                ))}
-                <td className="px-2 py-1 font-mono text-xs text-red-600 dark:text-red-400">
-                  {losses[i].toFixed(3)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  </div>
+                );
+              })}
+              {/* 矢印 → -log(p) */}
+              <span className="text-gray-400 mx-1">→</span>
+              <span className="text-xs font-mono text-red-500 dark:text-red-400">
+                -log({softmaxRows[i][TEACHER_LABELS[i]].toFixed(3)})
+              </span>
+              <span className="text-gray-400 mx-0.5">=</span>
+              <span className="text-xs font-mono font-bold text-red-600 dark:text-red-400">
+                {losses[i].toFixed(3)}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* インデックス説明 */}
+        <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+          <span className="font-mono">y[np.arange(3), t]</span>
+          <span>=</span>
+          <span className="font-mono">y[</span>
+          {TEACHER_LABELS.map((t, i) => (
+            <span key={i}>
+              <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">
+                [{i},{t}]
+              </span>
+              {i < 2 && <span className="text-gray-400">, </span>}
+            </span>
+          ))}
+          <span className="font-mono">]</span>
+        </div>
       </div>
 
-      <div className="text-sm font-mono">
-        Loss = mean = <span className="font-bold">{avgLoss.toFixed(3)}</span>
+      {/* ステップ2: 平均 → Loss */}
+      <div className="flex items-center gap-2 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+        <span className="text-xs text-gray-500">Step 2:</span>
+        <span className="text-sm font-mono">
+          Loss = ({losses.map((l) => l.toFixed(2)).join(' + ')}) / {losses.length}
+        </span>
+        <span className="text-lg text-gray-400">=</span>
+        <span className="text-sm font-mono font-bold text-red-600 dark:text-red-400">
+          {avgLoss.toFixed(3)}
+        </span>
       </div>
 
       <KeyPoint text="np.arange(N)とtで各サンプルの正解クラス確率だけを取得" />
@@ -213,25 +257,36 @@ function GradientBarChart() {
   const y = useMemo(() => softmax1D(GRADIENT_LOGITS), []);
   const bars = useMemo(() => computeGradient(y, GRADIENT_TEACHER, 1), [y]);
 
-  const maxAbs = Math.max(...bars.map((b) => Math.max(Math.abs(b.yValue), Math.abs(b.dxValue))));
-  const W = 300;
-  const H = 160;
-  const barW = 20;
-  const gap = 60;
-  const baseY = H * 0.6;
+  const maxAbs = Math.max(
+    1,
+    ...bars.map((b) => Math.max(Math.abs(b.yValue), Math.abs(b.tValue), Math.abs(b.dxValue))),
+  );
+  const W = 400;
+  const H = 180;
+  const barW = 18;
+  const groupW = barW * 3 + 8; // 3本 + gap
+  const groupGap = 30;
+  const baseY = H * 0.55;
+  const leftPad = 70;
 
-  const scale = (v: number) => (v / (maxAbs * 1.2)) * (H * 0.5);
+  const scale = (v: number) => (v / (maxAbs * 1.1)) * (baseY - 16);
 
   return (
     <section className="space-y-3">
       <h3 className="text-base font-bold">4. 勾配バーチャート</h3>
 
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-sm" role="img" aria-label="勾配バーチャート">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-md" role="img" aria-label="勾配バーチャート">
         {/* 0ライン */}
-        <line x1={20} y1={baseY} x2={W - 10} y2={baseY} stroke="currentColor" strokeOpacity={0.2} />
+        <line
+          x1={leftPad - 10} y1={baseY}
+          x2={W - 10} y2={baseY}
+          stroke="currentColor" strokeOpacity={0.25}
+          strokeDasharray="4,2"
+        />
+        <text x={leftPad - 14} y={baseY + 4} textAnchor="end" className="text-[9px] fill-gray-400">0</text>
 
         {bars.map((bar, i) => {
-          const cx = 50 + i * gap;
+          const gx = leftPad + i * (groupW + groupGap);
           const yH = scale(bar.yValue);
           const tH = scale(bar.tValue);
           const dxH = scale(bar.dxValue);
@@ -240,56 +295,86 @@ function GradientBarChart() {
             <g key={i}>
               {/* y (青) */}
               <rect
-                x={cx - barW * 1.5}
-                y={baseY - yH}
+                x={gx}
+                y={yH >= 0 ? baseY - yH : baseY}
                 width={barW}
-                height={Math.abs(yH)}
+                height={Math.max(1, Math.abs(yH))}
                 fill={PIPELINE_COLORS.softmax.hex}
-                opacity={0.8}
+                rx={2}
               />
+              <text
+                x={gx + barW / 2} y={baseY - yH - 3}
+                textAnchor="middle"
+                className="text-[8px] fill-blue-500"
+              >
+                {bar.yValue.toFixed(2)}
+              </text>
+
               {/* t (緑) */}
               <rect
-                x={cx - barW * 0.25}
-                y={baseY - tH}
+                x={gx + barW + 2}
+                y={tH >= 0 ? baseY - tH : baseY}
                 width={barW}
-                height={Math.abs(tH)}
+                height={Math.max(1, Math.abs(tH))}
                 fill={PIPELINE_COLORS.teacher.hex}
-                opacity={0.8}
+                rx={2}
               />
+              {bar.tValue > 0 && (
+                <text
+                  x={gx + barW + 2 + barW / 2} y={baseY - tH - 3}
+                  textAnchor="middle"
+                  className="text-[8px] fill-emerald-500"
+                >
+                  {bar.tValue.toFixed(0)}
+                </text>
+              )}
+
               {/* (y-t)/N (オレンジ) */}
               <rect
-                x={cx + barW}
+                x={gx + barW * 2 + 4}
                 y={dxH >= 0 ? baseY - dxH : baseY}
                 width={barW}
-                height={Math.abs(dxH)}
+                height={Math.max(1, Math.abs(dxH))}
                 fill={PIPELINE_COLORS.gradient.hex}
-                opacity={0.8}
+                rx={2}
               />
-              {/* ラベル */}
               <text
-                x={cx}
-                y={H - 4}
+                x={gx + barW * 2 + 4 + barW / 2}
+                y={dxH >= 0 ? baseY - dxH - 3 : baseY + Math.abs(dxH) + 10}
                 textAnchor="middle"
-                className="text-[10px] fill-gray-600 dark:fill-gray-300"
+                className="text-[8px] fill-amber-500"
+              >
+                {bar.dxValue >= 0 ? '+' : ''}{bar.dxValue.toFixed(2)}
+              </text>
+
+              {/* クラスラベル */}
+              <text
+                x={gx + groupW / 2 - 2}
+                y={H - 6}
+                textAnchor="middle"
+                className="text-[11px] fill-gray-600 dark:fill-gray-300"
               >
                 {bar.label}
+                {i === GRADIENT_TEACHER && (
+                  <tspan className="fill-emerald-500"> ★</tspan>
+                )}
               </text>
             </g>
           );
         })}
 
         {/* 凡例 */}
-        <g transform="translate(10, 10)" className="text-[9px]">
-          <rect width={10} height={10} fill={PIPELINE_COLORS.softmax.hex} opacity={0.8} />
-          <text x={14} y={9} className="fill-gray-600 dark:fill-gray-300">y</text>
-          <rect y={14} width={10} height={10} fill={PIPELINE_COLORS.teacher.hex} opacity={0.8} />
-          <text x={14} y={23} className="fill-gray-600 dark:fill-gray-300">t</text>
-          <rect y={28} width={10} height={10} fill={PIPELINE_COLORS.gradient.hex} opacity={0.8} />
-          <text x={14} y={37} className="fill-gray-600 dark:fill-gray-300">(y-t)/N</text>
+        <g transform={`translate(${W - 110}, 8)`} className="text-[10px]">
+          <rect width={10} height={10} fill={PIPELINE_COLORS.softmax.hex} rx={2} />
+          <text x={14} y={9} className="fill-gray-600 dark:fill-gray-300">y (予測)</text>
+          <rect y={15} width={10} height={10} fill={PIPELINE_COLORS.teacher.hex} rx={2} />
+          <text x={14} y={24} className="fill-gray-600 dark:fill-gray-300">t (正解)</text>
+          <rect y={30} width={10} height={10} fill={PIPELINE_COLORS.gradient.hex} rx={2} />
+          <text x={14} y={39} className="fill-gray-600 dark:fill-gray-300">(y-t)/N</text>
         </g>
       </svg>
 
-      <KeyPoint text="(y-t)/N — 予測が正解に近いほど勾配が小さい" />
+      <KeyPoint text="(y-t)/N — 正解クラス(★)だけ負の勾配 → 予測を正解に近づける方向に更新" />
     </section>
   );
 }
