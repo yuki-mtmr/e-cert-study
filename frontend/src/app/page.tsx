@@ -161,6 +161,22 @@ export default function Home() {
           </Link>
 
           <Link
+            href="/memorization"
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/20 p-6 hover:shadow-lg transition-shadow group"
+          >
+            <div className="flex items-center mb-4">
+              <span className="text-4xl mr-4">🧠</span>
+              <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 group-hover:text-blue-600">
+                暗記クイズ
+              </h2>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400">
+              公式・アーキテクチャを4択クイズで暗記。
+              カテゴリ別にE資格の重要事項を確認できます。
+            </p>
+          </Link>
+
+          <Link
             href="/mock-exam"
             className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/20 p-6 hover:shadow-lg transition-shadow group border-2 border-orange-200 dark:border-gray-700"
           >
