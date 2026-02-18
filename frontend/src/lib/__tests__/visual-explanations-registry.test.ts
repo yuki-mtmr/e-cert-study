@@ -164,4 +164,25 @@ describe('getVisualizations', () => {
     expect(vizList[1].description).toBeTruthy();
     expect(vizList[1].component).toBeDefined();
   });
+
+  it('dl-optimizer サブセクションで2件のビジュアルを返す', () => {
+    const result = getVisualizations('dl-optimizer');
+    expect(result).toHaveLength(2);
+  });
+
+  it('dl-optimizer の1番目: optimizer-explanation', () => {
+    const vizList = getVisualizations('dl-optimizer');
+    expect(vizList[0].id).toBe('optimizer-explanation');
+    expect(vizList[0].title).toBeTruthy();
+    expect(vizList[0].description).toBeTruthy();
+    expect(vizList[0].component).toBeDefined();
+  });
+
+  it('dl-optimizer の2番目: exam-q8-optimizer', () => {
+    const vizList = getVisualizations('dl-optimizer');
+    expect(vizList[1].id).toBe('exam-q8-optimizer');
+    expect(vizList[1].title).toBeTruthy();
+    expect(vizList[1].description).toBeTruthy();
+    expect(vizList[1].component).toBeDefined();
+  });
 });

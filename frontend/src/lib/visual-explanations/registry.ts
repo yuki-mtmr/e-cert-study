@@ -15,6 +15,8 @@ import { ExamQ6AffineLayer } from '@/components/visual-explanations/ExamQ6Affine
 import { SoftmaxWithLossExplanation } from '@/components/visual-explanations/SoftmaxWithLossExplanation';
 import { ActivationBackwardExplanation } from '@/components/visual-explanations/ActivationBackwardExplanation';
 import { AffineLayerExplanation } from '@/components/visual-explanations/AffineLayerExplanation';
+import { OptimizerExplanation } from '@/components/visual-explanations/OptimizerExplanation';
+import { ExamQ8Optimizer } from '@/components/visual-explanations/ExamQ8Optimizer';
 
 export interface VisualizationMeta {
   id: string;
@@ -147,6 +149,22 @@ const REGISTRY: Record<string, VisualizationMeta[]> = {
       description:
         'Affineレイヤーのforward/backwardを試験形式の4択で穴埋めします。',
       component: ExamQ6AffineLayer,
+    },
+  ],
+  'dl-optimizer': [
+    {
+      id: 'optimizer-explanation',
+      title: 'Optimizer ビジュアル解説（Momentum / NAG / PC）',
+      description:
+        'Momentum更新式の符号追跡、NAG先読みの仕組み、Pathological Curvatureの振動問題を図表で整理します。',
+      component: OptimizerExplanation,
+    },
+    {
+      id: 'exam-q8-optimizer',
+      title: '大問8: SGD最適化手法 コード問題',
+      description:
+        'Momentum・NAGの更新式とPathological Curvatureを試験形式の4択で穴埋めします。',
+      component: ExamQ8Optimizer,
     },
   ],
 };
