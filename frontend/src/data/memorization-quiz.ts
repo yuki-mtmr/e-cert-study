@@ -4,7 +4,7 @@ import type { MemorizationQuestion, QuizMeta } from '@/types/memorization';
 export const QUIZ_META: QuizMeta = {
   title: 'E資格過去問クイズ',
   version: '1.0',
-  totalQuestions: 50,
+  totalQuestions: 42,
   categories: [
     '最適化',
     '逆伝播・連鎖律',
@@ -24,7 +24,7 @@ export const QUIZ_META: QuizMeta = {
   ],
 };
 
-/** 暗記クイズ全50問 */
+/** 暗記クイズ全42問 */
 export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
   {
     id: 1,
@@ -54,19 +54,6 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
   },
   {
     id: 3,
-    category: '最適化',
-    question: 'Pathological Curvatureについて、以下のうち最も不適切な選択肢を一つ選べ。',
-    choices: [
-      'Pathological Curvatureを解決する方法の一つに、大きなミニバッチサイズを利用する方法がある。',
-      'Pathological Curvatureは、振動を起こしてしまうために、局所的な最小値に陥りやすくなる。',
-      'Pathological Curvatureでは、目的関数の減少量が非常に小さくなり、曲率が非常に大きくなることで学習が滞ってしまう。',
-      'Momentumは、過去の勾配の変化を利用して振動を抑えることを目的としており、Pathological Curvatureの問題を緩和する。',
-    ],
-    answer: 'B',
-    hint: 'Pathological Curvatureは谷が細長くて学習が遅くなる問題。局所最小値の問題とは別。',
-  },
-  {
-    id: 4,
     category: '逆伝播・連鎖律',
     question: '合成関数$g(f(x))$の$x$に対する微分を表す式として最も適切な選択肢を選べ。',
     choices: [
@@ -79,7 +66,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: '連鎖律：外側から微分 × 内側の微分 = $\\frac{\\partial g}{\\partial f} \\times \\frac{\\partial f}{\\partial x}$',
   },
   {
-    id: 5,
+    id: 4,
     category: '逆伝播・連鎖律',
     question: '3層全結合型NNで $L=(t-y)^2$, $y=w_2 \\sigma(w_1 x + b_1) + b_2$ のとき、$\\frac{\\partial L}{\\partial w_2}$=(あ)、$\\frac{\\partial L}{\\partial w_1}$=(い) の組み合わせとして最も適切な選択肢を選べ。',
     choices: [
@@ -92,7 +79,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: '$L=(t-y)^2$だから微分は$-2(t-y)$。$w_1$の勾配は連鎖律で奥に進む：$\\times w_2 \\times \\sigma\'(=h(1-h)) \\times x$',
   },
   {
-    id: 6,
+    id: 5,
     category: '確率・ベイズ',
     question: '事象$A$と事象$B$におけるベイズ則を示す式として最も適切な選択肢を選べ。',
     choices: [
@@ -105,7 +92,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: 'ベイズ則：$P(B|A) = \\frac{P(A|B)P(B)}{P(A)}$。左辺と分子・分母の対応を確認。',
   },
   {
-    id: 7,
+    id: 6,
     category: '確率・ベイズ',
     question: 'MAP推定の式として最も適切な選択肢を選べ。',
     choices: [
@@ -118,7 +105,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: 'MAP = 事後確率$p(\\theta|x)$を最大化。Aは$p(x|\\theta)$で尤度のみ=最尤推定。',
   },
   {
-    id: 8,
+    id: 7,
     category: '情報理論',
     question: 'エントロピー$H(X)$=(あ)、交差エントロピー$H$=(い) の組み合わせとして最も適切な選択肢を選べ。',
     choices: [
@@ -131,7 +118,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: 'エントロピー：$-\\sum P(x)\\log P(x)$。交差エントロピー：$-\\sum P(x)\\log Q(x)$。$Q$に変わるだけ。',
   },
   {
-    id: 9,
+    id: 8,
     category: '情報理論',
     question: '自己情報量$I(A)$=(あ)、相互情報量$I(X;Y)$=(い) の組み合わせとして最も適切な選択肢を選べ。',
     choices: [
@@ -144,7 +131,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: '自己情報量は$-\\log_2 P(A)$。相互情報量は常に非負で符号は$+$。',
   },
   {
-    id: 10,
+    id: 9,
     category: '情報理論',
     question: '条件付きエントロピー$H(X|Y)$の式として最も適切な選択肢を選べ。',
     choices: [
@@ -157,7 +144,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: '$H(X|Y)$のlogの中は$P(x|y)$。エントロピーだから$-$符号。',
   },
   {
-    id: 11,
+    id: 10,
     category: '情報理論',
     question: '結合エントロピー$H(X,Y)$ = (あ) を満たす式として正しいものを選べ。',
     choices: [
@@ -170,20 +157,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: 'ベン図と同じ：個別の合計から重複（相互情報量）を引く。',
   },
   {
-    id: 12,
-    category: '情報理論',
-    question: 'KLダイバージェンスについて、以下のうち最も適切な選択肢を選べ。',
-    choices: [
-      '$D_{KL}(p||q) = \\int P(x)\\log\\frac{Q(x)}{P(x)}dx$',
-      '同じ確率分布間のKLダイバージェンスの値は0になる。',
-      '相互情報量$I(X;Y)$は、$I(X;Y)=D_{KL}(P(x,y)||P(x)P(y))$と表すことができる。',
-      'KLダイバージェンスを平滑化した指標は相対エントロピーと呼ばれている。',
-    ],
-    answer: 'A',
-    hint: 'Aはlog内が逆（$Q/P$）。正しくは$\\log(P/Q)$。B,C,Dは全て正しい。不適切を選ぶならA。※問題文が「最も適切」なら注意。',
-  },
-  {
-    id: 13,
+    id: 11,
     category: '情報理論',
     question: 'JSダイバージェンスの式として最も適切な選択肢を選べ。$m = \\frac{1}{2}P(x) + \\frac{1}{2}Q(x)$ とする。',
     choices: [
@@ -196,7 +170,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: 'JS = $\\frac{1}{2}$ × 各分布から中間分布$m$へのKL。$\\frac{1}{2}$が付く + 引数は$p||m$と$q||m$。',
   },
   {
-    id: 14,
+    id: 12,
     category: '距離・類似度',
     question: '点$a,b$のユークリッド距離(あ)、マンハッタン距離(い)、$L_p$距離(う)の組み合わせとして最も適切な選択肢を選べ。（差は$(3,4)$）',
     choices: [
@@ -209,7 +183,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: 'ユークリッド=$\\sqrt{9+16}=5$、マンハッタン=$3+4=7$、$L_p=(\\sum|x_i|^p)^{1/p}$。',
   },
   {
-    id: 15,
+    id: 13,
     category: '距離・類似度',
     question: '$\\mathbf{x}=(0,4), \\mathbf{y}=(3,4)$のコサイン類似度(あ)とマハラノビス距離(い)の組み合わせとして最も適切な選択肢を選べ。',
     choices: [
@@ -222,7 +196,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: 'コサイン類似度=$\\frac{0 \\cdot 3+4 \\cdot 4}{4 \\cdot 5}=\\frac{16}{20}=0.8$。マハラノビスは$(\\mathbf{x}-\\mathbf{y})$と$\\Sigma^{-1}$（逆行列）。',
   },
   {
-    id: 16,
+    id: 14,
     category: '機械学習の基礎',
     question: 'バイアス²、バリアンス、ノイズの式の組み合わせとして最も適切な選択肢を選べ。',
     choices: [
@@ -235,7 +209,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: 'バイアス=期待値vs真の値、バリアンス=モデルのばらつき、ノイズ=真の値vsデータ。',
   },
   {
-    id: 17,
+    id: 15,
     category: '機械学習の基礎',
     question: '(あ)MAE、(い)MSE、(う)RMSEの計算式の組み合わせとして最も適切な選択肢を選べ。',
     choices: [
@@ -248,7 +222,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: 'MAE=絶対値、MSE=二乗、RMSE=$\\sqrt{\\text{MSE}}$（全体にルート）。名前そのまま。',
   },
   {
-    id: 18,
+    id: 16,
     category: 'ニューラルネットワーク基礎',
     question: '多層パーセプトロンで活性化関数(あ)と出力層の式(い)の組み合わせとして最も適切な選択肢を選べ。',
     choices: [
@@ -261,7 +235,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: 'シグモイド=$\\frac{1}{1+e^{-x}}$。出力は重み付き和+バイアス（加算、掛け算ではない）。',
   },
   {
-    id: 19,
+    id: 17,
     category: '最適化',
     question: '確率的勾配降下法（SGD）のミニバッチ更新式として最も適切な選択肢を選べ。',
     choices: [
@@ -274,7 +248,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: 'SGDの基本形：$\\theta = \\theta - \\eta \\nabla J$。$\\theta$から学習率×勾配を引く。',
   },
   {
-    id: 20,
+    id: 18,
     category: '逆伝播・連鎖律',
     question: '全結合層の計算グラフ($y=X \\cdot W$)で、$X$への勾配(あ)と$W$への勾配(い)の組み合わせとして最も適切な選択肢を選べ。',
     choices: [
@@ -287,7 +261,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: '転置は相方の側に付く。$X$勾配=$\\frac{\\partial L}{\\partial y} \\cdot W^T$、$W$勾配=$X^T \\cdot \\frac{\\partial L}{\\partial y}$。',
   },
   {
-    id: 21,
+    id: 19,
     category: '逆伝播・連鎖律',
     question: 'シグモイド層の計算グラフで、×ノード(あ)と+ノード(い)の逆伝播の組み合わせとして最も適切な選択肢を選べ。',
     choices: [
@@ -300,7 +274,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: '$1/u$の微分=$-y^2$。expノードは$e^{-x}$を掛ける。+ノードはそのまま通す。',
   },
   {
-    id: 22,
+    id: 20,
     category: '最適化',
     question: 'AdaGradの$G_{t,i}$=(あ)とRMSPropの$G_{t,i}$=(い)の組み合わせとして最も適切な選択肢を選べ。',
     choices: [
@@ -313,7 +287,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: 'AdaGrad=単純累積($\\gamma$なし)、RMSProp=指数移動平均($\\gamma$付き)。どちらも$g^2$。',
   },
   {
-    id: 23,
+    id: 21,
     category: '最適化',
     question: 'Adamの更新式で $m_t$=(あ)、$v_t$=(い) の組み合わせとして最も適切な選択肢を選べ。',
     choices: [
@@ -326,7 +300,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: '$m_t$=1次モーメント(勾配の移動平均、二乗なし)、$v_t$=2次モーメント(勾配二乗の移動平均)。符号はどちらも$+$。',
   },
   {
-    id: 24,
+    id: 22,
     category: '正則化・初期化',
     question: 'Xavier法とHe法のパラメータ初期化について最も適切な選択肢を選べ。',
     choices: [
@@ -339,7 +313,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: 'Xavier=両方$(n_{in}+n_{out})$=sigmoid/tanh、He=入力だけ$(n_{in})$=ReLU。',
   },
   {
-    id: 25,
+    id: 23,
     category: '正則化・初期化',
     question: 'ドロップアウトとドロップコネクトについて、図(あ)と式(う)の組み合わせとして最も適切な選択肢を選べ。',
     choices: [
@@ -352,7 +326,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: 'ドロップアウト=ノード消す=出力にマスク $r \\odot (Wx)$。ドロップコネクト=重みマスク $(r \\odot W)x$。',
   },
   {
-    id: 26,
+    id: 24,
     category: 'CNN',
     question: '入力$7 \\times 7$、フィルタ$3 \\times 3$、ストライド$1$の畳み込み後の出力サイズ(あ)と一般化した出力サイズの式(い)として最も適切な選択肢を選べ。',
     choices: [
@@ -365,7 +339,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: '$(7-3)/1+1=5$。一般式は$\\lfloor(W+2P-FW)/S\\rfloor+1$。',
   },
   {
-    id: 27,
+    id: 25,
     category: 'RNN・LSTM・GRU',
     question: 'RNNの計算グラフの一部を表した図として最も適切な選択肢を選べ。',
     choices: [
@@ -378,7 +352,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: 'RNNは各時刻で入力→隠れ層→出力、隠れ層は前の時刻から一方向に接続。',
   },
   {
-    id: 28,
+    id: 26,
     category: 'RNN・LSTM・GRU',
     question: 'RNNの順伝播で状態$h$の入力 $z^h_t$ = (あ) に当てはまる式として最も適切な選択肢を選べ。',
     choices: [
@@ -391,7 +365,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: '隠れ状態=現在の入力$x_t$と前の隠れ状態$h_{t-1}$の線形結合。',
   },
   {
-    id: 29,
+    id: 27,
     category: 'RNN・LSTM・GRU',
     question: 'BPTT法で $\\frac{dL}{dW^{yh}}$=(あ)、$\\frac{dL}{dW^{hh}}$=(い) の組み合わせとして最も適切な選択肢を選べ。',
     choices: [
@@ -404,20 +378,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: '$W^{yh}$勾配: $z^y=W^{yh}h_t$だから$\\frac{dL}{dz^y_t} \\cdot h_t^T$。$W^{hh}$勾配: $z^h=W^{hh}h_{t-1}+...$だから$\\frac{dL}{dz^h_t} \\cdot h_{t-1}^T$。',
   },
   {
-    id: 30,
-    category: 'RNN・LSTM・GRU',
-    question: 'LSTMの(あ)ゲートと(い)活性化関数の組み合わせとして最も適切な選択肢を選べ。',
-    choices: [
-      '(あ)忘却 (い)tanh関数',
-      '(あ)リセット (い)tanh関数',
-      '(あ)忘却 (い)シグモイド関数',
-      '(あ)リセット (い)シグモイド関数',
-    ],
-    answer: 'C',
-    hint: '$c_{t-1}$の保持を制御→忘却ゲート（リセットはGRU）。ゲート=0〜1→シグモイド。',
-  },
-  {
-    id: 31,
+    id: 28,
     category: 'RNN・LSTM・GRU',
     question: 'LSTMの $c_t$=(あ)、$y_t=h_t$=(い) の組み合わせとして最も適切な選択肢を選べ。',
     choices: [
@@ -430,20 +391,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: '$c_t$=忘却×前セル+入力×候補。$h_t$=出力ゲート×$\\tanh(c_t)$。',
   },
   {
-    id: 32,
-    category: 'RNN・LSTM・GRU',
-    question: 'GRUの$z_t$の役割(あ)と使用する活性化関数(い)の組み合わせとして最も適切な選択肢を選べ。',
-    choices: [
-      '(あ)リセットゲート、前の情報の保持を制御 (い)tanh関数',
-      '(あ)リセットゲート、前の情報の保持を制御 (い)シグモイド関数',
-      '(あ)更新ゲート、情報の更新量を制御 (い)tanh関数',
-      '(あ)更新ゲート、情報の更新量を制御 (い)シグモイド関数',
-    ],
-    answer: 'C',
-    hint: '$z_t$=更新ゲート（前状態と新状態の混合比率）。ゲート=シグモイド。※問題の選択肢確認。',
-  },
-  {
-    id: 33,
+    id: 29,
     category: 'RNN・LSTM・GRU',
     question: 'GRUの $\\hat{h}_t$=(あ)、$h_t$=(い) の組み合わせとして最も適切な選択肢を選べ。',
     choices: [
@@ -456,7 +404,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: '$\\hat{h}_t$=候補状態で$\\tanh$。$h_t=(1-z_t) \\odot h_{t-1} + z_t \\odot \\hat{h}_t$（更新ゲートで混合）。',
   },
   {
-    id: 34,
+    id: 30,
     category: 'Transformer',
     question: 'Scaled Dot-Product Attentionの式として最も適切な選択肢を選べ。',
     choices: [
@@ -469,7 +417,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: '$QK^T$（$Q$と$K$の内積）+ スケーリング$\\sqrt{d_k}$ + 最後に$V$を掛ける。',
   },
   {
-    id: 35,
+    id: 31,
     category: 'Transformer',
     question: 'Transformerのエンコーダとデコーダの構造図として最も適切な選択肢を選べ。',
     choices: [
@@ -482,7 +430,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: 'エンコーダ: MHA→FF。デコーダ: Masked MHA→Cross MHA→FF。',
   },
   {
-    id: 36,
+    id: 32,
     category: '正則化・初期化',
     question: 'バッチ正規化の分散$\\sigma^2$=(あ)と正規化$\\hat{x}_i$=(い)の組み合わせとして最も適切な選択肢を選べ。',
     choices: [
@@ -495,7 +443,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: '分散=$(x_i - \\mu)^2$の平均。正規化=$\\frac{x_i - \\mu}{\\sqrt{\\sigma^2 + \\varepsilon}}$。引き算+$\\sigma^2$にルート。',
   },
   {
-    id: 37,
+    id: 33,
     category: 'CNN',
     question: '残差ブロック（ResNet）の図として適切なものを選べ。',
     choices: [
@@ -508,7 +456,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: '残差接続=入力$x$をスキップして出力に加算→$F(x)+x$。',
   },
   {
-    id: 38,
+    id: 34,
     category: '物体検出',
     question: 'Fast R-CNNのMulti-task lossの式として最も適切な選択肢を選べ。',
     choices: [
@@ -521,7 +469,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: '$u \\geq 1$で物体あり（$u=0$は背景）。$L_{cls}$はそのまま、$L_{loc}$は$\\lambda$付きで物体ある時だけ。',
   },
   {
-    id: 39,
+    id: 35,
     category: '物体検出',
     question: 'YOLOの損失関数で、矩形の大きさの誤差(あ)と物体不在の信頼度(い)の組み合わせとして最も適切な選択肢を選べ。',
     choices: [
@@ -534,7 +482,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: '矩形サイズはルート付き($\\sqrt{w}$)で大小バランス。信頼度は物体あり+なし両方。',
   },
   {
-    id: 40,
+    id: 36,
     category: '生成モデル',
     question: 'GANの学習を最適化問題として定式化した式として最も適切な選択肢を選べ。',
     choices: [
@@ -547,7 +495,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: '$G$は$\\min$、$D$は$\\max$。第1項:本物に$D$→$\\log D(x)$。第2項:偽物に$1-D(G(z))$。',
   },
   {
-    id: 41,
+    id: 37,
     category: '生成モデル',
     question: 'Wasserstein距離の定義式として最も適切な選択肢を選べ。',
     choices: [
@@ -560,20 +508,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: 'Wasserstein距離=最適輸送コストの下限→$\\inf_\\gamma$。期待値は結合分布$\\gamma$の下で。',
   },
   {
-    id: 42,
-    category: '強化学習',
-    question: 'モンテカルロ法のデメリット(あ)とTD学習の更新式(い)の組み合わせとして最も適切な選択肢を選べ。',
-    choices: [
-      '(あ)エピソード終了まで更新不可 (い)$V\'(S_t) = V(S_t) + \\alpha\\{G_t - V(S_t)\\}$',
-      '(あ)全エピソードで計算膨大 (い)$V\'(S_t) = V(S_t) + \\alpha\\{G_t - V(S_t)\\}$',
-      '(あ)エピソード終了まで更新不可 (い)$V\'(S_t) = V(S_t) + \\alpha\\{R_t + \\gamma V(S_{t+1}) - V(S_t)\\}$',
-      '(あ)全エピソードで計算膨大 (い)$V\'(S_t) = V(S_t) + \\alpha\\{R_t + \\gamma V(S_{t+1}) - V(S_t)\\}$',
-    ],
-    answer: 'C',
-    hint: 'MC法=エピソード終了まで待つ必要あり。TD=ブートストラップでステップごと更新。',
-  },
-  {
-    id: 43,
+    id: 38,
     category: '強化学習',
     question: 'Q学習の更新式として最も適切な選択肢を選べ。',
     choices: [
@@ -586,33 +521,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: "Q学習=方策オフ。$R_t + \\gamma \\max_{a'}\\hat{Q}(s_{t+1},a')$がTDターゲット。",
   },
   {
-    id: 44,
-    category: '強化学習',
-    question: '方策勾配定理の式(あ)と問題点(い)の組み合わせとして最も適切な選択肢を選べ。',
-    choices: [
-      '(あ)$\\nabla_\\theta \\log\\pi(a|s,\\theta)(Q(s,a)-b(s))$  (い)計算コストが非常に高い',
-      '(あ)$\\nabla_\\theta \\log\\pi(a|s,\\theta)(Q(s,a)-b(s))$  (い)解析的に求められない',
-      '(あ)$E_\\pi[\\nabla_\\theta \\log\\pi(a|s,\\theta)(Q(s,a)-b(s))]$  (い)計算コストが非常に高い',
-      '(あ)$E_\\pi[\\nabla_\\theta \\log\\pi(a|s,\\theta)(Q(s,a)-b(s))]$  (い)解析的に求められない',
-    ],
-    answer: 'D',
-    hint: '方策勾配=期待値$E_\\pi$の形。問題点=期待値なので解析的に求められない→サンプリング近似。',
-  },
-  {
-    id: 45,
-    category: '強化学習',
-    question: 'Actor-Criticの(あ)具体的な手法と(い)Criticの定義の組み合わせとして最も適切な選択肢を選べ。',
-    choices: [
-      '(あ)方策と価値を並行して同時に学習 (い)価値ベースで学習した$Q_{\\theta\'}(s,a)$',
-      '(あ)方策と価値を並行して同時に学習 (い)報酬の予測モデル$\\nabla_\\theta \\log\\pi(a_t|s_t)$',
-      '(あ)方策と価値を交互に学習 (い)価値ベースで学習した$Q_{\\theta\'}(s,a)$',
-      '(あ)方策と価値を交互に学習 (い)報酬の予測モデル$\\nabla_\\theta \\log\\pi(a_t|s_t)$',
-    ],
-    answer: 'A',
-    hint: 'Actor-Critic=方策と価値を並行（同時）に学習。Critic=価値ベースの$Q$関数。',
-  },
-  {
-    id: 46,
+    id: 39,
     category: '説明可能AI',
     question: 'LIMEの説明モデル$g(z)$=(あ)と画像での適用(い)の組み合わせとして最も適切な選択肢を選べ。',
     choices: [
@@ -625,7 +534,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: '$g(z)=\\phi_0+\\sum\\phi_i z_i$（切片あり線形モデル）。画像=スーパーピクセル（似た領域の集合）。',
   },
   {
-    id: 47,
+    id: 40,
     category: '説明可能AI',
     question: 'LIMEの目的関数(あ)と第2項の役割(い)の組み合わせとして最も適切な選択肢を選べ。',
     choices: [
@@ -638,7 +547,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: '最小化対象は$\\phi$。L1正則化$\\lambda\\sum|\\phi_i|$→スパース化=一部の寄与度を0にする。',
   },
   {
-    id: 48,
+    id: 41,
     category: '物体検出',
     question: 'SSDの損失関数(あ)と背景の分類誤差(い)の組み合わせとして最も適切な選択肢を選べ。',
     choices: [
@@ -651,7 +560,7 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     hint: 'SSD: $L_{conf}$が$\\frac{1}{N}$、$L_{loc}$が$\\alpha$。背景誤差=$\\log(\\hat{C}_i^0)$（クラス0=背景、$x^p_{ij}$なし）。',
   },
   {
-    id: 49,
+    id: 42,
     category: '物体検出',
     question: 'FCOSのセンターネス(あ)とクラス分類の損失関数(い)の組み合わせとして最も適切な選択肢を選べ。',
     choices: [
@@ -662,18 +571,5 @@ export const MEMORIZATION_QUESTIONS: MemorizationQuestion[] = [
     ],
     answer: 'A',
     hint: 'センターネス=$\\min/\\max$（中心に近いほど1）。$L_{cls}$=focal loss（クラス不均衡対策）。',
-  },
-  {
-    id: 50,
-    category: '生成モデル',
-    question: 'GANの問題点について、以下のうち最も不適切な選択肢を選べ。',
-    choices: [
-      'モード崩壊とは、生成器が特定のデータしか生成しなくなる問題。',
-      '正規化なしで学習すると画像内の特定の傾向を学習してしまう場合がある。',
-      '生成器と識別器が適切な均衡点に収束しない場合がある。',
-      '識別器が生成器より優れている場合、勾配が消失し学習できなくなる。',
-    ],
-    answer: 'B',
-    hint: 'BはGAN特有の問題ではなく一般的なNN学習の話。A,C,DはGAN固有の課題。',
   },
 ];
