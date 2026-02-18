@@ -357,14 +357,27 @@ function NagLookaheadSection() {
         </table>
       </div>
 
-      <div className="text-xs text-gray-700 dark:text-gray-300">
-        NAGの核心は「まず慣性で進んだ先（θ − γv）で勾配を測る」こと。
-        これにより、行き過ぎそうなときに事前にブレーキをかけられる。
+      {/* NAG先読み位置の解説 */}
+      <div className="space-y-2 text-xs text-gray-700 dark:text-gray-300">
+        <p>
+          NAGの核心は「まず慣性で進んだ先（θ − γv）で勾配を測る」こと。
+          これにより、行き過ぎそうなときに事前にブレーキをかけられる。
+        </p>
+        <p>
+          なぜ θ − γv であって θ − v ではないのか？
+          γで速度vをスケーリングすることで先読み量を調整している。
+          γ=0.9なら速度の90%分だけ先を見る。γなしの θ − v は
+          速度をそのまま使うため先読み量の制御ができず、NAGの正しい定式化ではない。
+        </p>
+        <p>
+          注意: (1-γ)パターン（例: v = (1-γ)v + γ·新値）は指数移動平均の定式化であり別概念。
+          NAGの先読み θ − γv の γ とは役割が異なる。混同しないこと。
+        </p>
       </div>
 
       {/* 即答ポイント */}
       <div className="p-2.5 rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-xs text-amber-800 dark:text-amber-200">
-        ∇J(...)の引数がθでないのはDだけ → 即答
+        先読み位置は θ − γv。γ付きが正しい。θ − v（γなし）は誤り
       </div>
     </section>
   );

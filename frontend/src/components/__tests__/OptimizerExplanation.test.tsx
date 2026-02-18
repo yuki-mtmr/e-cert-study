@@ -60,10 +60,24 @@ describe('OptimizerExplanation', () => {
     expect(thTexts).toContainEqual('NAG');
   });
 
-  it('セクション2に即答ポイントが表示される', () => {
+  it('セクション2に即答ポイントが表示される（θ - γv が正しい先読み位置）', () => {
     render(<OptimizerExplanation />);
     expect(
-      screen.getByText(/∇J.*引数.*θでない.*D.*即答/),
+      screen.getByText(/先読み位置.*θ.*γv.*γ付き.*正しい/),
+    ).toBeInTheDocument();
+  });
+
+  it('セクション2にNAG先読み位置の解説がある（なぜγvであってvではないか）', () => {
+    render(<OptimizerExplanation />);
+    expect(
+      screen.getByText(/γ.*速度.*スケーリング.*先読み量.*調整/),
+    ).toBeInTheDocument();
+  });
+
+  it('セクション2に(1-γ)パターンとの違いが説明されている', () => {
+    render(<OptimizerExplanation />);
+    expect(
+      screen.getByText(/\(1-γ\).*指数移動平均.*別概念/),
     ).toBeInTheDocument();
   });
 
