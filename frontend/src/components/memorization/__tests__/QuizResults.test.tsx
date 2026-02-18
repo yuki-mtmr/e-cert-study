@@ -3,6 +3,11 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { QuizResults } from '../QuizResults';
 import type { QuizSessionResult, MemorizationQuestion } from '@/types/memorization';
 
+// MarkdownRendererをモック: contentをそのままspan表示
+vi.mock('@/components/MarkdownRenderer', () => ({
+  MarkdownRenderer: ({ content }: { content: string }) => <span data-testid="markdown">{content}</span>,
+}));
+
 const QUESTIONS: MemorizationQuestion[] = [
   { id: 1, category: '最適化', question: 'Q1', choices: ['A', 'B', 'C', 'D'], answer: 'A', hint: 'H1' },
   { id: 2, category: 'CNN', question: 'Q2', choices: ['A', 'B', 'C', 'D'], answer: 'B', hint: 'H2' },
@@ -61,6 +66,21 @@ describe('QuizResults', () => {
     );
     expect(screen.getByText('Q2')).toBeInTheDocument();
     expect(screen.getByText('Q3')).toBeInTheDocument();
+  });
+
+  it('間違い一覧でMarkdownRendererを使用', () => {
+    render(
+      <QuizResults
+        result={SESSION_RESULT}
+        questions={QUESTIONS}
+        onRetry={vi.fn()}
+        onReset={vi.fn()}
+        hasIncorrect={true}
+      />,
+    );
+    const markdownElements = screen.getAllByTestId('markdown');
+    // 間違い2問 × (問題文1 + ヒント1) = 4
+    expect(markdownElements.length).toBe(4);
   });
 
   it('間違いだけ再挑戦ボタンが動作する', () => {

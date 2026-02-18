@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import type { MemorizationQuestion, QuizAnswerLabel, UserAnswer } from '@/types/memorization';
+import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 
 const LABELS: QuizAnswerLabel[] = ['A', 'B', 'C', 'D'];
 
@@ -12,7 +12,6 @@ interface QuizQuestionProps {
 }
 
 export function QuizQuestion({ question, lastAnswer, onAnswer }: QuizQuestionProps) {
-  const [showHint, setShowHint] = useState(false);
   const answered = lastAnswer !== null;
 
   /**
@@ -43,9 +42,7 @@ export function QuizQuestion({ question, lastAnswer, onAnswer }: QuizQuestionPro
       </span>
 
       {/* 問題文 */}
-      <p className="text-gray-800 dark:text-gray-200 mb-4 whitespace-pre-wrap leading-relaxed">
-        {question.question}
-      </p>
+      <MarkdownRenderer content={question.question} className="text-gray-800 dark:text-gray-200 mb-4 leading-relaxed" />
 
       {/* 回答フィードバック */}
       {answered && (
@@ -64,22 +61,16 @@ export function QuizQuestion({ question, lastAnswer, onAnswer }: QuizQuestionPro
             disabled={answered}
           >
             <span className="font-medium mr-2">{label}.</span>
-            {question.choices[i]}
+            <MarkdownRenderer content={question.choices[i]} className="inline" />
           </button>
         ))}
       </div>
 
-      {/* ヒント */}
-      <button
-        className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-        onClick={() => setShowHint(!showHint)}
-      >
-        ヒント
-      </button>
-      {showHint && (
-        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded">
-          {question.hint}
-        </p>
+      {/* 回答後にヒントを自動表示 */}
+      {answered && (
+        <div className="mt-2 text-sm text-gray-600 dark:text-gray-400 bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded">
+          <MarkdownRenderer content={question.hint} />
+        </div>
       )}
     </div>
   );

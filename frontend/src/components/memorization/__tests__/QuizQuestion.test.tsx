@@ -3,6 +3,11 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { QuizQuestion } from '../QuizQuestion';
 import type { MemorizationQuestion, UserAnswer } from '@/types/memorization';
 
+// MarkdownRendererをモック: contentをそのままspan表示
+vi.mock('@/components/MarkdownRenderer', () => ({
+  MarkdownRenderer: ({ content }: { content: string }) => <span data-testid="markdown">{content}</span>,
+}));
+
 const QUESTION: MemorizationQuestion = {
   id: 1,
   category: '最適化',
@@ -54,12 +59,22 @@ describe('QuizQuestion', () => {
     expect(screen.getByText('×')).toBeInTheDocument();
   });
 
-  it('ヒントボタンでヒント表示をトグル', () => {
+  it('回答前はヒントが非表示', () => {
     render(<QuizQuestion question={QUESTION} lastAnswer={null} onAnswer={vi.fn()} />);
     expect(screen.queryByText('ヒントテキスト')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByText('ヒント'));
+  });
+
+  it('回答後にヒントが自動表示される', () => {
+    const answer: UserAnswer = { questionId: 1, selected: 'A', isCorrect: false };
+    render(<QuizQuestion question={QUESTION} lastAnswer={answer} onAnswer={vi.fn()} />);
     expect(screen.getByText('ヒントテキスト')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('ヒント'));
-    expect(screen.queryByText('ヒントテキスト')).not.toBeInTheDocument();
+  });
+
+  it('MarkdownRendererで問題文・選択肢・ヒントを表示', () => {
+    const answer: UserAnswer = { questionId: 1, selected: 'B', isCorrect: true };
+    render(<QuizQuestion question={QUESTION} lastAnswer={answer} onAnswer={vi.fn()} />);
+    const markdownElements = screen.getAllByTestId('markdown');
+    // 問題文(1) + 選択肢(4) + ヒント(1) = 6
+    expect(markdownElements.length).toBe(6);
   });
 });

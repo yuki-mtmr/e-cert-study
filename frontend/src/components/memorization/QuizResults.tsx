@@ -1,5 +1,6 @@
 import type { QuizSessionResult, MemorizationQuestion } from '@/types/memorization';
 import { calculateCategoryStats, getIncorrectQuestions } from '@/lib/memorization-quiz';
+import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 
 interface QuizResultsProps {
   result: QuizSessionResult;
@@ -55,14 +56,14 @@ export function QuizResults({ result, questions, onRetry, onReset, hasIncorrect 
               const userAnswer = result.answers.find((a) => a.questionId === q.id);
               return (
                 <div key={q.id} className="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg text-sm">
-                  <p className="text-gray-800 dark:text-gray-200 mb-1 whitespace-pre-wrap">{q.question}</p>
+                  <MarkdownRenderer content={q.question} className="text-gray-800 dark:text-gray-200 mb-1" />
                   <p className="text-red-600 dark:text-red-400">
                     あなたの回答: {userAnswer?.selected}
                   </p>
                   <p className="text-green-600 dark:text-green-400">
                     正解: {q.answer}
                   </p>
-                  <p className="text-gray-500 dark:text-gray-400 mt-1">{q.hint}</p>
+                  <MarkdownRenderer content={q.hint} className="text-gray-500 dark:text-gray-400 mt-1" />
                 </div>
               );
             })}
