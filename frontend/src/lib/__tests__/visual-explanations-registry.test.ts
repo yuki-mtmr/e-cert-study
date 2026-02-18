@@ -99,22 +99,43 @@ describe('getVisualizations', () => {
     expect(vizList[0].component).toBeDefined();
   });
 
-  it('dl-loss の2番目: softmax-ce-code-problem', () => {
+  it('dl-loss の2番目: exam-q4-softmax-loss', () => {
     const vizList = getVisualizations('dl-loss');
-    expect(vizList[1].id).toBe('softmax-ce-code-problem');
+    expect(vizList[1].id).toBe('exam-q4-softmax-loss');
     expect(vizList[1].title).toBeTruthy();
     expect(vizList[1].description).toBeTruthy();
     expect(vizList[1].component).toBeDefined();
   });
 
-  it('dl-activation サブセクションで1件のビジュアルを返す', () => {
+  it('dl-activation サブセクションで2件のビジュアルを返す', () => {
     const result = getVisualizations('dl-activation');
-    expect(result).toHaveLength(1);
+    expect(result).toHaveLength(2);
   });
 
   it('dl-activation の1番目: activation-function-explorer', () => {
     const vizList = getVisualizations('dl-activation');
     expect(vizList[0].id).toBe('activation-function-explorer');
+    expect(vizList[0].title).toBeTruthy();
+    expect(vizList[0].description).toBeTruthy();
+    expect(vizList[0].component).toBeDefined();
+  });
+
+  it('dl-activation の2番目: exam-q5-activation-backward', () => {
+    const vizList = getVisualizations('dl-activation');
+    expect(vizList[1].id).toBe('exam-q5-activation-backward');
+    expect(vizList[1].title).toBeTruthy();
+    expect(vizList[1].description).toBeTruthy();
+    expect(vizList[1].component).toBeDefined();
+  });
+
+  it('dl-ffnn サブセクションで1件のビジュアルを返す', () => {
+    const result = getVisualizations('dl-ffnn');
+    expect(result).toHaveLength(1);
+  });
+
+  it('dl-ffnn の1番目: exam-q6-affine-layer', () => {
+    const vizList = getVisualizations('dl-ffnn');
+    expect(vizList[0].id).toBe('exam-q6-affine-layer');
     expect(vizList[0].title).toBeTruthy();
     expect(vizList[0].description).toBeTruthy();
     expect(vizList[0].component).toBeDefined();

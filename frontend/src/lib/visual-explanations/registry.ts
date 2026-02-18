@@ -9,7 +9,9 @@ import { MetricRelationshipMap } from '@/components/visual-explanations/MetricRe
 import { RegressionMetrics } from '@/components/visual-explanations/RegressionMetrics';
 import { LossActivationGuide } from '@/components/visual-explanations/LossActivationGuide';
 import { ActivationFunctionExplorer } from '@/components/visual-explanations/ActivationFunctionExplorer';
-import { SoftmaxCrossEntropyCodeProblem } from '@/components/visual-explanations/SoftmaxCrossEntropyCodeProblem';
+import { ExamQ4SoftmaxLoss } from '@/components/visual-explanations/ExamQ4SoftmaxLoss';
+import { ExamQ5ActivationBackward } from '@/components/visual-explanations/ExamQ5ActivationBackward';
+import { ExamQ6AffineLayer } from '@/components/visual-explanations/ExamQ6AffineLayer';
 
 export interface VisualizationMeta {
   id: string;
@@ -87,15 +89,15 @@ const REGISTRY: Record<string, VisualizationMeta[]> = {
       id: 'loss-activation-guide',
       title: '損失関数×活性化関数の組み合わせガイド',
       description:
-        '2値分類・多クラス分類・マルチラベル分類・順序回帰の正しい組み合わせと、よくある誤解を整理します。',
+        '2値分類・多クラス分類・マルチラベル分類の正しい組み合わせと見分け方を整理します。',
       component: LossActivationGuide,
     },
     {
-      id: 'softmax-ce-code-problem',
-      title: 'Softmax + クロスエントロピー コード問題解説',
+      id: 'exam-q4-softmax-loss',
+      title: '大問4: SoftmaxWithLoss コード問題',
       description:
-        'softmax・クロスエントロピー・forward/backwardの4問パイプラインを視覚的に理解できます。',
-      component: SoftmaxCrossEntropyCodeProblem,
+        'SoftmaxWithLossクラスのforward/backwardを試験形式の4択で穴埋めします。',
+      component: ExamQ4SoftmaxLoss,
     },
   ],
   'dl-activation': [
@@ -105,6 +107,22 @@ const REGISTRY: Record<string, VisualizationMeta[]> = {
       description:
         'sigmoid・tanh・ReLUの曲線と導関数を切替表示し、勾配消失の仕組みを接線・ゾーン色分けで体感できます。',
       component: ActivationFunctionExplorer,
+    },
+    {
+      id: 'exam-q5-activation-backward',
+      title: '大問5: 活性化関数の逆伝播 コード問題',
+      description:
+        'Sigmoid・ReLU・Tanhの逆伝播を試験形式の4択で穴埋めします。',
+      component: ExamQ5ActivationBackward,
+    },
+  ],
+  'dl-ffnn': [
+    {
+      id: 'exam-q6-affine-layer',
+      title: '大問6: Affineレイヤー コード問題',
+      description:
+        'Affineレイヤーのforward/backwardを試験形式の4択で穴埋めします。',
+      component: ExamQ6AffineLayer,
     },
   ],
 };
