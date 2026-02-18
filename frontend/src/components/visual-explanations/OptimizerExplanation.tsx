@@ -36,6 +36,13 @@ function Arrow() {
 
 // --- セクション1: Momentum更新式の導出 ---
 
+const ELIMINATION_ROWS = [
+  { label: 'A', formula: 'γv - η∇J', reason: '符号がマイナス（v内部はプラスが正しい）', correct: false },
+  { label: 'B', formula: 'γv + η∇J', reason: 'γ(~0.9)→v, η(~0.01)→∇J で正しい', correct: true },
+  { label: 'C', formula: 'ηv + γ∇J', reason: 'γとηの位置が逆', correct: false },
+  { label: 'D', formula: 'ηv - γ∇J', reason: 'γとηの位置が逆＋符号もマイナス', correct: false },
+];
+
 function MomentumUpdateSection() {
   return (
     <section className="space-y-3">
@@ -72,6 +79,57 @@ function MomentumUpdateSection() {
           この慣性効果により、勾配方向が一貫しているときは加速し、
           方向が変わるときは慣性がブレーキとなって振動を抑える。
         </p>
+      </div>
+
+      {/* 消去法テーブル */}
+      <div className="overflow-x-auto">
+        <table className="text-sm border-collapse w-full">
+          <thead>
+            <tr className="border-b border-gray-300 dark:border-gray-600">
+              <th className="px-2 py-1 text-left text-xs text-gray-500">
+                選択肢
+              </th>
+              <th className="px-2 py-1 text-left text-xs text-gray-500">
+                式
+              </th>
+              <th className="px-2 py-1 text-left text-xs text-gray-500">
+                理由
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {ELIMINATION_ROWS.map((row) => (
+              <tr
+                key={row.label}
+                className={`border-b border-gray-200 dark:border-gray-700 ${
+                  row.correct
+                    ? 'bg-green-50 dark:bg-green-900/20'
+                    : ''
+                }`}
+              >
+                <td className="px-2 py-1.5 font-mono text-xs font-bold">
+                  {row.label}
+                  {row.correct && (
+                    <span className="ml-1 text-green-600 dark:text-green-400">
+                      ✓
+                    </span>
+                  )}
+                </td>
+                <td className="px-2 py-1.5 font-mono text-xs">
+                  {row.formula}
+                </td>
+                <td className="px-2 py-1.5 text-xs text-gray-600 dark:text-gray-400">
+                  {row.reason}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* 判別のコツ */}
+      <div className="p-2.5 rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-xs text-amber-800 dark:text-amber-200">
+        γ(~0.9)はv_{'{t-1}'}に、η(~0.01)は∇Jに。この大小関係で即判別
       </div>
     </section>
   );
@@ -303,11 +361,43 @@ function NagLookaheadSection() {
         NAGの核心は「まず慣性で進んだ先（θ − γv）で勾配を測る」こと。
         これにより、行き過ぎそうなときに事前にブレーキをかけられる。
       </div>
+
+      {/* 即答ポイント */}
+      <div className="p-2.5 rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-xs text-amber-800 dark:text-amber-200">
+        ∇J(...)の引数がθでないのはDだけ → 即答
+      </div>
     </section>
   );
 }
 
 // --- セクション3: Pathological Curvature ---
+
+const PC_ANALYSIS_ROWS = [
+  {
+    label: 'A',
+    text: 'SGDでは谷の壁に沿って振動が起き、収束が遅くなる',
+    correct: true,
+    reason: '正しい。PCの典型的な症状',
+  },
+  {
+    label: 'B',
+    text: 'SGDは局所最小値に陥りやすい問題である',
+    correct: false,
+    reason: '不適切。PCは振動の問題であり局所最小値とは無関係',
+  },
+  {
+    label: 'C',
+    text: 'Momentumは慣性により振動を抑制し、収束を加速する',
+    correct: true,
+    reason: '正しい。Momentumの主要な利点',
+  },
+  {
+    label: 'D',
+    text: '損失関数の等高線が細長い楕円状になる現象',
+    correct: true,
+    reason: '正しい。PCの定義そのもの',
+  },
+];
 
 function PathologicalCurvatureSection() {
   const sgdPath = generateSgdPath(15);
@@ -413,6 +503,58 @@ function PathologicalCurvatureSection() {
           Momentumは慣性によって谷の長軸方向の移動を蓄積し、
           短軸方向の振動を相殺するため、収束を大幅に加速できる。
         </p>
+      </div>
+
+      {/* 選択肢分析テーブル */}
+      <div className="overflow-x-auto">
+        <table className="text-sm border-collapse w-full">
+          <thead>
+            <tr className="border-b border-gray-300 dark:border-gray-600">
+              <th className="px-2 py-1 text-left text-xs text-gray-500">
+                選択肢
+              </th>
+              <th className="px-2 py-1 text-left text-xs text-gray-500">
+                判定
+              </th>
+              <th className="px-2 py-1 text-left text-xs text-gray-500">
+                理由
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {PC_ANALYSIS_ROWS.map((row) => (
+              <tr
+                key={row.label}
+                className={`border-b border-gray-200 dark:border-gray-700 ${
+                  !row.correct ? 'bg-red-50 dark:bg-red-900/20' : ''
+                }`}
+              >
+                <td className="px-2 py-1.5 font-mono text-xs font-bold">
+                  {row.label}
+                </td>
+                <td className="px-2 py-1.5 text-xs font-semibold">
+                  {row.correct ? (
+                    <span className="text-green-600 dark:text-green-400">
+                      正しい
+                    </span>
+                  ) : (
+                    <span className="text-red-600 dark:text-red-400">
+                      不適切
+                    </span>
+                  )}
+                </td>
+                <td className="px-2 py-1.5 text-xs text-gray-600 dark:text-gray-400">
+                  {row.reason}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* 判別のコツ */}
+      <div className="p-2.5 rounded-lg border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/20 text-xs text-red-800 dark:text-red-200">
+        「振動→収束遅延」と「局所最小値に陥る」は全く別の現象。Bだけ概念を混同
       </div>
     </section>
   );
