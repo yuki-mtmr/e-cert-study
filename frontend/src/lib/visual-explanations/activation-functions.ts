@@ -44,13 +44,13 @@ export function reluDerivative(z: number): number {
 }
 
 /** LeakyReLU(z) = max(αz, z), α=0.01 */
-export function leakyRelu(z: number): number {
-  return z > 0 ? z : 0.01 * z;
+export function leakyRelu(z: number, alpha = 0.01): number {
+  return z > 0 ? z : alpha * z;
 }
 
 /** LeakyReLU'(z) = z > 0 ? 1 : α */
-export function leakyReluDerivative(z: number): number {
-  return z > 0 ? 1 : 0.01;
+export function leakyReluDerivative(z: number, alpha = 0.01): number {
+  return z > 0 ? 1 : alpha;
 }
 
 /** 4つの活性化関数のメタ情報を返す */

@@ -98,4 +98,15 @@ describe('ActivationFunctionExplorer', () => {
       'false',
     );
   });
+
+  it('Leaky ReLU選択時にαスライダーが表示される', () => {
+    render(<ActivationFunctionExplorer />);
+    fireEvent.click(screen.getByRole('button', { name: 'Leaky ReLU' }));
+    expect(screen.getByText(/α =/)).toBeInTheDocument();
+  });
+
+  it('sigmoid選択時にαスライダーが表示されない', () => {
+    render(<ActivationFunctionExplorer />);
+    expect(screen.queryByText(/α =/)).not.toBeInTheDocument();
+  });
 });

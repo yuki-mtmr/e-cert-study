@@ -10,6 +10,8 @@ import {
   tanhDerivative,
   relu,
   reluDerivative,
+  leakyRelu,
+  leakyReluDerivative,
 } from '@/lib/visual-explanations/activation-functions';
 import type { ActivationId } from '@/lib/visual-explanations/activation-functions';
 import { ErrorCurveSlider } from './ErrorCurveSlider';
@@ -27,7 +29,7 @@ const Y_RANGES: Record<ActivationId, { min: number; max: number }> = {
   sigmoid: { min: -0.2, max: 1.2 },
   tanh: { min: -1.5, max: 1.5 },
   relu: { min: -1, max: 7 },
-  leakyRelu: { min: -1, max: 7 },
+  leakyRelu: { min: -3, max: 5 },
 };
 
 const Z_MIN = -6;
@@ -47,13 +49,13 @@ function InlineKatex({ latex }: { latex: string }) {
 }
 
 /** 勾配の健全性判定 */
-function getGradientStatus(derivativeValue: number, activeId: ActivationId): {
+function getGradientStatus(derivativeValue: number, activeId: ActivationId, alpha = 0.01): {
   label: string;
   color: string;
 } {
   // Leaky ReLU: 1 or α
   if (activeId === 'leakyRelu') {
-    return derivativeValue > 0.01
+    return derivativeValue > alpha
       ? { label: '健全（勾配=1）', color: 'text-green-600 dark:text-green-400' }
       : { label: '微弱（勾配=α）', color: 'text-yellow-600 dark:text-yellow-400' };
   }
@@ -76,12 +78,14 @@ function getGradientStatus(derivativeValue: number, activeId: ActivationId): {
 export function ActivationFunctionExplorer() {
   const [activeId, setActiveId] = useState<ActivationId>('sigmoid');
   const [z, setZ] = useState(0);
+  const [alpha, setAlpha] = useState(0.20);
 
+  const isLeaky = activeId === 'leakyRelu';
   const info = INFOS.find((i) => i.id === activeId)!;
   const yRange = Y_RANGES[activeId];
-  const fz = info.fn(z);
-  const dfz = info.derivative(z);
-  const gradientStatus = getGradientStatus(dfz, activeId);
+  const fz = isLeaky ? leakyRelu(z, alpha) : info.fn(z);
+  const dfz = isLeaky ? leakyReluDerivative(z, alpha) : info.derivative(z);
+  const gradientStatus = getGradientStatus(dfz, activeId, alpha);
 
   // SVG座標変換
   const toSvgX = (val: number) =>
@@ -95,13 +99,13 @@ export function ActivationFunctionExplorer() {
     const points: string[] = [];
     for (let i = 0; i <= steps; i++) {
       const zVal = Z_MIN + (i / steps) * (Z_MAX - Z_MIN);
-      const yVal = info.fn(zVal);
+      const yVal = isLeaky ? leakyRelu(zVal, alpha) : info.fn(zVal);
       const x = toSvgX(zVal);
       const y = toSvgY(yVal);
       points.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(2)},${y.toFixed(2)}`);
     }
     return points.join(' ');
-  }, [activeId]);
+  }, [activeId, alpha]);
 
   // 導関数曲線パス
   const derivativePath = useMemo(() => {
@@ -109,13 +113,13 @@ export function ActivationFunctionExplorer() {
     const points: string[] = [];
     for (let i = 0; i <= steps; i++) {
       const zVal = Z_MIN + (i / steps) * (Z_MAX - Z_MIN);
-      const yVal = info.derivative(zVal);
+      const yVal = isLeaky ? leakyReluDerivative(zVal, alpha) : info.derivative(zVal);
       const x = toSvgX(zVal);
       const y = toSvgY(yVal);
       points.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(2)},${y.toFixed(2)}`);
     }
     return points.join(' ');
-  }, [activeId]);
+  }, [activeId, alpha]);
 
   // 接線（現在点でのf'(z)を傾きとする短い線分）
   const tangentLen = 1.5;
@@ -320,6 +324,18 @@ export function ActivationFunctionExplorer() {
         step={0.1}
       />
 
+      {/* αスライダー（Leaky ReLU時のみ） */}
+      {isLeaky && (
+        <ErrorCurveSlider
+          label={`α = ${alpha.toFixed(2)}`}
+          value={alpha}
+          onChange={setAlpha}
+          min={0.01}
+          max={0.50}
+          step={0.01}
+        />
+      )}
+
       {/* 値カード */}
       <div className="grid grid-cols-3 gap-3 text-center text-sm">
         <div
@@ -351,7 +367,9 @@ export function ActivationFunctionExplorer() {
       <div className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 space-y-2 text-sm">
         <div>
           <span className="text-xs text-gray-500 mr-2">関数:</span>
-          <InlineKatex latex={info.formula} />
+          <InlineKatex latex={isLeaky
+            ? `\\text{LeakyReLU}(z) = \\max(\\alpha z,\\, z),\\; \\alpha=${alpha.toFixed(2)}`
+            : info.formula} />
         </div>
         <div>
           <span className="text-xs text-gray-500 mr-2">導関数:</span>

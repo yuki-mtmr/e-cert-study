@@ -100,6 +100,14 @@ describe('activation-functions', () => {
     it('0は0を返す', () => {
       expect(leakyRelu(0)).toBe(0);
     });
+
+    it('カスタムαで負の入力をα倍する', () => {
+      expect(leakyRelu(-3, 0.2)).toBeCloseTo(-0.6);
+    });
+
+    it('カスタムαでも正の入力はそのまま返す', () => {
+      expect(leakyRelu(3, 0.2)).toBe(3);
+    });
   });
 
   describe('leakyReluDerivative', () => {
@@ -109,6 +117,10 @@ describe('activation-functions', () => {
 
     it('負の入力で0.01を返す', () => {
       expect(leakyReluDerivative(-3)).toBe(0.01);
+    });
+
+    it('カスタムαで負の入力はαを返す', () => {
+      expect(leakyReluDerivative(-3, 0.2)).toBe(0.2);
     });
   });
 
