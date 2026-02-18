@@ -151,7 +151,7 @@ const REGISTRY: Record<string, VisualizationMeta[]> = {
       component: ExamQ6AffineLayer,
     },
   ],
-  'dl-optimizer': [
+  'dl-optim': [
     {
       id: 'optimizer-explanation',
       title: 'Optimizer ビジュアル解説（Momentum / NAG / PC）',
