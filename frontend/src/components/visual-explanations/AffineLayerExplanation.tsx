@@ -1,7 +1,6 @@
 'use client';
 
 import { MatrixShapeBlock } from './exam-hints/MatrixShapeBlock';
-import { ExamQ6AffineLayer } from './ExamQ6AffineLayer';
 
 // 色定数: 行次元=blue, 列次元=emerald, 内側次元(一致)=amber
 const C = {
@@ -192,16 +191,6 @@ export function AffineLayerExplanation() {
       <BackwardShapes />
       <SummaryTable />
 
-      <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <details>
-          <summary className="text-sm text-gray-500 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300">
-            4択問題で確認する
-          </summary>
-          <div className="mt-3">
-            <ExamQ6AffineLayer />
-          </div>
-        </details>
-      </div>
     </div>
   );
 }

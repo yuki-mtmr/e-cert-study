@@ -8,7 +8,6 @@ import {
   computeGradient,
   PIPELINE_COLORS,
 } from '@/lib/visual-explanations/softmax-cross-entropy';
-import { ExamQ4SoftmaxLoss } from './ExamQ4SoftmaxLoss';
 
 type Axis = 0 | 1;
 
@@ -459,17 +458,6 @@ export function SoftmaxWithLossExplanation() {
       <ForwardBackwardFlow />
       <GradientBarChart />
 
-      {/* 末尾: 4択問題（小さく） */}
-      <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <details>
-          <summary className="text-sm text-gray-500 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300">
-            4択問題で確認する
-          </summary>
-          <div className="mt-3">
-            <ExamQ4SoftmaxLoss />
-          </div>
-        </details>
-      </div>
     </div>
   );
 }

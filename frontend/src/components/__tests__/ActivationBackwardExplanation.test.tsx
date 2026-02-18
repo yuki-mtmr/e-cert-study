@@ -42,8 +42,8 @@ describe('ActivationBackwardExplanation', () => {
     expect(screen.getByLabelText('Tanh の関数と導関数グラフ')).toBeInTheDocument();
   });
 
-  it('末尾に4択問題のdetailsが含まれる', () => {
+  it('末尾に4択問題のdetailsが含まれない', () => {
     render(<ActivationBackwardExplanation />);
-    expect(screen.getByText('4択問題で確認する')).toBeInTheDocument();
+    expect(screen.queryByText('4択問題で確認する')).not.toBeInTheDocument();
   });
 });

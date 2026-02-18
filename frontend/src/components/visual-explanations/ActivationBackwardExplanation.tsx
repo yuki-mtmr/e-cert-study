@@ -7,7 +7,6 @@ import {
   tanhDerivative,
 } from '@/lib/visual-explanations/activation-functions';
 import { ActivationCurveChart } from './exam-hints/ActivationCurveChart';
-import { ExamQ5ActivationBackward } from './ExamQ5ActivationBackward';
 
 // --- セクション1: 3関数の導関数比較表 ---
 
@@ -203,16 +202,6 @@ export function ActivationBackwardExplanation() {
       <ReluMaskSection />
       <TanhSection />
 
-      <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <details>
-          <summary className="text-sm text-gray-500 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300">
-            4択問題で確認する
-          </summary>
-          <div className="mt-3">
-            <ExamQ5ActivationBackward />
-          </div>
-        </details>
-      </div>
     </div>
   );
 }

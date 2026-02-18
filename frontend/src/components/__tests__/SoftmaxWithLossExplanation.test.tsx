@@ -49,8 +49,8 @@ describe('SoftmaxWithLossExplanation', () => {
     expect(svgs.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('末尾に4択問題のdetailsが含まれる', () => {
+  it('末尾に4択問題のdetailsが含まれない', () => {
     render(<SoftmaxWithLossExplanation />);
-    expect(screen.getByText('4択問題で確認する')).toBeInTheDocument();
+    expect(screen.queryByText('4択問題で確認する')).not.toBeInTheDocument();
   });
 });

@@ -23,19 +23,10 @@ describe('OptimizerExplanation', () => {
     expect(screen.getByText('v_t')).toBeInTheDocument();
   });
 
-  it('セクション1に消去法テーブルがある（4行）', () => {
-    const { container } = render(<OptimizerExplanation />);
-    const tables = container.querySelectorAll('table');
-    expect(tables.length).toBeGreaterThanOrEqual(1);
-    const firstTable = tables[0];
-    const rows = firstTable.querySelectorAll('tbody tr');
-    expect(rows).toHaveLength(4);
-  });
-
-  it('セクション1に判別のコツboxが表示される', () => {
+  it('セクション1に更新式の導出解説が表示される', () => {
     render(<OptimizerExplanation />);
     expect(
-      screen.getByText(/γ.*0\.9.*v.*η.*0\.01.*∇J.*大小関係/),
+      screen.getByText(/過去の勾配.*指数的に減衰.*加重平均/),
     ).toBeInTheDocument();
   });
 
@@ -55,13 +46,6 @@ describe('OptimizerExplanation', () => {
     expect(thTexts).toContainEqual('NAG');
   });
 
-  it('セクション2に即答ポイントが表示される', () => {
-    render(<OptimizerExplanation />);
-    expect(
-      screen.getByText(/∇J.*引数.*θでない.*D.*即答/),
-    ).toBeInTheDocument();
-  });
-
   // セクション3: Pathological Curvature
   it('セクション3にSVG軌跡図がある（SGD振動 + Momentum減衰）', () => {
     const { container } = render(<OptimizerExplanation />);
@@ -69,15 +53,10 @@ describe('OptimizerExplanation', () => {
     expect(polylines.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('セクション3に選択肢分析テーブルがある', () => {
-    render(<OptimizerExplanation />);
-    expect(screen.getByText('不適切')).toBeInTheDocument();
-  });
-
-  it('セクション3に判別のコツが表示される', () => {
+  it('セクション3にPCの本質解説が表示される', () => {
     render(<OptimizerExplanation />);
     expect(
-      screen.getByText(/振動.*収束遅延.*局所最小値.*別の現象/),
+      screen.getByText(/振動.*局所最小値.*異なる/),
     ).toBeInTheDocument();
   });
 
@@ -97,9 +76,9 @@ describe('OptimizerExplanation', () => {
     ).toBeGreaterThanOrEqual(1);
   });
 
-  // 末尾: 4択問題
-  it('末尾に4択問題のdetailsが含まれる', () => {
+  // 4択問題のdetailsが含まれないことを確認
+  it('末尾に4択問題のdetailsが含まれない', () => {
     render(<OptimizerExplanation />);
-    expect(screen.getByText('4択問題で確認する')).toBeInTheDocument();
+    expect(screen.queryByText('4択問題で確認する')).not.toBeInTheDocument();
   });
 });
