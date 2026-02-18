@@ -12,6 +12,9 @@ import { ActivationFunctionExplorer } from '@/components/visual-explanations/Act
 import { ExamQ4SoftmaxLoss } from '@/components/visual-explanations/ExamQ4SoftmaxLoss';
 import { ExamQ5ActivationBackward } from '@/components/visual-explanations/ExamQ5ActivationBackward';
 import { ExamQ6AffineLayer } from '@/components/visual-explanations/ExamQ6AffineLayer';
+import { SoftmaxWithLossExplanation } from '@/components/visual-explanations/SoftmaxWithLossExplanation';
+import { ActivationBackwardExplanation } from '@/components/visual-explanations/ActivationBackwardExplanation';
+import { AffineLayerExplanation } from '@/components/visual-explanations/AffineLayerExplanation';
 
 export interface VisualizationMeta {
   id: string;
@@ -93,6 +96,13 @@ const REGISTRY: Record<string, VisualizationMeta[]> = {
       component: LossActivationGuide,
     },
     {
+      id: 'softmax-with-loss-explanation',
+      title: 'SoftmaxWithLoss ビジュアル解説',
+      description:
+        'axis/keepdims操作、クロスエントロピー計算、Forward/Backward フローを図表で整理します。',
+      component: SoftmaxWithLossExplanation,
+    },
+    {
       id: 'exam-q4-softmax-loss',
       title: '大問4: SoftmaxWithLoss コード問題',
       description:
@@ -109,6 +119,13 @@ const REGISTRY: Record<string, VisualizationMeta[]> = {
       component: ActivationFunctionExplorer,
     },
     {
+      id: 'activation-backward-explanation',
+      title: '活性化関数の逆伝播 ビジュアル解説',
+      description:
+        'Sigmoid・ReLU・Tanhの導関数比較、曲線グラフ、マスク動作を図表で整理します。',
+      component: ActivationBackwardExplanation,
+    },
+    {
       id: 'exam-q5-activation-backward',
       title: '大問5: 活性化関数の逆伝播 コード問題',
       description:
@@ -117,6 +134,13 @@ const REGISTRY: Record<string, VisualizationMeta[]> = {
     },
   ],
   'dl-ffnn': [
+    {
+      id: 'affine-layer-explanation',
+      title: 'Affineレイヤー ビジュアル解説',
+      description:
+        '行列形状ブロック図でForward/Backwardの転置・形状対応を視覚的に整理します。',
+      component: AffineLayerExplanation,
+    },
     {
       id: 'exam-q6-affine-layer',
       title: '大問6: Affineレイヤー コード問題',
