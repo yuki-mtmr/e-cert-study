@@ -111,4 +111,17 @@ describe('getVisualizations', () => {
     expect(vizList[0].description).toBeTruthy();
     expect(vizList[0].component).toBeDefined();
   });
+
+  it('dl-softmax-ce サブセクションで1件のビジュアルを返す', () => {
+    const result = getVisualizations('dl-softmax-ce');
+    expect(result).toHaveLength(1);
+  });
+
+  it('dl-softmax-ce の1番目: softmax-ce-code-problem', () => {
+    const vizList = getVisualizations('dl-softmax-ce');
+    expect(vizList[0].id).toBe('softmax-ce-code-problem');
+    expect(vizList[0].title).toBeTruthy();
+    expect(vizList[0].description).toBeTruthy();
+    expect(vizList[0].component).toBeDefined();
+  });
 });

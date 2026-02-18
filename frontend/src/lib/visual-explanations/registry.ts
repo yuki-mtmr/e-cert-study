@@ -9,6 +9,7 @@ import { MetricRelationshipMap } from '@/components/visual-explanations/MetricRe
 import { RegressionMetrics } from '@/components/visual-explanations/RegressionMetrics';
 import { LossActivationGuide } from '@/components/visual-explanations/LossActivationGuide';
 import { ActivationFunctionExplorer } from '@/components/visual-explanations/ActivationFunctionExplorer';
+import { SoftmaxCrossEntropyCodeProblem } from '@/components/visual-explanations/SoftmaxCrossEntropyCodeProblem';
 
 export interface VisualizationMeta {
   id: string;
@@ -97,6 +98,15 @@ const REGISTRY: Record<string, VisualizationMeta[]> = {
       description:
         'sigmoid・tanh・ReLUの曲線と導関数を切替表示し、勾配消失の仕組みを接線・ゾーン色分けで体感できます。',
       component: ActivationFunctionExplorer,
+    },
+  ],
+  'dl-softmax-ce': [
+    {
+      id: 'softmax-ce-code-problem',
+      title: 'Softmax + クロスエントロピー コード問題解説',
+      description:
+        'softmax・クロスエントロピー・forward/backwardの4問パイプラインを視覚的に理解できます。',
+      component: SoftmaxCrossEntropyCodeProblem,
     },
   ],
 };
