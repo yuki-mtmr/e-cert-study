@@ -63,7 +63,7 @@ export default function MemorizationPage() {
               questions={MEMORIZATION_QUESTIONS}
               onRetry={quiz.retryIncorrect}
               onReset={quiz.resetQuiz}
-              hasIncorrect={quiz.sessionResult.answers.some((a) => !a.isCorrect)}
+              hasIncorrect={quiz.hasIncorrect}
             />
           )}
         </div>

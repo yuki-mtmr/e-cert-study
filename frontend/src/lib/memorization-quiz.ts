@@ -1,4 +1,46 @@
-import type { MemorizationQuestion, UserAnswer, CategoryStats } from '@/types/memorization';
+import type { MemorizationQuestion, QuizAnswerLabel, UserAnswer, CategoryStats } from '@/types/memorization';
+
+/**
+ * 正答率を計算（0除算ガード付き）
+ */
+export function calculateAccuracy(correct: number, total: number): number {
+  if (total === 0) return 0;
+  return Math.round((correct / total) * 100);
+}
+
+/** 正答率しきい値 */
+export const ACCURACY_THRESHOLDS = { GOOD: 80, FAIR: 50 } as const;
+
+/**
+ * 正答率からレベルを判定
+ */
+export function getAccuracyLevel(accuracy: number): 'good' | 'fair' | 'poor' {
+  if (accuracy >= ACCURACY_THRESHOLDS.GOOD) return 'good';
+  if (accuracy >= ACCURACY_THRESHOLDS.FAIR) return 'fair';
+  return 'poor';
+}
+
+/**
+ * 選択肢のCSSクラス名を回答状態に応じて決定
+ */
+export function getChoiceClassName(
+  label: QuizAnswerLabel,
+  isAnswered: boolean,
+  correctAnswer: QuizAnswerLabel,
+  userSelection: QuizAnswerLabel | null,
+): string {
+  const base = 'w-full text-left p-3 rounded-lg border transition-colors';
+  if (!isAnswered) {
+    return `${base} border-gray-300 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 cursor-pointer`;
+  }
+  if (label === correctAnswer) {
+    return `${base} border-green-500 bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-300`;
+  }
+  if (label === userSelection) {
+    return `${base} border-red-500 bg-red-50 dark:bg-red-900/30 text-red-800 dark:text-red-300`;
+  }
+  return `${base} border-gray-200 dark:border-gray-700 opacity-50`;
+}
 
 /**
  * Fisher-Yatesアルゴリズムで問題をシャッフル（元配列は変更しない）
@@ -64,7 +106,7 @@ export function calculateCategoryStats(
     category,
     total,
     correct,
-    accuracy: Math.round((correct / total) * 100),
+    accuracy: calculateAccuracy(correct, total),
   }));
 }
 

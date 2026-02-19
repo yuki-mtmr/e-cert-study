@@ -5,6 +5,9 @@
 /** 選択肢ラベル */
 export type QuizAnswerLabel = 'A' | 'B' | 'C' | 'D';
 
+/** 選択肢ラベル定数配列 */
+export const QUIZ_ANSWER_LABELS: QuizAnswerLabel[] = ['A', 'B', 'C', 'D'];
+
 /** 暗記クイズ問題 */
 export interface MemorizationQuestion {
   id: number;

@@ -12,6 +12,7 @@ import {
   filterByIds,
   calculateCategoryStats,
   getIncorrectQuestions,
+  calculateAccuracy,
 } from '@/lib/memorization-quiz';
 
 interface StartOptions {
@@ -32,6 +33,7 @@ interface UseMemorizationQuizReturn {
   nextQuestion: () => void;
   retryIncorrect: () => void;
   resetQuiz: () => void;
+  hasIncorrect: boolean;
 }
 
 /**
@@ -86,7 +88,7 @@ export function useMemorizationQuiz(
       setSessionResult({
         totalQuestions: activeQuestions.length,
         correctCount: correct,
-        accuracy: Math.round((correct / activeQuestions.length) * 100),
+        accuracy: calculateAccuracy(correct, activeQuestions.length),
         answers: allAnswers,
       });
       setMode('results');
@@ -129,5 +131,6 @@ export function useMemorizationQuiz(
     nextQuestion,
     retryIncorrect,
     resetQuiz,
+    hasIncorrect: sessionResult ? sessionResult.answers.some((a) => !a.isCorrect) : false,
   };
 }

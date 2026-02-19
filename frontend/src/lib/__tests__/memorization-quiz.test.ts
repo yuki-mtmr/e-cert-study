@@ -5,8 +5,13 @@ import {
   filterByIds,
   calculateCategoryStats,
   getIncorrectQuestions,
+  calculateAccuracy,
+  getChoiceClassName,
+  getAccuracyLevel,
+  ACCURACY_THRESHOLDS,
 } from '../memorization-quiz';
 import type { MemorizationQuestion, UserAnswer } from '@/types/memorization';
+import { QUIZ_ANSWER_LABELS } from '@/types/memorization';
 
 /** テスト用の問題データ */
 const SAMPLE_QUESTIONS: MemorizationQuestion[] = [
@@ -126,5 +131,89 @@ describe('getIncorrectQuestions', () => {
       { questionId: 1, selected: 'A', isCorrect: true },
     ];
     expect(getIncorrectQuestions(SAMPLE_QUESTIONS, allCorrect)).toEqual([]);
+  });
+});
+
+describe('calculateAccuracy', () => {
+  it('正答率を正しく計算する', () => {
+    expect(calculateAccuracy(3, 5)).toBe(60);
+  });
+
+  it('全問正解で100を返す', () => {
+    expect(calculateAccuracy(10, 10)).toBe(100);
+  });
+
+  it('全問不正解で0を返す', () => {
+    expect(calculateAccuracy(0, 5)).toBe(0);
+  });
+
+  it('0除算ガード: total=0で0を返す', () => {
+    expect(calculateAccuracy(0, 0)).toBe(0);
+  });
+
+  it('端数を四捨五入する', () => {
+    // 1/3 = 33.333... → 33
+    expect(calculateAccuracy(1, 3)).toBe(33);
+    // 2/3 = 66.666... → 67
+    expect(calculateAccuracy(2, 3)).toBe(67);
+  });
+});
+
+describe('QUIZ_ANSWER_LABELS', () => {
+  it('4要素の配列', () => {
+    expect(QUIZ_ANSWER_LABELS).toHaveLength(4);
+  });
+
+  it('A, B, C, Dを含む', () => {
+    expect(QUIZ_ANSWER_LABELS).toEqual(['A', 'B', 'C', 'D']);
+  });
+});
+
+describe('getChoiceClassName', () => {
+  it('未回答時: hover付きスタイルを返す', () => {
+    const cls = getChoiceClassName('A', false, 'A', null);
+    expect(cls).toContain('hover:bg-blue-50');
+    expect(cls).toContain('cursor-pointer');
+  });
+
+  it('回答済み・正解の選択肢: 緑色スタイル', () => {
+    const cls = getChoiceClassName('B', true, 'B', 'B');
+    expect(cls).toContain('border-green-500');
+    expect(cls).toContain('bg-green-50');
+  });
+
+  it('回答済み・ユーザーが選んだ不正解の選択肢: 赤色スタイル', () => {
+    const cls = getChoiceClassName('A', true, 'B', 'A');
+    expect(cls).toContain('border-red-500');
+    expect(cls).toContain('bg-red-50');
+  });
+
+  it('回答済み・その他の選択肢: 薄いスタイル', () => {
+    const cls = getChoiceClassName('C', true, 'B', 'A');
+    expect(cls).toContain('opacity-50');
+  });
+});
+
+describe('getAccuracyLevel', () => {
+  it('80%以上はgood', () => {
+    expect(getAccuracyLevel(80)).toBe('good');
+    expect(getAccuracyLevel(100)).toBe('good');
+  });
+
+  it('50%以上80%未満はfair', () => {
+    expect(getAccuracyLevel(50)).toBe('fair');
+    expect(getAccuracyLevel(79)).toBe('fair');
+  });
+
+  it('50%未満はpoor', () => {
+    expect(getAccuracyLevel(49)).toBe('poor');
+    expect(getAccuracyLevel(0)).toBe('poor');
+  });
+});
+
+describe('ACCURACY_THRESHOLDS', () => {
+  it('GOODが80、FAIRが50', () => {
+    expect(ACCURACY_THRESHOLDS.GOOD).toBe(80);
+    expect(ACCURACY_THRESHOLDS.FAIR).toBe(50);
   });
 });

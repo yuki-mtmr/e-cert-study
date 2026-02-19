@@ -1,9 +1,9 @@
 'use client';
 
 import type { MemorizationQuestion, QuizAnswerLabel, UserAnswer } from '@/types/memorization';
+import { QUIZ_ANSWER_LABELS } from '@/types/memorization';
+import { getChoiceClassName } from '@/lib/memorization-quiz';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
-
-const LABELS: QuizAnswerLabel[] = ['A', 'B', 'C', 'D'];
 
 interface QuizQuestionProps {
   question: MemorizationQuestion;
@@ -13,26 +13,6 @@ interface QuizQuestionProps {
 
 export function QuizQuestion({ question, lastAnswer, onAnswer }: QuizQuestionProps) {
   const answered = lastAnswer !== null;
-
-  /**
-   * 選択肢のスタイルを回答状態に応じて決定
-   */
-  function choiceStyle(label: QuizAnswerLabel): string {
-    const base = 'w-full text-left p-3 rounded-lg border transition-colors';
-    if (!answered) {
-      return `${base} border-gray-300 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 cursor-pointer`;
-    }
-
-    // 正解の選択肢
-    if (label === question.answer) {
-      return `${base} border-green-500 bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-300`;
-    }
-    // ユーザーが選んだ不正解の選択肢
-    if (label === lastAnswer.selected && !lastAnswer.isCorrect) {
-      return `${base} border-red-500 bg-red-50 dark:bg-red-900/30 text-red-800 dark:text-red-300`;
-    }
-    return `${base} border-gray-200 dark:border-gray-700 opacity-50`;
-  }
 
   return (
     <div>
@@ -53,10 +33,10 @@ export function QuizQuestion({ question, lastAnswer, onAnswer }: QuizQuestionPro
 
       {/* 選択肢 */}
       <div className="space-y-2 mb-4">
-        {LABELS.map((label, i) => (
+        {QUIZ_ANSWER_LABELS.map((label, i) => (
           <button
             key={label}
-            className={choiceStyle(label)}
+            className={getChoiceClassName(label, answered, question.answer, lastAnswer?.selected ?? null)}
             onClick={() => !answered && onAnswer(label)}
             disabled={answered}
           >

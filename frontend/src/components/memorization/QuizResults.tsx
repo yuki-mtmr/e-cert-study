@@ -1,5 +1,5 @@
 import type { QuizSessionResult, MemorizationQuestion } from '@/types/memorization';
-import { calculateCategoryStats, getIncorrectQuestions } from '@/lib/memorization-quiz';
+import { calculateCategoryStats, getIncorrectQuestions, getAccuracyLevel } from '@/lib/memorization-quiz';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 
 interface QuizResultsProps {
@@ -36,7 +36,7 @@ export function QuizResults({ result, questions, onRetry, onReset, hasIncorrect 
             {categoryStats.map((s) => (
               <div key={s.category} className="flex justify-between items-center text-sm">
                 <span className="text-gray-700 dark:text-gray-300">{s.category}</span>
-                <span className={s.accuracy >= 80 ? 'text-green-600' : s.accuracy >= 50 ? 'text-yellow-600' : 'text-red-600'}>
+                <span className={getAccuracyLevel(s.accuracy) === 'good' ? 'text-green-600' : getAccuracyLevel(s.accuracy) === 'fair' ? 'text-yellow-600' : 'text-red-600'}>
                   {s.correct}/{s.total} ({s.accuracy}%)
                 </span>
               </div>
