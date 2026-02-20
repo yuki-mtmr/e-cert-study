@@ -3,7 +3,7 @@ import uuid
 
 import pytest
 
-from app.api.questions import resolve_category_id
+from app.services.question_service import resolve_category_id
 
 
 class TestResolveCategoryId:

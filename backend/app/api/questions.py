@@ -1,5 +1,4 @@
 """問題APIエンドポイント"""
-import hashlib
 import logging
 import uuid
 from pathlib import Path
@@ -7,23 +6,6 @@ from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from fastapi.responses import FileResponse, RedirectResponse
-
-logger = logging.getLogger(__name__)
-
-
-def get_question_hash(content: str) -> str:
-    """問題文のハッシュを計算
-
-    重複チェックに使用する32文字のハッシュ値を返す。
-
-    Args:
-        content: 問題文
-
-    Returns:
-        32文字のハッシュ値
-    """
-    return hashlib.sha256(content.encode()).hexdigest()[:32]
-from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -35,425 +17,50 @@ from app.models.category import Category
 from app.models.question import Question
 from app.models.question_image import QuestionImage
 from app.schemas.question import QuestionCreate, QuestionResponse
-from app.services.pdf_extractor import (
-    PDFExtractionError,
-    extract_questions_from_text,
-    extract_text_from_pdf,
+from app.schemas.question_api import (
+    AutoClassifyResponse,
+    CategoryUpdateRequest,
+    CategoryUpdateResponse,
+    ImportResponse,
+    RegenerateExplanationResponse,
+    RegenerateExplanationsResponse,
 )
+from app.services.framework_detector import detect_framework
+from app.services.image_linker import (
+    link_images_by_semantic_matching,
+    link_images_to_existing_question,
+)
+from app.services.image_storage import ImageStorage
 from app.services.mineru_extractor import (
     MinerUExtractor,
     MinerUError,
     MinerUNotAvailableError,
 )
+from app.services.pdf_extractor import (
+    PDFExtractionError,
+    extract_questions_from_text,
+    extract_text_from_pdf,
+)
+from app.services.question_service import (
+    DEFAULT_CATEGORY_NAME,
+    create_question_service,
+    get_or_create_default_category,
+    get_question_by_id_service,
+    get_question_hash,
+    get_questions_service,
+    get_random_question_service,
+    resolve_category_id,
+)
 from app.services.vlm_analyzer import VLMAnalyzer
-from app.services.image_storage import ImageStorage
-from app.services.image_matcher import ImageMatcherService
-from app.services.caption_generator import CaptionGeneratorService
 from app.services.explanation_generator import (
     generate_explanation,
     generate_explanations_batch,
     is_already_formatted,
 )
-from app.services.framework_detector import detect_framework
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/questions", tags=["questions"])
-
-
-async def _link_images_by_semantic_matching(
-    db: AsyncSession,
-    questions: list[dict[str, Any]],
-    image_index: dict[str, dict[str, Any]],
-    vlm_analyzer: Optional[VLMAnalyzer],
-    image_storage: Optional[ImageStorage],
-) -> int:
-    """セマンティックマッチングで画像を問題に紐付け
-
-    image_refsベースの紐付けが失敗した問題に対して、
-    画像キャプションと問題内容の類似度で画像を紐付ける。
-
-    Args:
-        db: データベースセッション
-        questions: 抽出された問題リスト
-        image_index: ファイル名→画像データの辞書
-        vlm_analyzer: VLM解析器
-        image_storage: 画像ストレージ
-
-    Returns:
-        紐付けられた画像数
-    """
-    if not image_index or not vlm_analyzer or not image_storage:
-        return 0
-
-    logger.info("Starting semantic matching for image linking...")
-
-    # Step 1: 画像にまだ紐付いていない問題を取得
-    questions_without_images: list[dict[str, Any]] = []
-    for q in questions:
-        # content_hashで問題を検索
-        content_hash = get_question_hash(q["content"])
-        result = await db.execute(
-            select(Question)
-            .options(selectinload(Question.images))
-            .where(Question.content_hash == content_hash)
-        )
-        existing_q = result.scalar_one_or_none()
-        if existing_q and len(existing_q.images) == 0:
-            questions_without_images.append({
-                "id": str(existing_q.id),
-                "content": existing_q.content,
-                "db_question": existing_q,
-            })
-
-    if not questions_without_images:
-        logger.info("All questions already have images linked")
-        return 0
-
-    logger.info(f"Found {len(questions_without_images)} questions without images")
-
-    # Step 2: 画像からキャプションを生成
-    captions: list[dict[str, Any]] = []
-    for filename, img_info in image_index.items():
-        try:
-            vlm_result = await vlm_analyzer.analyze(
-                img_info["data"],
-                detect_type=True,
-                fallback_on_error=True,
-            )
-            if vlm_result and vlm_result.description:
-                captions.append({
-                    "filename": filename,
-                    "caption": vlm_result.description,
-                    "image_type": vlm_result.image_type,
-                    "data": img_info["data"],
-                })
-                logger.debug(f"Generated caption for {filename}: {vlm_result.description[:50]}...")
-        except Exception as e:
-            logger.warning(f"Failed to generate caption for {filename}: {e}")
-            continue
-
-    if not captions:
-        logger.warning("No captions generated for images")
-        return 0
-
-    logger.info(f"Generated {len(captions)} captions for images")
-
-    # Step 3: セマンティックマッチング
-    try:
-        matcher = ImageMatcherService()
-        matches = await matcher.match(
-            questions=[{"id": q["id"], "content": q["content"]} for q in questions_without_images],
-            captions=[{"caption": c["caption"], "xref": i, "page": 0} for i, c in enumerate(captions)],
-            threshold=0.3,
-            top_k=2,
-        )
-    except Exception as e:
-        logger.warning(f"Semantic matching failed: {e}")
-        return 0
-
-    # Step 4: マッチ結果で画像を紐付け
-    linked_count = 0
-    for q_info in questions_without_images:
-        question_id = q_info["id"]
-        db_question = q_info["db_question"]
-
-        if question_id not in matches:
-            continue
-
-        matched_images = matches[question_id]
-        for pos, match in enumerate(matched_images):
-            try:
-                caption_idx = match["xref"]
-                caption_info = captions[caption_idx]
-
-                # 画像を保存
-                img_info = image_storage.save(
-                    image_data=caption_info["data"],
-                    question_id=uuid.UUID(question_id),
-                    position=pos,
-                    alt_text=caption_info["caption"],
-                    image_type=caption_info["image_type"],
-                )
-
-                # 既存の同一画像レコードをチェック
-                existing_img = await db.execute(
-                    select(QuestionImage).where(
-                        QuestionImage.question_id == uuid.UUID(question_id),
-                        QuestionImage.file_path == img_info.file_path,
-                    )
-                )
-                if existing_img.scalar_one_or_none():
-                    logger.info(
-                        f"Skipping duplicate image {img_info.file_path} "
-                        f"for question {question_id}"
-                    )
-                    continue
-
-                # QuestionImageレコード作成
-                question_image = QuestionImage(
-                    id=img_info.id,
-                    question_id=uuid.UUID(question_id),
-                    file_path=img_info.file_path,
-                    alt_text=caption_info["caption"],
-                    position=pos,
-                    image_type=caption_info["image_type"],
-                )
-                db.add(question_image)
-                linked_count += 1
-                logger.info(
-                    f"Linked image {caption_info['filename']} to question {question_id} "
-                    f"(score: {match['score']:.2f})"
-                )
-            except Exception as e:
-                logger.warning(f"Failed to link image to question {question_id}: {e}")
-                continue
-
-    if linked_count > 0:
-        await db.commit()
-        logger.info(f"Linked {linked_count} images via semantic matching")
-
-    return linked_count
-
-async def _link_images_to_existing_question(
-    db: AsyncSession,
-    question: Question,
-    image_refs: list[str],
-    image_index: dict[str, dict[str, Any]],
-    vlm_analyzer: VLMAnalyzer,
-    image_storage: ImageStorage,
-) -> int:
-    """既存問題に画像を紐付け
-
-    再インポート時に重複検出された問題に画像がない場合、
-    image_refsに基づいて画像を紐付ける。
-
-    Args:
-        db: データベースセッション
-        question: 既存の問題オブジェクト
-        image_refs: 画像ファイル名のリスト
-        image_index: ファイル名→画像データの辞書
-        vlm_analyzer: VLM解析器
-        image_storage: 画像ストレージ
-
-    Returns:
-        紐付けられた画像数
-    """
-    linked_count = 0
-    for pos, img_filename in enumerate(image_refs):
-        if img_filename not in image_index:
-            logger.warning(
-                f"Image not found: {img_filename} for existing question {question.id}"
-            )
-            continue
-
-        img_info_data = image_index[img_filename]
-        img_data = img_info_data["data"]
-
-        try:
-            vlm_result = await vlm_analyzer.analyze(
-                img_data, detect_type=True, fallback_on_error=True,
-            )
-
-            alt_text = None
-            image_type = "unknown"
-            if vlm_result:
-                alt_text = vlm_result.description
-                image_type = vlm_result.image_type
-
-            img_info = image_storage.save(
-                image_data=img_data,
-                question_id=question.id,
-                position=pos,
-                alt_text=alt_text,
-                image_type=image_type,
-            )
-
-            # 既存の同一画像レコードをチェック
-            existing_img = await db.execute(
-                select(QuestionImage).where(
-                    QuestionImage.question_id == question.id,
-                    QuestionImage.file_path == img_info.file_path,
-                )
-            )
-            if existing_img.scalar_one_or_none():
-                logger.info(
-                    f"Skipping duplicate image {img_info.file_path} "
-                    f"for existing question {question.id}"
-                )
-                continue
-
-            question_image = QuestionImage(
-                id=img_info.id,
-                question_id=question.id,
-                file_path=img_info.file_path,
-                alt_text=alt_text,
-                position=pos,
-                image_type=image_type,
-            )
-            db.add(question_image)
-            linked_count += 1
-            logger.info(
-                f"Linked image {img_filename} to existing question {question.id}"
-            )
-        except Exception as e:
-            logger.warning(f"Failed to link image {img_filename} to existing question: {e}")
-            continue
-
-    if linked_count > 0:
-        await db.flush()
-        logger.info(f"Linked {linked_count} images to existing question {question.id}")
-
-    return linked_count
-
-
-def resolve_category_id(
-    category_name: str | None,
-    category_map: dict[str, uuid.UUID],
-) -> uuid.UUID | None:
-    """カテゴリ名からIDを解決する
-
-    Args:
-        category_name: PDF抽出で得られたカテゴリ名
-        category_map: カテゴリ名→IDのマッピング
-
-    Returns:
-        カテゴリID。解決できない場合はNone
-    """
-    if not category_name:
-        return None
-    return category_map.get(category_name)
-
-
-# デフォルトカテゴリ名
-DEFAULT_CATEGORY_NAME = "未分類"
-
-
-async def get_or_create_default_category(db: AsyncSession) -> uuid.UUID:
-    """デフォルトカテゴリを取得または作成
-
-    「未分類」カテゴリが存在しない場合は新規作成する。
-
-    Args:
-        db: データベースセッション
-
-    Returns:
-        デフォルトカテゴリのID
-    """
-    result = await db.execute(
-        select(Category).where(Category.name == DEFAULT_CATEGORY_NAME)
-    )
-    category = result.scalar_one_or_none()
-
-    if not category:
-        category = Category(id=uuid.uuid4(), name=DEFAULT_CATEGORY_NAME)
-        db.add(category)
-        await db.flush()
-
-    return category.id
-
-
-class ImportResponse(BaseModel):
-    """PDFインポートレスポンス"""
-    questions: list[dict[str, Any]]
-    count: int
-    saved_count: int = 0  # DBに保存された問題数
-    # デバッグ情報
-    extracted_images: int = 0  # 抽出された画像数
-    image_filenames: list[str] = []  # 画像ファイル名
-    questions_with_refs: int = 0  # image_refsを持つ問題数
-    sample_refs: list[str] = []  # image_refsのサンプル
-
-
-async def get_questions_service(
-    db: AsyncSession,
-    category_id: Optional[uuid.UUID] = None,
-    limit: int = 100,
-) -> list[Question]:
-    """問題一覧を取得するサービス"""
-    query = select(Question).options(selectinload(Question.images))
-    if category_id:
-        query = query.where(Question.category_id == category_id)
-    query = query.limit(limit)
-    result = await db.execute(query)
-    return list(result.scalars().all())
-
-
-async def get_question_by_id_service(
-    db: AsyncSession,
-    question_id: uuid.UUID,
-) -> Optional[Question]:
-    """IDで問題を取得するサービス"""
-    result = await db.execute(
-        select(Question)
-        .options(selectinload(Question.images))
-        .where(Question.id == question_id)
-    )
-    return result.scalar_one_or_none()
-
-
-async def get_random_question_service(
-    db: AsyncSession,
-    category_id: Optional[uuid.UUID] = None,
-    category_ids: Optional[list[uuid.UUID]] = None,
-) -> Optional[Question]:
-    """ランダムな問題を取得するサービス
-
-    Args:
-        db: データベースセッション
-        category_id: 単一のカテゴリID（後方互換性）
-        category_ids: 複数のカテゴリIDリスト
-
-    Returns:
-        ランダムに選択された問題、または見つからない場合はNone
-    """
-    query = select(Question).options(selectinload(Question.images))
-
-    # 複数カテゴリが指定された場合はそちらを優先
-    if category_ids:
-        query = query.where(Question.category_id.in_(category_ids))
-    elif category_id:
-        query = query.where(Question.category_id == category_id)
-
-    # TensorFlow専用問題を除外
-    query = query.where(
-        (Question.framework.is_(None)) | (Question.framework != "tensorflow")
-    )
-
-    query = query.order_by(func.random()).limit(1)
-    result = await db.execute(query)
-    return result.scalar_one_or_none()
-
-
-async def create_question_service(
-    db: AsyncSession,
-    question_data: QuestionCreate,
-) -> Question:
-    """問題を作成するサービス"""
-    # category_idがNoneの場合はデフォルトカテゴリを使用
-    category_id = question_data.category_id
-    if category_id is None:
-        category_id = await get_or_create_default_category(db)
-
-    question = Question(
-        id=uuid.uuid4(),
-        category_id=category_id,
-        content=question_data.content,
-        choices=question_data.choices,
-        correct_answer=question_data.correct_answer,
-        explanation=question_data.explanation,
-        difficulty=question_data.difficulty,
-        source=question_data.source,
-        content_type=question_data.content_type,
-    )
-    db.add(question)
-    await db.commit()
-
-    # imagesリレーションを含めて再取得
-    result = await db.execute(
-        select(Question)
-        .options(selectinload(Question.images))
-        .where(Question.id == question.id)
-    )
-    return result.scalar_one()
 
 
 @router.get("", response_model=list[QuestionResponse])
@@ -666,7 +273,6 @@ async def import_questions_from_pdf(
         logger.info(f"Received PDF file: {file.filename}, size: {len(content)} bytes")
 
         # 画像データをファイル名でインデックス化
-        # key: filename, value: {"data": bytes, "position": int}
         image_index: dict[str, dict[str, Any]] = {}
         text = ""
 
@@ -755,7 +361,7 @@ async def import_questions_from_pdf(
                         # 既存問題に画像がなく、新規importに画像参照がある場合は画像を追加
                         image_refs = q.get("image_refs", [])
                         if len(existing_q.images) == 0 and image_refs and image_index and vlm_analyzer and image_storage:
-                            await _link_images_to_existing_question(
+                            await link_images_to_existing_question(
                                 db, existing_q, image_refs, image_index, vlm_analyzer, image_storage,
                             )
                         logger.info(f"Skipping duplicate question: {content_hash[:8]}...")
@@ -870,9 +476,8 @@ async def import_questions_from_pdf(
             logger.info(f"Saved {saved_count} questions to database")
 
             # Phase 2: セマンティックマッチングによる画像紐付け
-            # image_refsが機能しなかった問題に対して実行
             if image_index and saved_count > 0:
-                await _link_images_by_semantic_matching(
+                await link_images_by_semantic_matching(
                     db=db,
                     questions=questions,
                     image_index=image_index,
@@ -901,9 +506,9 @@ async def import_questions_from_pdf(
             count=len(questions),
             saved_count=saved_count,
             extracted_images=len(image_index),
-            image_filenames=list(image_index.keys())[:10],  # 最大10件
+            image_filenames=list(image_index.keys())[:10],
             questions_with_refs=questions_with_refs,
-            sample_refs=all_refs[:10],  # 最大10件
+            sample_refs=all_refs[:10],
         )
 
     except PDFExtractionError as e:
@@ -1057,18 +662,6 @@ async def delete_all_questions(
     }
 
 
-class CategoryUpdateRequest(BaseModel):
-    """カテゴリ更新リクエスト"""
-    category_id: uuid.UUID
-
-
-class CategoryUpdateResponse(BaseModel):
-    """カテゴリ更新レスポンス"""
-    id: uuid.UUID
-    category_id: uuid.UUID
-    message: str
-
-
 @router.patch("/{question_id}/category", response_model=CategoryUpdateResponse)
 async def update_question_category(
     question_id: uuid.UUID,
@@ -1097,14 +690,6 @@ async def update_question_category(
         category_id=question.category_id,
         message="カテゴリを更新しました",
     )
-
-
-class AutoClassifyResponse(BaseModel):
-    """自動分類レスポンス"""
-    total: int
-    classified: int
-    failed: int
-    results: list[dict[str, Any]] = []
 
 
 @router.post("/auto-classify", response_model=AutoClassifyResponse)
@@ -1202,22 +787,6 @@ async def auto_classify_questions(
         failed=failed,
         results=results,
     )
-
-
-class RegenerateExplanationResponse(BaseModel):
-    """個別解説再生成レスポンス"""
-    question_id: str
-    explanation: str
-    status: str
-
-
-class RegenerateExplanationsResponse(BaseModel):
-    """一括解説再生成レスポンス"""
-    total: int
-    regenerated: int
-    failed: int
-    skipped: int = 0
-    results: list[dict[str, Any]] = []
 
 
 @router.post("/{question_id}/regenerate-explanation", response_model=RegenerateExplanationResponse)

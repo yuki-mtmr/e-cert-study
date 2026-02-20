@@ -12,7 +12,7 @@ from httpx import ASGITransport, AsyncClient
 
 from app.main import app
 from app.core.database import get_db
-from app.api.questions import get_question_hash
+from app.services.question_service import get_question_hash
 
 
 class TestContentHash:

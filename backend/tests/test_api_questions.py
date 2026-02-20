@@ -231,7 +231,7 @@ async def test_create_question(mock_db: MockDBSession) -> None:
 
 
 # デフォルトカテゴリのテスト
-from app.api.questions import DEFAULT_CATEGORY_NAME, get_or_create_default_category
+from app.services.question_service import DEFAULT_CATEGORY_NAME, get_or_create_default_category
 
 
 class MockCategory:
