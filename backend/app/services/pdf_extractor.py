@@ -2,7 +2,6 @@
 
 Claude Code CLIを使用してPDFテキストから問題を抽出する
 """
-import asyncio
 import hashlib
 import json
 import logging
@@ -10,6 +9,8 @@ import re
 import uuid
 from pathlib import Path
 from typing import Any, Optional
+
+from .claude_cli import ClaudeCLIError, call_claude_cli
 
 logger = logging.getLogger(__name__)
 
@@ -110,47 +111,6 @@ EXTRACTION_PROMPT = """
 - 図表・グラフ・ダイアグラム → image_refsに含める（視覚的に必要なもののみ）
 - 判断に迷う場合は、テキスト化を優先してください
 """
-
-
-async def call_claude_cli(prompt: str) -> str:
-    """
-    Claude Code CLIをsubprocessで呼び出してレスポンスを取得
-
-    Args:
-        prompt: 送信するプロンプト
-
-    Returns:
-        Claudeからのレスポンステキスト
-
-    Raises:
-        PDFExtractionError: CLI呼び出しに失敗した場合
-    """
-    logger.debug(f"Calling Claude CLI with prompt length: {len(prompt)} chars")
-
-    process = await asyncio.create_subprocess_exec(
-        "claude", "-p", prompt,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-    )
-    stdout, stderr = await process.communicate()
-
-    stdout_text = stdout.decode()
-    stderr_text = stderr.decode()
-
-    if process.returncode != 0:
-        logger.error(f"Claude CLI failed with return code {process.returncode}")
-        logger.error(f"stdout: {stdout_text[:500] if stdout_text else '(empty)'}")
-        logger.error(f"stderr: {stderr_text[:500] if stderr_text else '(empty)'}")
-        raise PDFExtractionError(
-            f"Claude CLI error (code={process.returncode}): {stderr_text or stdout_text or 'Unknown error'}"
-        )
-
-    if not stdout_text.strip():
-        logger.error("Claude CLI returned empty response")
-        raise PDFExtractionError("Claude CLI returned empty response")
-
-    logger.debug(f"Claude CLI response length: {len(stdout_text)} chars")
-    return stdout_text
 
 
 def parse_llm_response(response_text: str) -> list[dict[str, Any]]:
@@ -472,8 +432,8 @@ async def extract_questions_from_text_single(
 
         return questions
 
-    except PDFExtractionError:
-        raise
+    except (PDFExtractionError, ClaudeCLIError) as e:
+        raise PDFExtractionError(str(e)) from e
     except Exception as e:
         raise PDFExtractionError(f"Failed to extract questions: {e}")
 

@@ -2,9 +2,10 @@
 
 Claude CLIを使用して問題内容からカテゴリを自動分類する
 """
-import asyncio
 import logging
 from typing import Optional
+
+from .claude_cli import call_claude_cli
 
 logger = logging.getLogger(__name__)
 
@@ -70,39 +71,6 @@ CLASSIFICATION_PROMPT = """
 
 カテゴリ名のみを出力してください。余計な説明は不要です。
 """
-
-
-async def call_claude_cli(prompt: str) -> str:
-    """
-    Claude Code CLIをsubprocessで呼び出してレスポンスを取得
-
-    Args:
-        prompt: 送信するプロンプト
-
-    Returns:
-        Claudeからのレスポンステキスト
-
-    Raises:
-        Exception: CLI呼び出しに失敗した場合
-    """
-    logger.debug(f"Calling Claude CLI with prompt length: {len(prompt)} chars")
-
-    process = await asyncio.create_subprocess_exec(
-        "claude", "-p", prompt,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-    )
-    stdout, stderr = await process.communicate()
-
-    stdout_text = stdout.decode()
-    stderr_text = stderr.decode()
-
-    if process.returncode != 0:
-        logger.error(f"Claude CLI failed with return code {process.returncode}")
-        logger.error(f"stderr: {stderr_text[:500] if stderr_text else '(empty)'}")
-        raise Exception(f"Claude CLI failed: {stderr_text}")
-
-    return stdout_text
 
 
 class CategoryClassifier:

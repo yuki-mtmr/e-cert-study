@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from app.services.claude_cli import ClaudeCLIError
 from app.services.pdf_extractor import (
     call_claude_cli,
     extract_questions_from_text,
@@ -35,7 +36,7 @@ class TestCallClaudeCli:
         mock_process.communicate.return_value = (b'', b'error message')
 
         with patch("asyncio.create_subprocess_exec", return_value=mock_process):
-            with pytest.raises(PDFExtractionError) as exc_info:
+            with pytest.raises(ClaudeCLIError) as exc_info:
                 await call_claude_cli("test prompt")
             assert "Claude CLI error" in str(exc_info.value)
 
